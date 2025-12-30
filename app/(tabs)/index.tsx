@@ -59,71 +59,71 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8F5E9',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20
+    padding: 16
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40
+    marginBottom: 24
   },
   logo: {
-    fontSize: 60,
-    marginBottom: 8
+    fontSize: 44,
+    marginBottom: 6
   },
   title: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '900',
     color: '#2E7D32',
     textAlign: 'center',
-    marginBottom: 6
+    marginBottom: 4
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#666',
     textAlign: 'center'
   },
   primaryButton: {
     backgroundColor: '#4CAF50',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 14,
     width: '90%',
     maxWidth: 400,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
   },
   secondaryButton: {
     backgroundColor: '#FF9800',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 14,
     width: '90%',
     maxWidth: 400,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
   },
   buttonIcon: {
-    fontSize: 40,
-    marginRight: 16
+    fontSize: 32,
+    marginRight: 14
   },
   buttonTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 3
+    marginBottom: 2
   },
   buttonSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#FFFFFF',
     opacity: 0.9
   },
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '90%',
     maxWidth: 400,
-    marginVertical: 24,
+    marginVertical: 16,
   },
   dividerLine: {
     flex: 1,
@@ -140,24 +140,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#999',
   },
   dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
+    marginHorizontal: 12,
+    fontSize: 13,
     color: '#666',
     fontWeight: '600',
   },
   farmerButton: {
     backgroundColor: '#8B4513',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 14,
     width: '90%',
     maxWidth: 400,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
   },
 });
