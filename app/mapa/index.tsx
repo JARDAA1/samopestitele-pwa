@@ -229,7 +229,6 @@ export default function MapaScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Zpět</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>🗺️ Najdi farmáře</Text>
       </View>
 
       {/* Seznam farmářů - kompaktní view */}
