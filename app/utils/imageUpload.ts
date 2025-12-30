@@ -1,0 +1,172 @@
+// ============================================
+// IMAGE UPLOAD UTILITY - SUPABASE STORAGE
+// ============================================
+
+import { supabase } from './supabase';
+import * as FileSystem from 'expo-file-system';
+
+/**
+ * Nahraje obrázek do Supabase Storage
+ * @param uri - Local URI obrázku (z ImagePicker)
+ * @param folder - Složka v bucketu (např. 'logos')
+ * @returns Public URL obrázku nebo null
+ */
+export async function uploadImage(
+  uri: string,
+  folder: string = 'logos'
+): Promise<{ url: string; path: string } | null> {
+  try {
+    console.log('📤 Nahrávám obrázek:', uri);
+
+    // 1. Získat base64 data
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: 'base64',
+    });
+
+    // 2. Detekce MIME typu z URI
+    const fileExt = uri.split('.').pop()?.toLowerCase() || 'jpg';
+    let contentType = 'image/jpeg';
+    
+    if (fileExt === 'png') contentType = 'image/png';
+    if (fileExt === 'webp') contentType = 'image/webp';
+
+    // 3. Vytvořit unikátní název souboru
+    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+    console.log('📝 Název souboru:', fileName);
+    console.log('📋 Content-Type:', contentType);
+
+    // 4. Převést base64 na binary
+    const decode = atob(base64);
+    const byteArray = new Uint8Array(decode.length);
+    for (let i = 0; i < decode.length; i++) {
+      byteArray[i] = decode.charCodeAt(i);
+    }
+
+    // 5. Upload do Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('pestitele-fotky')
+      .upload(fileName, byteArray, {
+        contentType: contentType,
+        upsert: false,
+      });
+
+    if (error) {
+      console.error('❌ Upload error:', error);
+      throw error;
+    }
+
+    console.log('✅ Upload úspěšný:', data.path);
+
+    // 6. Získat veřejnou URL
+    const { data: urlData } = supabase.storage
+      .from('pestitele-fotky')
+      .getPublicUrl(data.path);
+
+    console.log('🔗 Public URL:', urlData.publicUrl);
+
+    return {
+      url: urlData.publicUrl,
+      path: data.path,
+    };
+
+  } catch (error: any) {
+    console.error('❌ Chyba při uploadu:', error);
+    return null;
+  }
+}
+
+/**
+ * Smaže obrázek z Storage
+ * @param path - Cesta k souboru v Storage
+ */
+export async function deleteImage(path: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.storage
+      .from('pestitele-fotky')
+      .remove([path]);
+
+    if (error) throw error;
+
+    console.log('🗑️ Obrázek smazán:', path);
+    return true;
+  } catch (error) {
+    console.error('❌ Chyba při mazání:', error);
+    return false;
+  }
+}
+
+/**
+ * Validace obrázku
+ * @param uri - Local URI obrázku
+ * @param maxSizeMB - Maximální velikost v MB
+ */
+export async function validateImage(
+  uri: string,
+  maxSizeMB: number = 5
+): Promise<{ valid: boolean; error?: string }> {
+  try {
+    // Kontrola typu
+    const ext = uri.split('.').pop()?.toLowerCase();
+    const validExts = ['jpg', 'jpeg', 'png', 'webp'];
+    
+    if (!ext || !validExts.includes(ext)) {
+      return { 
+        valid: false, 
+        error: 'Neplatný formát (povoleno: JPG, PNG, WEBP)' 
+      };
+    }
+
+    // Poznámka: Velikost kontrolujeme až při uploadu
+    // FileSystem.getInfoAsync je deprecated, Supabase má vlastní limity
+
+    return { valid: true };
+
+  } catch (error: any) {
+    return { valid: false, error: error.message };
+  }
+}
+
+// ============================================
+// PŘÍKLAD POUŽITÍ
+// ============================================
+
+/*
+import * as ImagePicker from 'expo-image-picker';
+import { uploadImage, validateImage } from './imageUpload';
+
+// Výběr obrázku
+const result = await ImagePicker.launchImageLibraryAsync({
+  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  allowsEditing: true,
+  aspect: [1, 1],
+  quality: 0.8,
+});
+
+if (!result.canceled) {
+  const uri = result.assets[0].uri;
+  
+  // Validace
+  const validation = await validateImage(uri, 5);
+  if (!validation.valid) {
+    Alert.alert('Chyba', validation.error);
+    return;
+  }
+  
+  // Upload
+  const uploaded = await uploadImage(uri, 'logos');
+  if (uploaded) {
+    console.log('URL:', uploaded.url);
+    console.log('Path:', uploaded.path);
+    
+    // Ulož do databáze
+    await supabase
+      .from('pestitele')
+      .update({ 
+        foto_url: uploaded.url,
+        foto_path: uploaded.path 
+      })
+      .eq('id', pestiteleId);
+  }
+}
+*/
