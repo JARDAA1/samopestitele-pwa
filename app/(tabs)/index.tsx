@@ -16,7 +16,7 @@ export default function HomeScreen() {
         onPress={() => router.push('/mapa')}
       >
         <Text style={styles.buttonIcon}>🗺️</Text>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.buttonTitle}>Najdi farmáře/ku</Text>
         </View>
       </TouchableOpacity>
@@ -27,7 +27,7 @@ export default function HomeScreen() {
         onPress={() => router.push('/explore')}
       >
         <Text style={styles.buttonIcon}>📋</Text>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.buttonTitle}>Moji farmáři/ky</Text>
         </View>
       </TouchableOpacity>
@@ -45,7 +45,7 @@ export default function HomeScreen() {
         onPress={() => router.push('/jsem-farmar')}
       >
         <Text style={styles.buttonIcon}>🌾</Text>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.buttonTitle}>Jsem samopěstitel/ka</Text>
         </View>
       </TouchableOpacity>
