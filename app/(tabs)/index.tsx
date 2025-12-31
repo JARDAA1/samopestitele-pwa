@@ -66,18 +66,18 @@ const styles = StyleSheet.create({
     marginBottom: 24
   },
   logo: {
-    fontSize: 44,
+    fontSize: 35,
     marginBottom: 6
   },
   title: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '900',
     color: '#2E7D32',
     textAlign: 'center',
     marginBottom: 4
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#666',
     textAlign: 'center'
   },
@@ -113,17 +113,17 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonIcon: {
-    fontSize: 32,
+    fontSize: 26,
     marginRight: 14
   },
   buttonTitle: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 2
   },
   buttonSubtitle: {
-    fontSize: 11,
+    fontSize: 9,
     color: '#FFFFFF',
     opacity: 0.9
   },
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     marginHorizontal: 12,
-    fontSize: 13,
+    fontSize: 10,
     color: '#666',
     fontWeight: '600',
   },
