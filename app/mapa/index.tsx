@@ -419,13 +419,16 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 15,
+    paddingTop: 50,
+    paddingHorizontal: 15,
+    paddingBottom: 12,
     backgroundColor: '#4CAF50',
   },
-  backButton: { marginRight: 15 },
-  backButtonText: { fontSize: 16, color: '#FFFFFF', fontWeight: '600' },
+  backButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  backButtonText: { fontSize: 17, color: '#FFFFFF', fontWeight: '700' },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
 
