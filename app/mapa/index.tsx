@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, FlatList, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, FlatList, TextInput, Keyboard } from 'react-native';
 import { router } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../utils/supabase';
 import * as Location from 'expo-location';
 
@@ -222,7 +222,7 @@ export default function MapaScreen() {
     );
   }
 
-  const renderListHeader = () => (
+  const renderListHeader = useCallback(() => (
     <>
       {/* Vyhledávací pole */}
       <View style={styles.searchContainer}>
@@ -236,10 +236,8 @@ export default function MapaScreen() {
               setShowSuggestions(true);
             }
           }}
-          onBlur={() => {
-            // Schovat našeptávač po 200ms (aby stihlo kliknutí na suggestion)
-            setTimeout(() => setShowSuggestions(false), 200);
-          }}
+          autoCorrect={false}
+          autoCapitalize="none"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity
@@ -339,7 +337,7 @@ export default function MapaScreen() {
         </Text>
       </View>
     </>
-  );
+  ), [searchQuery, showSuggestions, suggestions, selectedKategorie, selectedDistance, filteredPestitele]);
 
   return (
     <View style={styles.container}>
@@ -357,9 +355,11 @@ export default function MapaScreen() {
         data={filteredPestitele}
         keyExtractor={(item) => item.id.toString()}
         style={styles.listContainer}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="none"
+        removeClippedSubviews={false}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={() => (
           <View style={styles.emptyState}>
