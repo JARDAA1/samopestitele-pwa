@@ -51,13 +51,13 @@ function RootLayoutNav() {
   return (
     <CartProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="mapa" options={{ headerShown: false }} />
-          <Stack.Screen name="pestitele" options={{ headerShown: false }} />
-          <Stack.Screen name="kosik" options={{ headerShown: false }} />
-          <Stack.Screen name="registrace" options={{ headerShown: false }} />
+          <Stack.Screen name="mapa" />
+          <Stack.Screen name="pestitele" />
+          <Stack.Screen name="kosik" />
+          <Stack.Screen name="registrace" />
         </Stack>
       </ThemeProvider>
     </CartProvider>
