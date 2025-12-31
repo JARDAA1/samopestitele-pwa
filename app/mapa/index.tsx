@@ -222,6 +222,125 @@ export default function MapaScreen() {
     );
   }
 
+  const renderListHeader = () => (
+    <>
+      {/* Vyhledávací pole */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Hledat produkt (např. med, rajčata...)"
+          value={searchQuery}
+          onChangeText={(text) => {
+            setSearchQuery(text);
+            if (text.trim().length > 0) {
+              setShowSuggestions(true);
+            }
+          }}
+          onBlur={() => {
+            // Schovat našeptávač po 200ms (aby stihlo kliknutí na suggestion)
+            setTimeout(() => setShowSuggestions(false), 200);
+          }}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={() => {
+              setSearchQuery('');
+              setShowSuggestions(false);
+            }}
+          >
+            <Text style={styles.clearButtonText}>✕</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Našeptávač */}
+        {showSuggestions && suggestions.length > 0 && (
+          <View style={styles.suggestionsContainer}>
+            {suggestions.map((suggestion, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.suggestionItem}
+                onPress={() => {
+                  setSearchQuery(suggestion);
+                  setShowSuggestions(false);
+                }}
+              >
+                <Text style={styles.suggestionText}>🔍 {suggestion}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+
+      {/* Checkboxy pro kategorie */}
+      <View style={styles.filterContainer}>
+        <Text style={styles.filterTitle}>🏷️ Kategorie:</Text>
+        <View style={styles.categoryButtons}>
+          {KATEGORIE.map((kategorie) => (
+            <TouchableOpacity
+              key={kategorie}
+              style={[
+                styles.categoryButton,
+                selectedKategorie.includes(kategorie) && styles.categoryButtonActive,
+              ]}
+              onPress={() => toggleKategorie(kategorie)}
+            >
+              <Text
+                style={[
+                  styles.categoryButtonText,
+                  selectedKategorie.includes(kategorie) && styles.categoryButtonTextActive,
+                ]}
+              >
+                {selectedKategorie.includes(kategorie) ? '☑' : '☐'} {kategorie}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        {selectedKategorie.length > 0 && (
+          <TouchableOpacity
+            style={styles.clearFiltersButton}
+            onPress={() => setSelectedKategorie([])}
+          >
+            <Text style={styles.clearFiltersText}>Zrušit výběr kategorií</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Kilometrovník - filtr vzdálenosti */}
+      <View style={styles.filterContainer}>
+        <Text style={styles.filterTitle}>📍 Vzdálenost od vás:</Text>
+        <View style={styles.distanceButtons}>
+          {distanceOptions.map((distance) => (
+            <TouchableOpacity
+              key={distance}
+              style={[
+                styles.distanceButton,
+                selectedDistance === distance && styles.distanceButtonActive,
+              ]}
+              onPress={() => setSelectedDistance(distance)}
+            >
+              <Text
+                style={[
+                  styles.distanceButtonText,
+                  selectedDistance === distance && styles.distanceButtonTextActive,
+                ]}
+              >
+                {distance >= 999999 ? 'Neomezeně' : `${distance} km`}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Info banner */}
+      <View style={styles.infoBanner}>
+        <Text style={styles.infoBannerText}>
+          Nalezeno {filteredPestitele.length} farmářů {selectedDistance >= 999999 ? 'v celé ČR' : `do ${selectedDistance} km`}
+        </Text>
+      </View>
+    </>
+  );
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -240,124 +359,8 @@ export default function MapaScreen() {
         style={styles.listContainer}
         contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={true}
-        ListHeaderComponent={() => (
-          <>
-            {/* Vyhledávací pole */}
-            <View style={styles.searchContainer}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Hledat produkt (např. med, rajčata...)"
-                value={searchQuery}
-                onChangeText={(text) => {
-                  setSearchQuery(text);
-                  if (text.trim().length > 0) {
-                    setShowSuggestions(true);
-                  }
-                }}
-                onBlur={() => {
-                  // Schovat našeptávač po 200ms (aby stihlo kliknutí na suggestion)
-                  setTimeout(() => setShowSuggestions(false), 200);
-                }}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity
-                  style={styles.clearButton}
-                  onPress={() => {
-                    setSearchQuery('');
-                    setShowSuggestions(false);
-                  }}
-                >
-                  <Text style={styles.clearButtonText}>✕</Text>
-                </TouchableOpacity>
-              )}
-
-              {/* Našeptávač */}
-              {showSuggestions && suggestions.length > 0 && (
-                <View style={styles.suggestionsContainer}>
-                  {suggestions.map((suggestion, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.suggestionItem}
-                      onPress={() => {
-                        setSearchQuery(suggestion);
-                        setShowSuggestions(false);
-                      }}
-                    >
-                      <Text style={styles.suggestionText}>🔍 {suggestion}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-
-            {/* Checkboxy pro kategorie */}
-            <View style={styles.filterContainer}>
-              <Text style={styles.filterTitle}>🏷️ Kategorie:</Text>
-              <View style={styles.categoryButtons}>
-                {KATEGORIE.map((kategorie) => (
-                  <TouchableOpacity
-                    key={kategorie}
-                    style={[
-                      styles.categoryButton,
-                      selectedKategorie.includes(kategorie) && styles.categoryButtonActive,
-                    ]}
-                    onPress={() => toggleKategorie(kategorie)}
-                  >
-                    <Text
-                      style={[
-                        styles.categoryButtonText,
-                        selectedKategorie.includes(kategorie) && styles.categoryButtonTextActive,
-                      ]}
-                    >
-                      {selectedKategorie.includes(kategorie) ? '☑' : '☐'} {kategorie}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              {selectedKategorie.length > 0 && (
-                <TouchableOpacity
-                  style={styles.clearFiltersButton}
-                  onPress={() => setSelectedKategorie([])}
-                >
-                  <Text style={styles.clearFiltersText}>Zrušit výběr kategorií</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* Kilometrovník - filtr vzdálenosti */}
-            <View style={styles.filterContainer}>
-              <Text style={styles.filterTitle}>📍 Vzdálenost od vás:</Text>
-              <View style={styles.distanceButtons}>
-                {distanceOptions.map((distance) => (
-                  <TouchableOpacity
-                    key={distance}
-                    style={[
-                      styles.distanceButton,
-                      selectedDistance === distance && styles.distanceButtonActive,
-                    ]}
-                    onPress={() => setSelectedDistance(distance)}
-                  >
-                    <Text
-                      style={[
-                        styles.distanceButtonText,
-                        selectedDistance === distance && styles.distanceButtonTextActive,
-                      ]}
-                    >
-                      {distance >= 999999 ? 'Neomezeně' : `${distance} km`}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Info banner */}
-            <View style={styles.infoBanner}>
-              <Text style={styles.infoBannerText}>
-                Nalezeno {filteredPestitele.length} farmářů {selectedDistance >= 999999 ? 'v celé ČR' : `do ${selectedDistance} km`}
-              </Text>
-            </View>
-          </>
-        )}
+        keyboardShouldPersistTaps="handled"
+        ListHeaderComponent={renderListHeader}
         ListEmptyComponent={() => (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🌾</Text>
