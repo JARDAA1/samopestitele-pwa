@@ -224,13 +224,6 @@ export default function MapaScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Zpět</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Seznam farmářů - kompaktní view */}
       <FlatList
         data={filteredPestitele}
@@ -240,6 +233,13 @@ export default function MapaScreen() {
         showsVerticalScrollIndicator={true}
         ListHeaderComponent={() => (
           <>
+            {/* Tlačítko Zpět */}
+            <View style={styles.backButtonContainer}>
+              <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                <Text style={styles.backButtonText}>← Zpět</Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Vyhledávací pole */}
             <View style={styles.searchContainer}>
               <TextInput
@@ -416,20 +416,20 @@ export default function MapaScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  backButtonContainer: {
+    backgroundColor: '#FFFFFF',
     paddingTop: 50,
     paddingHorizontal: 15,
-    paddingBottom: 12,
-    backgroundColor: '#4CAF50',
+    paddingBottom: 10,
   },
   backButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    alignSelf: 'flex-start',
   },
-  backButtonText: { fontSize: 17, color: '#FFFFFF', fontWeight: '700' },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
+  backButtonText: {
+    fontSize: 17,
+    color: '#2E7D32',
+    fontWeight: '700'
+  },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
 
   searchContainer: {
