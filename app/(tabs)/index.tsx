@@ -10,6 +10,8 @@ export default function HomeScreen() {
         <Text style={styles.subtitle}>Propojujeme pěstitele se zákazníky</Text>
       </View>
 
+      {/* Hlavní navigace */}
+
       {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
       <TouchableOpacity
         style={styles.primaryButton}
