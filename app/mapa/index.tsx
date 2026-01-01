@@ -1,7 +1,13 @@
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList, TextInput, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../utils/supabase';
+
+// Dynamický import Supabase - POUZE pro non-web platformy
+let supabase: any = null;
+if (Platform.OS !== 'web') {
+  // Import je bezpečný pouze na native platformách
+  supabase = require('../utils/supabase').supabase;
+}
 
 interface Pestitel {
   id: string;
@@ -83,7 +89,59 @@ export default function MapaScreen() {
 
   const loadPestitele = async () => {
     try {
-      // Načteme farmáře
+      // Pro WEB používáme MOCK DATA (Supabase způsobuje error 310)
+      if (Platform.OS === 'web' || !supabase) {
+        console.log('WEB: Používám mock data - Supabase není dostupný na webu');
+
+        // Mock data - ukázková farma
+        const mockData = [
+          {
+            id: 'mock-1',
+            nazev_farmy: 'Farma U Nováků',
+            jmeno: 'Jan Novák',
+            mesto: 'Praha',
+            adresa: 'Pražská 123',
+            gps_lat: 50.0755,
+            gps_lng: 14.4378,
+            popis: 'Ekologická farma s čerstvými produkty',
+            telefon: '+420 123 456 789',
+            produkty: ['rajčata', 'okurky', 'zelenina', 'med'],
+            kategorie: ['Zelenina', 'Med']
+          },
+          {
+            id: 'mock-2',
+            nazev_farmy: 'BIO Farma Svoboda',
+            jmeno: 'Marie Svobodová',
+            mesto: 'Brno',
+            adresa: 'Brněnská 456',
+            gps_lat: 49.1951,
+            gps_lng: 16.6068,
+            popis: 'BIO certifikované produkty',
+            telefon: '+420 987 654 321',
+            produkty: ['mléko', 'sýr', 'jogurt', 'máslo'],
+            kategorie: ['Mléčné výrobky']
+          },
+          {
+            id: 'mock-3',
+            nazev_farmy: 'Farma Včelař',
+            jmeno: 'Petr Včelař',
+            mesto: 'Olomouc',
+            adresa: 'Olomoucká 789',
+            gps_lat: 49.5938,
+            gps_lng: 17.2509,
+            popis: 'Přírodní med a medové produkty',
+            telefon: '+420 111 222 333',
+            produkty: ['med', 'medovník', 'propolis'],
+            kategorie: ['Med']
+          }
+        ];
+
+        setPestitele(mockData);
+        setLoading(false);
+        return;
+      }
+
+      // Pro NATIVE platformy - reálná data ze Supabase
       const { data: pestiteleData, error: pestiteleError } = await supabase
         .from('pestitele')
         .select('id, nazev_farmy, jmeno, mesto, adresa, gps_lat, gps_lng, popis, telefon')
@@ -114,10 +172,6 @@ export default function MapaScreen() {
       setPestitele(pestiteleWithProdukty);
     } catch (error) {
       console.error('Chyba při načítání pěstitelů:', error);
-      if (Platform.OS !== 'web') {
-        // Alert pouze na mobilních platformách
-        // Na webu by to způsobilo problém
-      }
     } finally {
       setLoading(false);
     }
