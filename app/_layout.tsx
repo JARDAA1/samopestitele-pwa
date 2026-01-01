@@ -48,6 +48,8 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
+  // Globální nastavení - všechny screeny mají headerShown: false
+  // Každý screen má vlastní custom header
   return (
     <CartProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
