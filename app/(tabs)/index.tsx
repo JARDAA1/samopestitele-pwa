@@ -15,7 +15,7 @@ export default function HomeScreen() {
       {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
       <TouchableOpacity
         style={styles.primaryButton}
-        onPress={() => router.push('/mapa/test')}
+        onPress={() => router.push('/mapa')}
       >
         <Text style={styles.buttonIcon}>🗺️</Text>
         <View style={{ flex: 1 }}>
