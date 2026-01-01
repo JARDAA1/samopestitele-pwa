@@ -1,8 +1,8 @@
 //
 //  ContentView.swift
-//  samopestitele
+//  Samopestitele
 //
-//  Created by Jaroslav Antoš on 29.12.2025.
+//  Created by Jaroslav Antoš on 30.12.2025.
 //
 
 import SwiftUI

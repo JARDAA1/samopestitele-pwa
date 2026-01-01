@@ -7,19 +7,11 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		CC25D2352F02EA0700966010 /* samopestitele.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = samopestitele.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC9CB2CA2F043E14005FE21C /* Samopestitele.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Samopestitele.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		CC25D2372F02EA0700966010 /* samopestitele */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = samopestitele;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
-
 /* Begin PBXFrameworksBuildPhase section */
-		CC25D2322F02EA0700966010 /* Frameworks */ = {
+		CC9CB2C72F043E14005FE21C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -29,18 +21,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		CC25D22C2F02EA0700966010 = {
+		CC9CB2C12F043E14005FE21C = {
 			isa = PBXGroup;
 			children = (
-				CC25D2372F02EA0700966010 /* samopestitele */,
-				CC25D2362F02EA0700966010 /* Products */,
+				CC9CB2CB2F043E14005FE21C /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		CC25D2362F02EA0700966010 /* Products */ = {
+		CC9CB2CB2F043E14005FE21C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CC25D2352F02EA0700966010 /* samopestitele.app */,
+				CC9CB2CA2F043E14005FE21C /* Samopestitele.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,64 +39,61 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CC25D2342F02EA0700966010 /* samopestitele */ = {
+		CC9CB2C92F043E14005FE21C /* Samopestitele */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CC25D2402F02EA1200966010 /* Build configuration list for PBXNativeTarget "samopestitele" */;
+			buildConfigurationList = CC9CB2D52F043E1B005FE21C /* Build configuration list for PBXNativeTarget "Samopestitele" */;
 			buildPhases = (
-				CC25D2312F02EA0700966010 /* Sources */,
-				CC25D2322F02EA0700966010 /* Frameworks */,
-				CC25D2332F02EA0700966010 /* Resources */,
+				CC9CB2C62F043E14005FE21C /* Sources */,
+				CC9CB2C72F043E14005FE21C /* Frameworks */,
+				CC9CB2C82F043E14005FE21C /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				CC25D2372F02EA0700966010 /* samopestitele */,
-			);
-			name = samopestitele;
+			name = Samopestitele;
 			packageProductDependencies = (
 			);
-			productName = samopestitele;
-			productReference = CC25D2352F02EA0700966010 /* samopestitele.app */;
+			productName = Samopestitele;
+			productReference = CC9CB2CA2F043E14005FE21C /* Samopestitele.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		CC25D22D2F02EA0700966010 /* Project object */ = {
+		CC9CB2C22F043E14005FE21C /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
-					CC25D2342F02EA0700966010 = {
+					CC9CB2C92F043E14005FE21C = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
 			};
-			buildConfigurationList = CC25D2302F02EA0700966010 /* Build configuration list for PBXProject "samopestitele" */;
+			buildConfigurationList = CC9CB2C52F043E14005FE21C /* Build configuration list for PBXProject "Samopestitele" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = CC25D22C2F02EA0700966010;
+			mainGroup = CC9CB2C12F043E14005FE21C;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = CC25D2362F02EA0700966010 /* Products */;
+			productRefGroup = CC9CB2CB2F043E14005FE21C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CC25D2342F02EA0700966010 /* samopestitele */,
+				CC9CB2C92F043E14005FE21C /* Samopestitele */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		CC25D2332F02EA0700966010 /* Resources */ = {
+		CC9CB2C82F043E14005FE21C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -115,7 +103,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		CC25D2312F02EA0700966010 /* Sources */ = {
+		CC9CB2C62F043E14005FE21C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -125,7 +113,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		CC25D23E2F02EA1200966010 /* Debug */ = {
+		CC9CB2D32F043E1B005FE21C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -189,7 +177,7 @@
 			};
 			name = Debug;
 		};
-		CC25D23F2F02EA1200966010 /* Release */ = {
+		CC9CB2D42F043E1B005FE21C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -246,7 +234,7 @@
 			};
 			name = Release;
 		};
-		CC25D2412F02EA1200966010 /* Debug */ = {
+		CC9CB2D62F043E1B005FE21C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -266,7 +254,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jaroslavantos.samopestitele;
+				PRODUCT_BUNDLE_IDENTIFIER = "jaroslav.antos-seznam.cz.Samopestitele";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -278,7 +266,7 @@
 			};
 			name = Debug;
 		};
-		CC25D2422F02EA1200966010 /* Release */ = {
+		CC9CB2D72F043E1B005FE21C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -298,7 +286,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.jaroslavantos.samopestitele;
+				PRODUCT_BUNDLE_IDENTIFIER = "jaroslav.antos-seznam.cz.Samopestitele";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -313,25 +301,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CC25D2302F02EA0700966010 /* Build configuration list for PBXProject "samopestitele" */ = {
+		CC9CB2C52F043E14005FE21C /* Build configuration list for PBXProject "Samopestitele" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				CC25D23E2F02EA1200966010 /* Debug */,
-				CC25D23F2F02EA1200966010 /* Release */,
+				CC9CB2D32F043E1B005FE21C /* Debug */,
+				CC9CB2D42F043E1B005FE21C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CC25D2402F02EA1200966010 /* Build configuration list for PBXNativeTarget "samopestitele" */ = {
+		CC9CB2D52F043E1B005FE21C /* Build configuration list for PBXNativeTarget "Samopestitele" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				CC25D2412F02EA1200966010 /* Debug */,
-				CC25D2422F02EA1200966010 /* Release */,
+				CC9CB2D62F043E1B005FE21C /* Debug */,
+				CC9CB2D72F043E1B005FE21C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = CC25D22D2F02EA0700966010 /* Project object */;
+	rootObject = CC9CB2C22F043E14005FE21C /* Project object */;
 }
