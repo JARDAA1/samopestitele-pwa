@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, FlatList, TextInput, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, FlatList, TextInput, Keyboard, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../utils/supabase';
@@ -54,17 +54,42 @@ export default function MapaScreen() {
 
   const getUserLocation = async () => {
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Povolení zamítnuto', 'Pro zobrazení farmářů v okolí potřebujeme přístup k poloze.');
-        return;
-      }
+      // Pro web používáme browser Geolocation API přímo
+      if (Platform.OS === 'web') {
+        if (!navigator.geolocation) {
+          console.log('Geolocation není podporována');
+          setUserLocation({ latitude: 49.8175, longitude: 15.473 });
+          return;
+        }
 
-      const location = await Location.getCurrentPositionAsync({});
-      setUserLocation({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      });
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setUserLocation({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+          },
+          (error) => {
+            console.log('Geolocation error:', error.message);
+            // Použijeme výchozí polohu (střed ČR)
+            setUserLocation({ latitude: 49.8175, longitude: 15.473 });
+          }
+        );
+      } else {
+        // Pro nativní aplikace používáme expo-location
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Povolení zamítnuto', 'Pro zobrazení farmářů v okolí potřebujeme přístup k poloze.');
+          setUserLocation({ latitude: 49.8175, longitude: 15.473 });
+          return;
+        }
+
+        const location = await Location.getCurrentPositionAsync({});
+        setUserLocation({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+      }
     } catch (error) {
       console.error('Chyba při získávání polohy:', error);
       // Použijeme výchozí polohu (střed ČR)
