@@ -140,8 +140,8 @@ export default function MapaScreen() {
 
       // Pro NATIVE platformy - dynamický import Supabase
       // Důležité: require() místo import, aby se Supabase nedostal do web buildu
-      // Import z +supabase.ts (prefix + zabraňuje Expo Routeru vytvořit route)
-      const { supabase } = require('../utils/+supabase');
+      // Import z lib/ (mimo app/ složku - Expo Router ho nevidí)
+      const { supabase } = require('../../lib/supabase');
 
       const { data: pestiteleData, error: pestiteleError } = await supabase
         .from('pestitele')
