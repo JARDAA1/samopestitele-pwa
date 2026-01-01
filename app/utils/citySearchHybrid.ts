@@ -2,7 +2,7 @@
 // HYBRID CITY SEARCH - Database + API Fallback
 // ============================================
 
-import { supabase } from './supabase';
+import { supabase } from '../../lib/supabase';
 import { searchCities, CityResult } from './citySearch';
 
 export type HybridCityResult = {

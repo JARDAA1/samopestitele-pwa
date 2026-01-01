@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { supabase } from '../utils/supabase';
+import { supabase } from '../../lib/supabase';
 import { odeslatOverovaciKod, overitSMSKod, existujeFarmar } from '../utils/smsAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

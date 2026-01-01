@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../../lib/supabase';
 
 /**
  * Generuje náhodný 4-místný kód

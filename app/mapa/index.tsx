@@ -2,12 +2,9 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList, 
 import { router } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
 
-// Dynamický import Supabase - POUZE pro non-web platformy
-let supabase: any = null;
-if (Platform.OS !== 'web') {
-  // Import je bezpečný pouze na native platformách
-  supabase = require('../utils/supabase').supabase;
-}
+// DŮLEŽITÉ: Supabase způsobuje React error 310 na webu
+// Pro web používáme mock data nebo fetch API
+// Pro native platformy se Supabase importuje dynamicky v loadPestitele()
 
 interface Pestitel {
   id: string;
@@ -90,10 +87,10 @@ export default function MapaScreen() {
   const loadPestitele = async () => {
     try {
       // Pro WEB používáme MOCK DATA (Supabase způsobuje error 310)
-      if (Platform.OS === 'web' || !supabase) {
+      if (Platform.OS === 'web') {
         console.log('WEB: Používám mock data - Supabase není dostupný na webu');
 
-        // Mock data - ukázková farma
+        // Mock data - ukázkové farmy
         const mockData = [
           {
             id: 'mock-1',
@@ -141,7 +138,11 @@ export default function MapaScreen() {
         return;
       }
 
-      // Pro NATIVE platformy - reálná data ze Supabase
+      // Pro NATIVE platformy - dynamický import Supabase
+      // Důležité: require() místo import, aby se Supabase nedostal do web buildu
+      // Import z +supabase.ts (prefix + zabraňuje Expo Routeru vytvořit route)
+      const { supabase } = require('../utils/+supabase');
+
       const { data: pestiteleData, error: pestiteleError } = await supabase
         .from('pestitele')
         .select('id, nazev_farmy, jmeno, mesto, adresa, gps_lat, gps_lng, popis, telefon')

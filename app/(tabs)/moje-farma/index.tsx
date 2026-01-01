@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput,
 import { router, useFocusEffect } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '../../utils/supabase';
+import { supabase } from '../../../lib/supabase';
 import { odeslatOverovaciKod, overitSMSKod, existujeFarmar } from '../../utils/smsAuth';
 
 interface FarmarData {

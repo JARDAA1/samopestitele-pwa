@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView,
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '../../utils/supabase';
+import { supabase } from '../../../lib/supabase';
 
 // Sada ikon pro produkty
 const PRODUCT_ICONS = [

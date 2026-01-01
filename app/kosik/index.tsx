@@ -10,7 +10,7 @@ import {
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useCart } from '../utils/cartContext';
-import { supabase } from '../utils/supabase';
+import { supabase } from '../../lib/supabase';
 
 export default function KosikScreen() {
   const { cart, removeFromCart, updateQuantity, clearCart, totalPrice, itemCount } = useCart();

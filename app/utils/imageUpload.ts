@@ -2,7 +2,7 @@
 // IMAGE UPLOAD UTILITY - SUPABASE STORAGE
 // ============================================
 
-import { supabase } from './supabase';
+import { supabase } from '../../lib/supabase';
 import * as FileSystem from 'expo-file-system';
 
 /**
