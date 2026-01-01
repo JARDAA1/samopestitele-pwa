@@ -2,7 +2,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Fla
 import { router } from 'expo-router';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../utils/supabase';
-import * as Location from 'expo-location';
 
 interface Pestitel {
   id: string;
@@ -54,14 +53,8 @@ export default function MapaScreen() {
 
   const getUserLocation = async () => {
     try {
-      // Pro web používáme browser Geolocation API přímo
-      if (Platform.OS === 'web') {
-        if (!navigator.geolocation) {
-          console.log('Geolocation není podporována');
-          setUserLocation({ latitude: 49.8175, longitude: 15.473 });
-          return;
-        }
-
+      // Pro web používáme browser Geolocation API
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             setUserLocation({
@@ -76,19 +69,9 @@ export default function MapaScreen() {
           }
         );
       } else {
-        // Pro nativní aplikace používáme expo-location
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Povolení zamítnuto', 'Pro zobrazení farmářů v okolí potřebujeme přístup k poloze.');
-          setUserLocation({ latitude: 49.8175, longitude: 15.473 });
-          return;
-        }
-
-        const location = await Location.getCurrentPositionAsync({});
-        setUserLocation({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
+        // Fallback na výchozí polohu
+        console.log('Geolocation není podporována');
+        setUserLocation({ latitude: 49.8175, longitude: 15.473 });
       }
     } catch (error) {
       console.error('Chyba při získávání polohy:', error);
