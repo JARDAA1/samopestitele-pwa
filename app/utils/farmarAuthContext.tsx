@@ -302,14 +302,23 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         return false;
       }
 
-      // Pro NATIVE - reálné odeslání
-      // TODO: Implementovat SMS bránu (Twilio, MessageBird, apod.)
-      // Prozatím můžeme použít Email jako fallback
-
+      // Pro NATIVE - reálné odeslání přes SMSBrána.cz
       const kod = Math.floor(100000 + Math.random() * 900000).toString();
       console.log('SMS KÓD (pro testování):', kod);
 
       const { supabase } = require('../../lib/supabase');
+
+      // Najdeme farmáře podle telefonu
+      const { data: farmar, error: farmarError } = await supabase
+        .from('pestitele')
+        .select('id')
+        .eq('telefon', telefon)
+        .maybeSingle();
+
+      if (farmarError || !farmar) {
+        console.error('Farmář s tímto telefonem neexistuje');
+        return false;
+      }
 
       // Uložit kód do databáze
       const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minut
@@ -320,6 +329,8 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
           phone: telefon,
           code: kod,
           expires_at: expiresAt.toISOString(),
+          pestitel_id: farmar.id,
+          used: false,
         });
 
       if (error) {
@@ -327,10 +338,48 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         return false;
       }
 
-      // TODO: Odeslat skutečnou SMS
-      // await twilioClient.messages.create({ to: telefon, body: `Váš kód: ${kod}` });
+      // Odeslat SMS přes SMSBrána.cz
+      try {
+        const smsText = `Samopestitele.cz - Vas overovaci kod: ${kod}. Platnost: 5 minut.`;
 
-      return true;
+        // TODO: Přidat API credentials do environment variables
+        const SMSBRANA_LOGIN = process.env.EXPO_PUBLIC_SMSBRANA_LOGIN || '';
+        const SMSBRANA_PASSWORD = process.env.EXPO_PUBLIC_SMSBRANA_PASSWORD || '';
+
+        if (!SMSBRANA_LOGIN || !SMSBRANA_PASSWORD) {
+          console.warn('SMSBrána credentials not configured, using test mode');
+          return true; // V dev módu pokračujeme bez odeslání
+        }
+
+        const response = await fetch('https://api.smsbrana.cz/smsconnect/http.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            action: 'send_sms',
+            login: SMSBRANA_LOGIN,
+            password: SMSBRANA_PASSWORD,
+            number: telefon,
+            message: smsText,
+            delivery_report: '1', // Požadujeme doručenku
+          }).toString(),
+        });
+
+        const result = await response.text();
+        console.log('SMSBrána response:', result);
+
+        // SMSBrána vrací: OK nebo ERR:popis_chyby
+        if (result.startsWith('OK')) {
+          return true;
+        } else {
+          console.error('SMSBrána error:', result);
+          return false;
+        }
+      } catch (smsError) {
+        console.error('Error sending SMS:', smsError);
+        return false;
+      }
     } catch (error) {
       console.error('Send SMS error:', error);
       return false;
