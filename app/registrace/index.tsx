@@ -51,7 +51,7 @@ export default function RegistraceScreen() {
 
     // Na webu přeskočíme SMS ověření
     if (Platform.OS === 'web') {
-      setKrok(2); // Přeskočíme na základní informace
+      setKrok(3); // Přeskočíme přímo na základní informace (krok 3)
       return;
     }
 
