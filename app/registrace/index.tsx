@@ -32,12 +32,22 @@ export default function RegistraceScreen() {
    * KROK 1: Odeslat SMS kód / Pokračovat na web
    */
   const odeslatKod = async () => {
-    // Validace telefonu
-    const cleanPhone = telefon.trim();
+    // Validace a normalizace telefonu
+    let cleanPhone = telefon.trim().replace(/\s/g, ''); // Odstranit mezery
+
+    // Pokud nezačíná +420, přidáme předvolbu
+    if (!cleanPhone.startsWith('+')) {
+      cleanPhone = '+420' + cleanPhone;
+    }
+
+    // Validace formátu
     if (!cleanPhone.match(/^\+420\d{9}$/)) {
-      Alert.alert('Chyba', 'Zadejte platný telefon ve formátu +420xxxxxxxxx');
+      Alert.alert('Chyba', 'Zadejte platné české telefonní číslo (9 číslic)');
       return;
     }
+
+    // Uložíme normalizované číslo zpět do state
+    setTelefon(cleanPhone);
 
     // Na webu přeskočíme SMS ověření
     if (Platform.OS === 'web') {
@@ -191,7 +201,7 @@ export default function RegistraceScreen() {
             <Text style={styles.label}>Telefonní číslo *</Text>
             <TextInput
               style={styles.input}
-              placeholder="+420777123456"
+              placeholder="777123456 nebo +420777123456"
               value={telefon}
               onChangeText={setTelefon}
               keyboardType="phone-pad"
