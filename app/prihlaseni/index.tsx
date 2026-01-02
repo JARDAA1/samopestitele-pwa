@@ -4,17 +4,21 @@ import { useState } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
 
 export default function PrihlaseniScreen() {
-  const { loginWithPin, isAuthenticated } = useFarmarAuth();
+  const { loginWithSMS, sendSMSCode, isAuthenticated } = useFarmarAuth();
 
+  const [krok, setKrok] = useState(1); // 1 = telefon, 2 = SMS kód
   const [telefon, setTelefon] = useState('');
-  const [pin, setPin] = useState('');
+  const [smsKod, setSmsKod] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Poznámka: Nebudeme zde dělat automatický redirect,
   // protože to může způsobit problémy při načítání.
-  // Redirect se udělá až po úspěšném přihlášení v handleLogin.
+  // Redirect se udělá až po úspěšném přihlášení.
 
-  const handleLogin = async () => {
+  /**
+   * KROK 1: Odeslat SMS kód
+   */
+  const handleOdeslatKod = async () => {
     // Validace telefonu
     let cleanPhone = telefon.trim().replace(/\s/g, '');
 
@@ -42,30 +46,64 @@ export default function PrihlaseniScreen() {
       return;
     }
 
-    // Validace PIN
-    if (pin.length < 4) {
+    // Uložíme normalizované číslo
+    setTelefon(cleanPhone);
+
+    setLoading(true);
+    const success = await sendSMSCode(cleanPhone);
+    setLoading(false);
+
+    if (success) {
       if (Platform.OS === 'web') {
-        alert('Zadejte PIN kód (4-6 číslic)');
+        alert('SMS kód byl odeslán na ' + cleanPhone);
       } else {
-        Alert.alert('Chyba', 'Zadejte PIN kód (4-6 číslic)');
+        Alert.alert('SMS odeslána ✓', 'Zadejte kód z SMS zprávy');
+      }
+      setKrok(2);
+    } else {
+      if (Platform.OS === 'web') {
+        alert('Nepodařilo se odeslat SMS. Zkontrolujte telefonní číslo.');
+      } else {
+        Alert.alert('Chyba', 'Nepodařilo se odeslat SMS. Zkontrolujte telefonní číslo.');
+      }
+    }
+  };
+
+  /**
+   * KROK 2: Ověřit SMS kód a přihlásit
+   */
+  const handleOveritKod = async () => {
+    if (smsKod.length !== 6) {
+      if (Platform.OS === 'web') {
+        alert('Zadejte 6-místný kód z SMS');
+      } else {
+        Alert.alert('Chyba', 'Zadejte 6-místný kód z SMS');
       }
       return;
     }
 
     setLoading(true);
-    const success = await loginWithPin(cleanPhone, pin);
+    const success = await loginWithSMS(telefon, smsKod);
     setLoading(false);
 
     if (success) {
       router.replace('/(tabs)/moje-farma');
     } else {
       if (Platform.OS === 'web') {
-        alert('Neplatné telefonní číslo nebo PIN kód');
+        alert('Neplatný SMS kód. Zkuste to znovu nebo požádejte o nový kód.');
       } else {
-        Alert.alert('Chyba', 'Neplatné telefonní číslo nebo PIN kód');
+        Alert.alert('Chyba', 'Neplatný SMS kód. Zkuste to znovu nebo požádejte o nový kód.');
       }
-      setPin('');
+      setSmsKod('');
     }
+  };
+
+  /**
+   * Zpět na zadání telefonu
+   */
+  const handleZpet = () => {
+    setKrok(1);
+    setSmsKod('');
   };
 
   return (
@@ -82,43 +120,87 @@ export default function PrihlaseniScreen() {
       {/* Content */}
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.title}>🔐 Přihlášení</Text>
-          <Text style={styles.subtitle}>
-            Pro přístup do Moje Farma zadejte telefonní číslo a PIN kód
-          </Text>
+          {krok === 1 ? (
+            // KROK 1: Zadání telefonu
+            <>
+              <Text style={styles.title}>📱 Přihlášení</Text>
+              <Text style={styles.subtitle}>
+                Zadejte telefonní číslo. Na toto číslo vám pošleme SMS s ověřovacím kódem.
+              </Text>
 
-          <Text style={styles.label}>Telefonní číslo</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Např. 123456789"
-            value={telefon}
-            onChangeText={setTelefon}
-            keyboardType="phone-pad"
-            autoFocus
-            autoComplete="tel"
-          />
+              <Text style={styles.label}>Telefonní číslo</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Např. 123456789"
+                value={telefon}
+                onChangeText={setTelefon}
+                keyboardType="phone-pad"
+                autoFocus
+                autoComplete="tel"
+                onSubmitEditing={handleOdeslatKod}
+              />
 
-          <Text style={styles.label}>PIN kód</Text>
-          <TextInput
-            style={styles.pinInput}
-            placeholder="••••"
-            value={pin}
-            onChangeText={setPin}
-            keyboardType="number-pad"
-            maxLength={6}
-            secureTextEntry
-            onSubmitEditing={handleLogin}
-          />
+              <TouchableOpacity
+                style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+                onPress={handleOdeslatKod}
+                disabled={loading}
+              >
+                <Text style={styles.loginButtonText}>
+                  {loading ? 'Odesílám SMS...' : 'Odeslat SMS kód'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            // KROK 2: Zadání SMS kódu
+            <>
+              <Text style={styles.title}>🔐 Ověření</Text>
+              <Text style={styles.subtitle}>
+                Zadejte 6-místný kód, který jsme vám poslali na {telefon}
+              </Text>
 
-          <TouchableOpacity
-            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <Text style={styles.loginButtonText}>
-              {loading ? 'Přihlašuji...' : 'Přihlásit se'}
-            </Text>
-          </TouchableOpacity>
+              <Text style={styles.label}>SMS kód</Text>
+              <TextInput
+                style={styles.pinInput}
+                placeholder="••••••"
+                value={smsKod}
+                onChangeText={setSmsKod}
+                keyboardType="number-pad"
+                maxLength={6}
+                secureTextEntry
+                autoFocus
+                onSubmitEditing={handleOveritKod}
+              />
+
+              <TouchableOpacity
+                style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+                onPress={handleOveritKod}
+                disabled={loading}
+              >
+                <Text style={styles.loginButtonText}>
+                  {loading ? 'Ověřuji...' : 'Přihlásit se'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.backLink}
+                onPress={handleZpet}
+              >
+                <Text style={styles.backLinkText}>
+                  ← Změnit telefonní číslo
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.resendLink}
+                onPress={handleOdeslatKod}
+                disabled={loading}
+              >
+                <Text style={styles.resendLinkText}>
+                  Znovu odeslat SMS kód
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
@@ -137,10 +219,18 @@ export default function PrihlaseniScreen() {
         </View>
 
         <View style={styles.helpCard}>
-          <Text style={styles.helpTitle}>💡 Zapomněli jste PIN?</Text>
+          <Text style={styles.helpTitle}>💡 Nemáte přístup k telefonu?</Text>
           <Text style={styles.helpText}>
-            Kontaktujte nás na email: podpora@samopestitele.cz
+            Pokud nemáte přístup k registrovanému telefonu, můžete požádat o obnovení přístupu přes email.
           </Text>
+          <TouchableOpacity
+            style={styles.helpButton}
+            onPress={() => router.push('/zapomenute-heslo')}
+          >
+            <Text style={styles.helpButtonText}>
+              Obnovit přístup přes email
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -293,5 +383,37 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#666',
     lineHeight: 18,
+    marginBottom: 12,
+  },
+  helpButton: {
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#FFC107',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  helpButtonText: {
+    color: '#F57C00',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  backLink: {
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  backLinkText: {
+    color: '#666',
+    fontSize: 14,
+  },
+  resendLink: {
+    padding: 12,
+    alignItems: 'center',
+  },
+  resendLinkText: {
+    color: '#4CAF50',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

@@ -62,6 +62,7 @@ function RootLayoutNav() {
             <Stack.Screen name="kosik/index" />
             <Stack.Screen name="registrace/index" />
             <Stack.Screen name="prihlaseni/index" />
+            <Stack.Screen name="zapomenute-heslo/index" />
             <Stack.Screen name="muj-profil" />
           </Stack>
         </ThemeProvider>

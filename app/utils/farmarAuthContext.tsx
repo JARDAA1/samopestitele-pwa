@@ -194,21 +194,37 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
 
   const loginWithSMS = async (telefon: string, kod: string): Promise<boolean> => {
     try {
-      // Pro WEB - mock ověření
+      // Pro WEB - ověření uloženého kódu
       if (Platform.OS === 'web') {
-        // Mock: Přijmeme jakýkoliv 6-místný kód pro demo
-        if (kod.length === 6) {
-          const farmarData = await AsyncStorage.getItem('farmar_data');
+        const storedCode = await AsyncStorage.getItem('sms_code');
+        const storedPhone = await AsyncStorage.getItem('sms_code_phone');
+        const expiresAt = await AsyncStorage.getItem('sms_code_expires');
 
-          if (farmarData) {
-            const parsedFarmar = JSON.parse(farmarData);
-            setFarmar(parsedFarmar);
-            setAuthLevel('sms');
+        // Kontrola platnosti kódu
+        if (storedCode === kod && storedPhone === telefon) {
+          // Kontrola expirace
+          if (expiresAt && Date.now() < parseInt(expiresAt)) {
+            const farmarData = await AsyncStorage.getItem('farmar_data');
 
-            await AsyncStorage.setItem('farmar_session', farmarData);
-            await AsyncStorage.setItem('auth_level', 'sms');
+            if (farmarData) {
+              const parsedFarmar = JSON.parse(farmarData);
 
-            return true;
+              // Ověříme, že telefon sedí
+              if (parsedFarmar.telefon === telefon) {
+                setFarmar(parsedFarmar);
+                setAuthLevel('sms');
+
+                await AsyncStorage.setItem('farmar_session', farmarData);
+                await AsyncStorage.setItem('auth_level', 'sms');
+
+                // Smažeme použitý kód
+                await AsyncStorage.removeItem('sms_code');
+                await AsyncStorage.removeItem('sms_code_phone');
+                await AsyncStorage.removeItem('sms_code_expires');
+
+                return true;
+              }
+            }
           }
         }
         return false;
@@ -265,11 +281,25 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
 
   const sendSMSCode = async (telefon: string): Promise<boolean> => {
     try {
-      // Pro WEB - mock odeslání
+      // Pro WEB - mock odeslání (uložíme kód pro testování)
       if (Platform.OS === 'web') {
-        console.log('WEB: Mock SMS kód odeslán na', telefon);
-        console.log('Pro demo použijte libovolný 6-místný kód');
-        return true;
+        // Ověříme, že farmář s tímto telefonem existuje
+        const farmarData = await AsyncStorage.getItem('farmar_data');
+        if (farmarData) {
+          const parsedFarmar = JSON.parse(farmarData);
+          if (parsedFarmar.telefon === telefon) {
+            // Vygenerujeme a uložíme kód
+            const kod = Math.floor(100000 + Math.random() * 900000).toString();
+            await AsyncStorage.setItem('sms_code', kod);
+            await AsyncStorage.setItem('sms_code_phone', telefon);
+            await AsyncStorage.setItem('sms_code_expires', (Date.now() + 5 * 60 * 1000).toString());
+
+            console.log('WEB: Mock SMS kód:', kod, 'odeslán na', telefon);
+            console.log('Pro testování použijte tento kód:', kod);
+            return true;
+          }
+        }
+        return false;
       }
 
       // Pro NATIVE - reálné odeslání
