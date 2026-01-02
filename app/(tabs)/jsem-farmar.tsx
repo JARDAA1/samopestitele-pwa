@@ -29,7 +29,7 @@ export default function JsemFarmarScreen() {
 
         <TouchableOpacity
           style={styles.loginButton}
-          onPress={() => router.push('/moje-farma')}
+          onPress={() => router.push('/prihlaseni')}
         >
           <Text style={styles.loginButtonText}>🔑 Už mám účet - Přihlásit se</Text>
         </TouchableOpacity>

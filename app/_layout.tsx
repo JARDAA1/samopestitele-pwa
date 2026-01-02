@@ -61,6 +61,7 @@ function RootLayoutNav() {
             <Stack.Screen name="pestitele/[id]" />
             <Stack.Screen name="kosik/index" />
             <Stack.Screen name="registrace/index" />
+            <Stack.Screen name="prihlaseni/index" />
             <Stack.Screen name="muj-profil" />
           </Stack>
         </ThemeProvider>

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../../lib/supabase';
 import { odeslatOverovaciKod, overitSMSKod, existujeFarmar } from '../../utils/smsAuth';
+import { useFarmarAuth } from '../../utils/farmarAuthContext';
 
 interface FarmarData {
   id: string;
@@ -39,6 +40,15 @@ interface Stanek {
 }
 
 export default function MojeProdejnaScreen() {
+  const { isAuthenticated, farmar, authLevel, logout } = useFarmarAuth();
+
+  // Pokud není přihlášený, přesměruj na přihlášení
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace('/prihlaseni');
+    }
+  }, [isAuthenticated]);
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [farmarData, setFarmarData] = useState<FarmarData | null>(null);
@@ -46,6 +56,15 @@ export default function MojeProdejnaScreen() {
   const [pocetObjednavek, setPocetObjednavek] = useState(0);
   const [farmaInfoExpanded, setFarmaInfoExpanded] = useState(false);
   const [expandedProduktId, setExpandedProduktId] = useState<string | null>(null);
+
+  // Pokud není autentizovaný, nezobrazuj obsah
+  if (!isAuthenticated) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+      </View>
+    );
+  }
 
   // Stánky
   const [stanky, setStanky] = useState<Stanek[]>([]);
