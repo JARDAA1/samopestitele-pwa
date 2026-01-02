@@ -68,9 +68,6 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         // Simulace zpoždění
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Uložíme PIN do AsyncStorage (zahashovaný by měl být na produkci)
-        await AsyncStorage.setItem('farmar_pin', data.pin);
-
         // Vytvoříme mock farmáře
         const newFarmar: Farmar = {
           id: `farmar-${Date.now()}`,
@@ -80,8 +77,15 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
           email: data.email,
         };
 
-        // Uložíme farmáře
+        // Uložíme PIN a farmáře do AsyncStorage
+        await AsyncStorage.setItem('farmar_pin', data.pin);
         await AsyncStorage.setItem('farmar_data', JSON.stringify(newFarmar));
+        await AsyncStorage.setItem('farmar_session', JSON.stringify(newFarmar));
+        await AsyncStorage.setItem('auth_level', 'pin');
+
+        // Nastavíme farmáře do state (automaticky přihlásíme)
+        setFarmar(newFarmar);
+        setAuthLevel('pin');
 
         return { success: true };
       }
