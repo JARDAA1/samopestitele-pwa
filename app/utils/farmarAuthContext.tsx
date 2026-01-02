@@ -34,6 +34,7 @@ const FarmarAuthContext = createContext<FarmarAuthContextType | undefined>(undef
 export function FarmarAuthProvider({ children }: { children: React.ReactNode }) {
   const [farmar, setFarmar] = useState<Farmar | null>(null);
   const [authLevel, setAuthLevel] = useState<'none' | 'pin' | 'sms'>('none');
+  const [isSessionChecked, setIsSessionChecked] = useState(false);
 
   useEffect(() => {
     checkExistingSession();
@@ -44,12 +45,14 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
       const storedFarmar = await AsyncStorage.getItem('farmar_session');
       const storedAuthLevel = await AsyncStorage.getItem('auth_level');
 
-      if (storedFarmar) {
+      if (storedFarmar && storedAuthLevel) {
         setFarmar(JSON.parse(storedFarmar));
         setAuthLevel((storedAuthLevel as any) || 'pin');
       }
     } catch (error) {
       console.error('Error checking session:', error);
+    } finally {
+      setIsSessionChecked(true);
     }
   };
 
@@ -80,12 +83,12 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         // Uložíme PIN a farmáře do AsyncStorage
         await AsyncStorage.setItem('farmar_pin', data.pin);
         await AsyncStorage.setItem('farmar_data', JSON.stringify(newFarmar));
-        await AsyncStorage.setItem('farmar_session', JSON.stringify(newFarmar));
-        await AsyncStorage.setItem('auth_level', 'pin');
 
-        // Nastavíme farmáře do state (automaticky přihlásíme)
-        setFarmar(newFarmar);
-        setAuthLevel('pin');
+        // NEBUDEME automaticky přihlašovat - uživatel se musí přihlásit přes PIN
+        // await AsyncStorage.setItem('farmar_session', JSON.stringify(newFarmar));
+        // await AsyncStorage.setItem('auth_level', 'pin');
+        // setFarmar(newFarmar);
+        // setAuthLevel('pin');
 
         return { success: true };
       }
@@ -285,6 +288,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     setAuthLevel('none');
     await AsyncStorage.removeItem('farmar_session');
     await AsyncStorage.removeItem('auth_level');
+    // Nebudeme mazat farmar_data ani farmar_pin - uživatel se může znovu přihlásit
   };
 
   const value: FarmarAuthContextType = {

@@ -148,17 +148,18 @@ export default function RegistraceScreen() {
       });
 
       if (result.success) {
-        // Na webu přesměrujeme rovnou (Alert.alert nefunguje spolehlivě)
+        // Na webu přesměrujeme na přihlášení (Alert.alert nefunguje spolehlivě)
         if (Platform.OS === 'web') {
-          router.replace('/(tabs)/moje-farma');
+          alert('Registrace úspěšná! Nyní se prosím přihlaste pomocí vašeho PIN kódu.');
+          router.replace('/prihlaseni');
         } else {
-          // Na native zobrazíme alert
+          // Na native zobrazíme alert a přesměrujeme na přihlášení
           Alert.alert(
             'Úspěch! 🎉',
-            'Váš účet byl vytvořen. Nyní můžete spravovat svou farmu.',
+            'Váš účet byl vytvořen. Nyní se prosím přihlaste pomocí vašeho PIN kódu.',
             [{
-              text: 'Pokračovat',
-              onPress: () => router.replace('/(tabs)/moje-farma')
+              text: 'Přihlásit se',
+              onPress: () => router.replace('/prihlaseni')
             }]
           );
         }
