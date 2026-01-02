@@ -148,14 +148,20 @@ export default function RegistraceScreen() {
       });
 
       if (result.success) {
-        Alert.alert(
-          'Úspěch! 🎉',
-          'Váš účet byl vytvořen. Nyní můžete spravovat svou farmu.',
-          [{
-            text: 'Pokračovat',
-            onPress: () => router.replace('/(tabs)/moje-farma')
-          }]
-        );
+        // Na webu přesměrujeme rovnou (Alert.alert nefunguje spolehlivě)
+        if (Platform.OS === 'web') {
+          router.replace('/(tabs)/moje-farma');
+        } else {
+          // Na native zobrazíme alert
+          Alert.alert(
+            'Úspěch! 🎉',
+            'Váš účet byl vytvořen. Nyní můžete spravovat svou farmu.',
+            [{
+              text: 'Pokračovat',
+              onPress: () => router.replace('/(tabs)/moje-farma')
+            }]
+          );
+        }
       } else {
         Alert.alert('Chyba', result.error || 'Nepodařilo se vytvořit účet');
       }
