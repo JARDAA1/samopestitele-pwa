@@ -6,6 +6,7 @@ import { useFarmarAuth } from '../utils/farmarAuthContext';
 export default function PrihlaseniScreen() {
   const { loginWithPin, isAuthenticated } = useFarmarAuth();
 
+  const [telefon, setTelefon] = useState('');
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -14,6 +15,34 @@ export default function PrihlaseniScreen() {
   // Redirect se udělá až po úspěšném přihlášení v handleLogin.
 
   const handleLogin = async () => {
+    // Validace telefonu
+    let cleanPhone = telefon.trim().replace(/\s/g, '');
+
+    if (!cleanPhone) {
+      if (Platform.OS === 'web') {
+        alert('Zadejte telefonní číslo');
+      } else {
+        Alert.alert('Chyba', 'Zadejte telefonní číslo');
+      }
+      return;
+    }
+
+    // Pokud nezačíná +420, přidáme předvolbu
+    if (!cleanPhone.startsWith('+')) {
+      cleanPhone = '+420' + cleanPhone;
+    }
+
+    // Validace formátu
+    if (!cleanPhone.match(/^\+420\d{9}$/)) {
+      if (Platform.OS === 'web') {
+        alert('Zadejte platné české telefonní číslo (9 číslic)');
+      } else {
+        Alert.alert('Chyba', 'Zadejte platné české telefonní číslo (9 číslic)');
+      }
+      return;
+    }
+
+    // Validace PIN
     if (pin.length < 4) {
       if (Platform.OS === 'web') {
         alert('Zadejte PIN kód (4-6 číslic)');
@@ -24,16 +53,16 @@ export default function PrihlaseniScreen() {
     }
 
     setLoading(true);
-    const success = await loginWithPin(pin);
+    const success = await loginWithPin(cleanPhone, pin);
     setLoading(false);
 
     if (success) {
       router.replace('/(tabs)/moje-farma');
     } else {
       if (Platform.OS === 'web') {
-        alert('Neplatný PIN kód');
+        alert('Neplatné telefonní číslo nebo PIN kód');
       } else {
-        Alert.alert('Chyba', 'Neplatný PIN kód');
+        Alert.alert('Chyba', 'Neplatné telefonní číslo nebo PIN kód');
       }
       setPin('');
     }
@@ -53,11 +82,23 @@ export default function PrihlaseniScreen() {
       {/* Content */}
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.title}>🔐 Zadejte PIN kód</Text>
+          <Text style={styles.title}>🔐 Přihlášení</Text>
           <Text style={styles.subtitle}>
-            Pro přístup do Moje Farma zadejte váš PIN kód
+            Pro přístup do Moje Farma zadejte telefonní číslo a PIN kód
           </Text>
 
+          <Text style={styles.label}>Telefonní číslo</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Např. 123456789"
+            value={telefon}
+            onChangeText={setTelefon}
+            keyboardType="phone-pad"
+            autoFocus
+            autoComplete="tel"
+          />
+
+          <Text style={styles.label}>PIN kód</Text>
           <TextInput
             style={styles.pinInput}
             placeholder="••••"
@@ -66,7 +107,6 @@ export default function PrihlaseniScreen() {
             keyboardType="number-pad"
             maxLength={6}
             secureTextEntry
-            autoFocus
             onSubmitEditing={handleLogin}
           />
 
@@ -167,6 +207,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32,
     lineHeight: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2E7D32',
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  input: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    marginBottom: 16,
   },
   pinInput: {
     backgroundColor: '#F5F5F5',

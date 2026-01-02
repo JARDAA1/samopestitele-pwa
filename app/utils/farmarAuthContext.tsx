@@ -14,7 +14,7 @@ interface FarmarAuthContextType {
   farmar: Farmar | null;
   isAuthenticated: boolean;
   authLevel: 'none' | 'pin' | 'sms'; // Úroveň autentizace
-  loginWithPin: (pin: string) => Promise<boolean>;
+  loginWithPin: (telefon: string, pin: string) => Promise<boolean>;
   loginWithSMS: (telefon: string, kod: string) => Promise<boolean>;
   logout: () => Promise<void>;
   register: (data: {
@@ -136,23 +136,53 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
-  const loginWithPin = async (pin: string): Promise<boolean> => {
+  const loginWithPin = async (telefon: string, pin: string): Promise<boolean> => {
     try {
-      const storedPin = await AsyncStorage.getItem('farmar_pin');
-
-      if (storedPin === pin) {
+      // Pro WEB - kontrola PIN a telefonu z AsyncStorage
+      if (Platform.OS === 'web') {
+        const storedPin = await AsyncStorage.getItem('farmar_pin');
         const farmarData = await AsyncStorage.getItem('farmar_data');
 
-        if (farmarData) {
+        if (farmarData && storedPin === pin) {
           const parsedFarmar = JSON.parse(farmarData);
-          setFarmar(parsedFarmar);
-          setAuthLevel('pin');
 
-          await AsyncStorage.setItem('farmar_session', farmarData);
-          await AsyncStorage.setItem('auth_level', 'pin');
+          // Ověříme, že telefon sedí
+          if (parsedFarmar.telefon === telefon) {
+            setFarmar(parsedFarmar);
+            setAuthLevel('pin');
 
-          return true;
+            await AsyncStorage.setItem('farmar_session', farmarData);
+            await AsyncStorage.setItem('auth_level', 'pin');
+
+            return true;
+          }
         }
+
+        return false;
+      }
+
+      // Pro NATIVE - kontrola proti Supabase
+      const { supabase } = require('../../lib/supabase');
+
+      const { data: farmarData, error } = await supabase
+        .from('pestitele')
+        .select('*')
+        .eq('telefon', telefon)
+        .maybeSingle();
+
+      if (error || !farmarData) {
+        return false;
+      }
+
+      // Ověříme PIN (v produkci by to měl být hash!)
+      if (farmarData.pin_hash === pin) {
+        setFarmar(farmarData);
+        setAuthLevel('pin');
+
+        await AsyncStorage.setItem('farmar_session', JSON.stringify(farmarData));
+        await AsyncStorage.setItem('auth_level', 'pin');
+
+        return true;
       }
 
       return false;
