@@ -3,7 +3,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../../lib/supabase';
-import { odeslatOverovaciKod, overitSMSKod, existujeFarmar } from '../../utils/smsAuth';
 import { useFarmarAuth } from '../../utils/farmarAuthContext';
 
 interface FarmarData {
@@ -79,13 +78,7 @@ export default function MojeProdejnaScreen() {
     cas_do: ''
   });
 
-  // Přihlašovací formulář - SMS autentizace
-  const [showLogin, setShowLogin] = useState(false);
-  const [telefon, setTelefon] = useState('');
-  const [smsKod, setSmsKod] = useState('');
-  const [odeslanyKod, setOdeslanyKod] = useState(''); // Pro testování
-  const [krokPrihlaseni, setKrokPrihlaseni] = useState(1); // 1 = telefon, 2 = SMS kód
-  const [loginLoading, setLoginLoading] = useState(false);
+  // Staré přihlašovací state proměnné - ODSTRANĚNO (nyní používáme /prihlaseni)
 
   useEffect(() => {
     checkLoginAndLoadData();
@@ -324,133 +317,7 @@ export default function MojeProdejnaScreen() {
     );
   };
 
-  // KROK 1: Odeslat SMS kód
-  const handleOdeslatKod = async () => {
-    const cleanPhone = telefon.trim();
-    if (!cleanPhone.match(/^\+420\d{9}$/)) {
-      Alert.alert('Chyba', 'Zadejte platný telefon ve formátu +420xxxxxxxxx');
-      return;
-    }
-
-    setLoginLoading(true);
-    try {
-      // Zkontroluj, jestli farmář existuje
-      const existuje = await existujeFarmar(cleanPhone);
-      if (!existuje) {
-        Alert.alert(
-          'Účet neexistuje',
-          'Tento telefon není zaregistrován. Chcete se zaregistrovat?',
-          [
-            { text: 'Zrušit', style: 'cancel' },
-            { text: 'Zaregistrovat', onPress: () => router.push('/registrace') }
-          ]
-        );
-        setLoginLoading(false);
-        return;
-      }
-
-      // Odešli SMS kód
-      const result = await odeslatOverovaciKod(cleanPhone, 'prihlaseni');
-      if (!result.success) {
-        Alert.alert('Chyba', result.error || 'Nepodařilo se odeslat SMS');
-        setLoginLoading(false);
-        return;
-      }
-
-      // PRO TESTOVÁNÍ: Ukážeme kód v alertu (v produkci SMAZAT!)
-      if (result.kod) {
-        setOdeslanyKod(result.kod);
-        Alert.alert(
-          'SMS odeslána ✓',
-          `Testovací režim: Váš kód je ${result.kod}\n\nV produkci dostanete SMS.`,
-          [{ text: 'OK', onPress: () => setKrokPrihlaseni(2) }]
-        );
-      } else {
-        Alert.alert('SMS odeslána ✓', 'Zadejte kód z SMS zprávy', [
-          { text: 'OK', onPress: () => setKrokPrihlaseni(2) }
-        ]);
-      }
-    } catch (error: any) {
-      Alert.alert('Chyba', error.message || 'Nepodařilo se odeslat SMS');
-    } finally {
-      setLoginLoading(false);
-    }
-  };
-
-  // KROK 2: Ověřit SMS kód a přihlásit
-  const handleOveritKod = async () => {
-    if (smsKod.length !== 4) {
-      Alert.alert('Chyba', 'Zadejte 4-místný kód');
-      return;
-    }
-
-    setLoginLoading(true);
-    try {
-      // Ověř kód
-      const result = await overitSMSKod(telefon, smsKod);
-      if (!result.valid) {
-        Alert.alert('Chyba', result.error || 'Neplatný kód');
-        setLoginLoading(false);
-        return;
-      }
-
-      // Načti data farmáře
-      const { data, error } = await supabase
-        .from('pestitele')
-        .select('id, telefon')
-        .eq('telefon', telefon)
-        .single();
-
-      if (error || !data) {
-        console.error('Chyba při načítání farmáře:', error);
-        Alert.alert('Chyba', 'Nepodařilo se načíst data farmáře');
-        setLoginLoading(false);
-        return;
-      }
-
-      // Ověř, že máme platné ID
-      if (!data.id) {
-        console.error('Chybí ID farmáře v datech:', data);
-        Alert.alert('Chyba', 'Data farmáře jsou neúplná');
-        setLoginLoading(false);
-        return;
-      }
-
-      // Převeď ID na string pro AsyncStorage
-      const pestitelId = String(data.id);
-      console.log('Přihlašování farmáře s ID:', pestitelId);
-
-      // Uložit přihlášení
-      await AsyncStorage.setItem('pestitelLoggedIn', 'true');
-      await AsyncStorage.setItem('pestitelId', pestitelId);
-      await AsyncStorage.setItem('pestitelTelefon', data.telefon);
-
-      setIsLoggedIn(true);
-      setShowLogin(false);
-      setKrokPrihlaseni(1);
-      setSmsKod('');
-      setTelefon('');
-
-      // Načíst data postupně s logováním
-      console.log('Načítám data farmáře...');
-      await loadFarmarData(pestitelId);
-      console.log('Data farmáře načtena');
-
-      console.log('Načítám produkty...');
-      await loadProdukty(pestitelId);
-      console.log('Produkty načteny');
-
-      console.log('Načítám počet objednávek...');
-      await loadPocetObjednavek(pestitelId);
-      console.log('Počet objednávek načten');
-
-      Alert.alert('Úspěch', 'Byli jste úspěšně přihlášeni');
-    } catch (error: any) {
-      Alert.alert('Chyba', error.message || 'Nepodařilo se přihlásit');
-    } finally {
-      setLoginLoading(false);
-    }
-  };
+  // Staré přihlašovací funkce ODSTRANĚNY - nyní se používá nový auth systém
 
   const handleOdhlasit = async () => {
     Alert.alert(
@@ -462,13 +329,8 @@ export default function MojeProdejnaScreen() {
           text: 'Odhlásit',
           style: 'destructive',
           onPress: async () => {
-            await AsyncStorage.removeItem('pestitelLoggedIn');
-            await AsyncStorage.removeItem('pestitelId');
-            await AsyncStorage.removeItem('pestitelTelefon');
-            setIsLoggedIn(false);
-            setFarmarData(null);
-            setProdukty([]);
-            Alert.alert('Odhlášeno', 'Byli jste úspěšně odhlášeni');
+            await logout();
+            router.replace('/prihlaseni');
           }
         }
       ]
@@ -484,115 +346,7 @@ export default function MojeProdejnaScreen() {
     );
   }
 
-  // PŘIHLAŠOVACÍ FORMULÁŘ - SMS AUTENTIZACE
-  if (!isLoggedIn || showLogin) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>🏪 Moje prodejna</Text>
-          <Text style={styles.headerSubtitle}>Přihlášení farmáře</Text>
-        </View>
-
-        <ScrollView contentContainerStyle={styles.loginContent}>
-          <View style={styles.loginCard}>
-            <Text style={styles.loginIcon}>🔑</Text>
-            <Text style={styles.loginTitle}>Přihlaste se do své prodejny</Text>
-
-            {/* KROK 1: Telefon */}
-            {krokPrihlaseni === 1 && (
-              <>
-                <Text style={styles.infoTextSmall}>Zadejte telefonní číslo. Pošleme vám SMS s ověřovacím kódem.</Text>
-
-                <Text style={styles.label}>Telefon</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="+420777123456"
-                  value={telefon}
-                  onChangeText={setTelefon}
-                  keyboardType="phone-pad"
-                  autoCapitalize="none"
-                />
-
-                <TouchableOpacity
-                  style={[styles.loginButton, loginLoading && styles.buttonDisabled]}
-                  onPress={handleOdeslatKod}
-                  disabled={loginLoading}
-                >
-                  <Text style={styles.loginButtonText}>
-                    {loginLoading ? 'Odesílám SMS...' : '📱 Odeslat SMS kód'}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-
-            {/* KROK 2: SMS kód */}
-            {krokPrihlaseni === 2 && (
-              <>
-                <Text style={styles.infoTextSmall}>
-                  Zadejte 4-místný kód, který jsme vám poslali na číslo {telefon}
-                </Text>
-
-                {/* PRO TESTOVÁNÍ - v produkci SMAZAT */}
-                {odeslanyKod && (
-                  <View style={styles.testBox}>
-                    <Text style={styles.testText}>🧪 TESTOVACÍ REŽIM</Text>
-                    <Text style={styles.testCode}>Váš kód: {odeslanyKod}</Text>
-                  </View>
-                )}
-
-                <Text style={styles.label}>SMS kód</Text>
-                <TextInput
-                  style={[styles.input, styles.inputCode]}
-                  placeholder="1234"
-                  value={smsKod}
-                  onChangeText={setSmsKod}
-                  keyboardType="number-pad"
-                  maxLength={4}
-                  autoFocus
-                />
-
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => setKrokPrihlaseni(1)}
-                  >
-                    <Text style={styles.backButtonText}>← Zpět</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.loginButton, { flex: 1 }, loginLoading && styles.buttonDisabled]}
-                    onPress={handleOveritKod}
-                    disabled={loginLoading}
-                  >
-                    <Text style={styles.loginButtonText}>
-                      {loginLoading ? 'Ověřuji...' : '🔓 Přihlásit se'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity onPress={handleOdeslatKod} style={styles.resendButton}>
-                  <Text style={styles.resendText}>Odeslat kód znovu</Text>
-                </TouchableOpacity>
-              </>
-            )}
-
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>NEBO</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <TouchableOpacity
-              style={styles.registerButton}
-              onPress={() => router.push('/registrace')}
-            >
-              <Text style={styles.registerButtonText}>📝 Zaregistrovat novou farmu</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </View>
-    );
-  }
+  // Starý přihlašovací formulář ODSTRANĚN - nyní se používá /prihlaseni
 
   // PŘIHLÁŠENÝ FARMÁŘ - PRODEJNA
   return (
