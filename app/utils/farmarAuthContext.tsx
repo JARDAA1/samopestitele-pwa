@@ -293,7 +293,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
 
   const value: FarmarAuthContextType = {
     farmar,
-    isAuthenticated: farmar !== null,
+    isAuthenticated: farmar !== null && authLevel !== 'none',
     authLevel,
     loginWithPin,
     loginWithSMS,

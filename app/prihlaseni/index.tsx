@@ -9,11 +9,9 @@ export default function PrihlaseniScreen() {
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Pokud už je přihlášený, přesměruj na Moje Farma
-  if (isAuthenticated) {
-    router.replace('/(tabs)/moje-farma');
-    return null;
-  }
+  // Poznámka: Nebudeme zde dělat automatický redirect,
+  // protože to může způsobit problémy při načítání.
+  // Redirect se udělá až po úspěšném přihlášení v handleLogin.
 
   const handleLogin = async () => {
     if (pin.length < 4) {
