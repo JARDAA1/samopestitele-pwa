@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { CartProvider } from './utils/cartContext';
+import { FarmarAuthProvider } from './utils/farmarAuthContext';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -50,18 +51,20 @@ function RootLayoutNav() {
   // Globální nastavení - všechny screeny mají headerShown: false
   // Každý screen má vlastní custom header
   return (
-    <CartProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="mapa/index" />
-          <Stack.Screen name="pestitele/[id]" />
-          <Stack.Screen name="kosik/index" />
-          <Stack.Screen name="registrace/index" />
-          <Stack.Screen name="muj-profil" />
-        </Stack>
-      </ThemeProvider>
-    </CartProvider>
+    <FarmarAuthProvider>
+      <CartProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="mapa/index" />
+            <Stack.Screen name="pestitele/[id]" />
+            <Stack.Screen name="kosik/index" />
+            <Stack.Screen name="registrace/index" />
+            <Stack.Screen name="muj-profil" />
+          </Stack>
+        </ThemeProvider>
+      </CartProvider>
+    </FarmarAuthProvider>
   );
 }

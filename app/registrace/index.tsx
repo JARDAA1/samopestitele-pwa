@@ -1,20 +1,19 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { odeslatOverovaciKod, overitSMSKod, existujeFarmar } from '../utils/smsAuth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFarmarAuth } from '../utils/farmarAuthContext';
 
 export default function RegistraceScreen() {
+  const { register, sendSMSCode } = useFarmarAuth();
+
   const [krok, setKrok] = useState(1);
   const [loading, setLoading] = useState(false);
 
   // KROK 1: Telefon
   const [telefon, setTelefon] = useState('');
 
-  // KROK 2: SMS Kód
+  // KROK 2: SMS Kód (pouze pro native)
   const [smsKod, setSmsKod] = useState('');
-  const [odeslanyKod, setOdeslanyKod] = useState(''); // Pro testování
 
   // KROK 3: Základní informace
   const [jmeno, setJmeno] = useState('');
@@ -22,11 +21,15 @@ export default function RegistraceScreen() {
   const [mesto, setMesto] = useState('');
   const [email, setEmail] = useState('');
 
-  // KROK 4: Souhlas
+  // KROK 4: PIN
+  const [pin, setPin] = useState('');
+  const [pinPotvrdit, setPinPotvrdit] = useState('');
+
+  // KROK 5: Souhlas
   const [souhlas, setSouhlas] = useState(false);
 
   /**
-   * KROK 1: Odeslat SMS kód
+   * KROK 1: Odeslat SMS kód / Pokračovat na web
    */
   const odeslatKod = async () => {
     // Validace telefonu
@@ -36,78 +39,40 @@ export default function RegistraceScreen() {
       return;
     }
 
+    // Na webu přeskočíme SMS ověření
+    if (Platform.OS === 'web') {
+      setKrok(2); // Přeskočíme na základní informace
+      return;
+    }
+
+    // Na native zařízení odešleme SMS
     setLoading(true);
-    try {
-      // Zkontroluj, jestli farmář už neexistuje
-      const existuje = await existujeFarmar(cleanPhone);
-      if (existuje) {
-        Alert.alert(
-          'Účet již existuje',
-          'Tento telefon je již zaregistrován. Chcete se přihlásit?',
-          [
-            { text: 'Zrušit', style: 'cancel' },
-            { text: 'Přihlásit se', onPress: () => router.replace('/moje-farma') }
-          ]
-        );
-        setLoading(false);
-        return;
-      }
+    const success = await sendSMSCode(cleanPhone);
+    setLoading(false);
 
-      // Odešli SMS kód
-      const result = await odeslatOverovaciKod(cleanPhone, 'registrace');
-
-      if (!result.success) {
-        Alert.alert('Chyba', result.error || 'Nepodařilo se odeslat SMS');
-        setLoading(false);
-        return;
-      }
-
-      // PRO TESTOVÁNÍ: Ukážeme kód v alertu (v produkci SMAZAT!)
-      if (result.kod) {
-        setOdeslanyKod(result.kod);
-        Alert.alert(
-          'SMS odeslána ✓',
-          `Testovací režim: Váš kód je ${result.kod}\n\nV produkci dostanete SMS.`,
-          [{ text: 'OK', onPress: () => setKrok(2) }]
-        );
-      } else {
-        Alert.alert('SMS odeslána ✓', 'Zadejte kód z SMS zprávy', [
-          { text: 'OK', onPress: () => setKrok(2) }
-        ]);
-      }
-    } catch (error: any) {
-      Alert.alert('Chyba', error.message || 'Nepodařilo se odeslat SMS');
-    } finally {
-      setLoading(false);
+    if (success) {
+      Alert.alert(
+        'SMS odeslána ✓',
+        'Zadejte kód z SMS zprávy (pro testování použijte libovolných 6 číslic)',
+        [{ text: 'OK', onPress: () => setKrok(2) }]
+      );
+    } else {
+      Alert.alert('Chyba', 'Nepodařilo se odeslat SMS kód');
     }
   };
 
   /**
-   * KROK 2: Ověřit SMS kód
+   * KROK 2: Ověřit SMS kód (pouze pro native, na webu přeskočeno)
    */
   const overitKod = async () => {
-    if (smsKod.length !== 4) {
-      Alert.alert('Chyba', 'Zadejte 4-místný kód');
+    if (smsKod.length !== 6) {
+      Alert.alert('Chyba', 'Zadejte 6-místný kód');
       return;
     }
 
-    setLoading(true);
-    try {
-      const result = await overitSMSKod(telefon, smsKod);
-
-      if (!result.valid) {
-        Alert.alert('Chyba', result.error || 'Neplatný kód');
-        setLoading(false);
-        return;
-      }
-
-      // Kód je validní, pokračujeme na další krok
-      setKrok(3);
-    } catch (error: any) {
-      Alert.alert('Chyba', error.message || 'Nepodařilo se ověřit kód');
-    } finally {
-      setLoading(false);
-    }
+    // Prozatím přijmeme jakýkoliv 6-místný kód (mock pro testování)
+    // V produkci by tady bylo: await verifyPhone(telefon, smsKod)
+    setKrok(3);
   };
 
   /**
@@ -122,8 +87,9 @@ export default function RegistraceScreen() {
       Alert.alert('Chyba', 'Zadejte název farmy');
       return;
     }
-    if (!mesto.trim()) {
-      Alert.alert('Chyba', 'Zadejte město nebo obec');
+    // Email je nepovinný, ale pokud je zadán, validujeme
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      Alert.alert('Chyba', 'Zadejte platný email nebo pole nechte prázdné');
       return;
     }
 
@@ -131,7 +97,29 @@ export default function RegistraceScreen() {
   };
 
   /**
-   * KROK 4: Dokončení registrace
+   * KROK 4: Vytvoření PIN kódu
+   */
+  const validovatPin = () => {
+    if (pin.length < 4 || pin.length > 6) {
+      Alert.alert('Chyba', 'PIN musí mít 4-6 číslic');
+      return;
+    }
+
+    if (!/^\d+$/.test(pin)) {
+      Alert.alert('Chyba', 'PIN musí obsahovat pouze číslice');
+      return;
+    }
+
+    if (pin !== pinPotvrdit) {
+      Alert.alert('Chyba', 'PIN kódy se neshodují');
+      return;
+    }
+
+    setKrok(5);
+  };
+
+  /**
+   * KROK 5: Dokončení registrace
    */
   const registrovat = async () => {
     if (!souhlas) {
@@ -141,45 +129,28 @@ export default function RegistraceScreen() {
 
     setLoading(true);
     try {
-      // Vložit do Supabase (БEZ hesla!)
-      const { data, error } = await supabase
-        .from('pestitele')
-        .insert({
-          telefon: telefon,
-          jmeno: jmeno,
-          nazev: nazevFarmy, // Název farmáře/farmy
-          nazev_farmy: nazevFarmy, // Stejné jako nazev (pro kompatibilitu)
-          mesto: mesto,
-          email: email || null,
-          gps_lat: 0, // Doplníme později
-          gps_lng: 0, // Doplníme později
-          // ŽÁDNÉ heslo_hash! 🎉
-        })
-        .select()
-        .single();
+      const result = await register({
+        telefon,
+        nazev_farmy: nazevFarmy,
+        jmeno,
+        email: email || undefined,
+        pin,
+      });
 
-      if (error) throw error;
-
-      // Uložit telefon do AsyncStorage pro automatické přihlášení
-      await AsyncStorage.setItem('pestitel_telefon', telefon);
-      if (data?.id) {
-        await AsyncStorage.setItem('pestitel_id', data.id.toString());
-      }
-
-      Alert.alert(
-        'Úspěch! 🎉',
-        'Váš účet byl vytvořen. Nyní můžete spravovat svou farmu.',
-        [{
-          text: 'Pokračovat',
-          onPress: () => router.replace('/(tabs)/moje-farma')
-        }]
-      );
-    } catch (error: any) {
-      if (error.code === '23505') {
-        Alert.alert('Chyba', 'Tento telefon je již zaregistrován');
+      if (result.success) {
+        Alert.alert(
+          'Úspěch! 🎉',
+          'Váš účet byl vytvořen. Nyní můžete spravovat svou farmu.',
+          [{
+            text: 'Pokračovat',
+            onPress: () => router.replace('/(tabs)/moje-farma')
+          }]
+        );
       } else {
-        Alert.alert('Chyba', error.message || 'Nepodařilo se vytvořit účet');
+        Alert.alert('Chyba', result.error || 'Nepodařilo se vytvořit účet');
       }
+    } catch (error: any) {
+      Alert.alert('Chyba', error.message || 'Nepodařilo se vytvořit účet');
       console.error('Registrace error:', error);
     } finally {
       setLoading(false);
@@ -199,9 +170,10 @@ export default function RegistraceScreen() {
       {/* Progress bar */}
       <View style={styles.progressBar}>
         <View style={[styles.progressStep, krok >= 1 && styles.progressStepActive]} />
-        <View style={[styles.progressStep, krok >= 2 && styles.progressStepActive]} />
+        {Platform.OS !== 'web' && <View style={[styles.progressStep, krok >= 2 && styles.progressStepActive]} />}
         <View style={[styles.progressStep, krok >= 3 && styles.progressStepActive]} />
         <View style={[styles.progressStep, krok >= 4 && styles.progressStepActive]} />
+        <View style={[styles.progressStep, krok >= 5 && styles.progressStepActive]} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -209,9 +181,11 @@ export default function RegistraceScreen() {
         {krok === 1 && (
           <View style={styles.step}>
             <Text style={styles.stepTitle}>📱 Váš telefon</Text>
-            <Text style={styles.stepSubtitle}>Krok 1 ze 4</Text>
+            <Text style={styles.stepSubtitle}>Krok 1 z {Platform.OS === 'web' ? '4' : '5'}</Text>
             <Text style={styles.infoText}>
-              Zadejte telefonní číslo. Pošleme vám SMS s ověřovacím kódem.
+              {Platform.OS === 'web'
+                ? 'Zadejte telefonní číslo. Budete moci spravovat svou farmu.'
+                : 'Zadejte telefonní číslo. Pošleme vám SMS s ověřovacím kódem.'}
             </Text>
 
             <Text style={styles.label}>Telefonní číslo *</Text>
@@ -231,37 +205,33 @@ export default function RegistraceScreen() {
               disabled={loading}
             >
               <Text style={styles.buttonText}>
-                {loading ? 'Odesílám SMS...' : 'Odeslat SMS kód →'}
+                {loading ? 'Odesílám SMS...' : (Platform.OS === 'web' ? 'Pokračovat →' : 'Odeslat SMS kód →')}
               </Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* KROK 2: Ověření SMS kódu */}
-        {krok === 2 && (
+        {/* KROK 2: Ověření SMS kódu (pouze na native) */}
+        {krok === 2 && Platform.OS !== 'web' && (
           <View style={styles.step}>
             <Text style={styles.stepTitle}>🔐 Ověřovací kód</Text>
-            <Text style={styles.stepSubtitle}>Krok 2 ze 4</Text>
+            <Text style={styles.stepSubtitle}>Krok 2 z 5</Text>
             <Text style={styles.infoText}>
-              Zadejte 4-místný kód, který jsme vám poslali na číslo {telefon}
+              Zadejte 6-místný kód, který jsme vám poslali na číslo {telefon}
             </Text>
 
-            {/* PRO TESTOVÁNÍ - v produkci SMAZAT */}
-            {odeslanyKod && (
-              <View style={styles.testBox}>
-                <Text style={styles.testText}>🧪 TESTOVACÍ REŽIM</Text>
-                <Text style={styles.testCode}>Váš kód: {odeslanyKod}</Text>
-              </View>
-            )}
+            <Text style={styles.infoText} style={{ color: '#FF6F00', marginTop: 10 }}>
+              🧪 Pro testování použijte libovolných 6 číslic
+            </Text>
 
             <Text style={styles.label}>SMS kód *</Text>
             <TextInput
               style={[styles.input, styles.inputCode]}
-              placeholder="1234"
+              placeholder="123456"
               value={smsKod}
               onChangeText={setSmsKod}
               keyboardType="number-pad"
-              maxLength={4}
+              maxLength={6}
               autoFocus
             />
 
@@ -290,11 +260,11 @@ export default function RegistraceScreen() {
           </View>
         )}
 
-        {/* KROK 3: Základní informace */}
+        {/* KROK 3: Základní informace (krok 2 na webu, krok 3 na native) */}
         {krok === 3 && (
           <View style={styles.step}>
             <Text style={styles.stepTitle}>🌾 O vás a vaší farmě</Text>
-            <Text style={styles.stepSubtitle}>Krok 3 ze 4</Text>
+            <Text style={styles.stepSubtitle}>Krok {Platform.OS === 'web' ? '2' : '3'} z {Platform.OS === 'web' ? '4' : '5'}</Text>
             <Text style={styles.infoText}>
               Pár základních informací, aby vás zákazníci mohli najít.
             </Text>
@@ -316,14 +286,6 @@ export default function RegistraceScreen() {
               onChangeText={setNazevFarmy}
             />
 
-            <Text style={styles.label}>Město/Obec *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="např. Ostrava"
-              value={mesto}
-              onChangeText={setMesto}
-            />
-
             <Text style={styles.label}>Email (nepovinné)</Text>
             <TextInput
               style={styles.input}
@@ -337,7 +299,7 @@ export default function RegistraceScreen() {
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.buttonSecondary}
-                onPress={() => setKrok(2)}
+                onPress={() => setKrok(Platform.OS === 'web' ? 1 : 2)}
               >
                 <Text style={styles.buttonSecondaryText}>← Zpět</Text>
               </TouchableOpacity>
@@ -352,19 +314,69 @@ export default function RegistraceScreen() {
           </View>
         )}
 
-        {/* KROK 4: Shrnutí a souhlas */}
+        {/* KROK 4: Vytvoření PIN kódu */}
         {krok === 4 && (
           <View style={styles.step}>
+            <Text style={styles.stepTitle}>🔐 Vytvořte PIN kód</Text>
+            <Text style={styles.stepSubtitle}>Krok {Platform.OS === 'web' ? '3' : '4'} z {Platform.OS === 'web' ? '4' : '5'}</Text>
+            <Text style={styles.infoText}>
+              PIN slouží pro rychlé přihlášení do sekce Moje Prodejna a Moje Stánky.
+            </Text>
+
+            <Text style={styles.label}>PIN kód (4-6 číslic) *</Text>
+            <TextInput
+              style={[styles.input, styles.inputCode]}
+              placeholder="••••"
+              value={pin}
+              onChangeText={setPin}
+              keyboardType="number-pad"
+              maxLength={6}
+              secureTextEntry
+              autoFocus
+            />
+
+            <Text style={styles.label}>Potvrďte PIN *</Text>
+            <TextInput
+              style={[styles.input, styles.inputCode]}
+              placeholder="••••"
+              value={pinPotvrdit}
+              onChangeText={setPinPotvrdit}
+              keyboardType="number-pad"
+              maxLength={6}
+              secureTextEntry
+            />
+
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.buttonSecondary}
+                onPress={() => setKrok(3)}
+              >
+                <Text style={styles.buttonSecondaryText}>← Zpět</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.buttonPrimary, { flex: 1 }]}
+                onPress={validovatPin}
+              >
+                <Text style={styles.buttonText}>Pokračovat →</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* KROK 5: Shrnutí a souhlas */}
+        {krok === 5 && (
+          <View style={styles.step}>
             <Text style={styles.stepTitle}>✓ Dokončení</Text>
-            <Text style={styles.stepSubtitle}>Krok 4 ze 4</Text>
+            <Text style={styles.stepSubtitle}>Krok {Platform.OS === 'web' ? '4' : '5'} z {Platform.OS === 'web' ? '4' : '5'}</Text>
 
             <View style={styles.summary}>
               <Text style={styles.summaryTitle}>Shrnutí:</Text>
               <Text style={styles.summaryItem}>👤 {jmeno}</Text>
               <Text style={styles.summaryItem}>📱 {telefon}</Text>
               <Text style={styles.summaryItem}>🌾 {nazevFarmy}</Text>
-              <Text style={styles.summaryItem}>📍 {mesto}</Text>
               {email && <Text style={styles.summaryItem}>📧 {email}</Text>}
+              <Text style={styles.summaryItem}>🔐 PIN: ••••••</Text>
             </View>
 
             <TouchableOpacity
@@ -382,7 +394,7 @@ export default function RegistraceScreen() {
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.buttonSecondary}
-                onPress={() => setKrok(3)}
+                onPress={() => setKrok(4)}
               >
                 <Text style={styles.buttonSecondaryText}>← Zpět</Text>
               </TouchableOpacity>
@@ -478,14 +490,4 @@ const styles = StyleSheet.create({
   checkboxBoxChecked: { backgroundColor: '#4CAF50' },
   checkboxCheck: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
   checkboxText: { flex: 1, fontSize: 13, color: '#666', lineHeight: 18 },
-  testBox: {
-    backgroundColor: '#FFF3CD',
-    borderColor: '#FFA000',
-    borderWidth: 2,
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 20
-  },
-  testText: { fontSize: 12, fontWeight: 'bold', color: '#FF6F00', marginBottom: 5 },
-  testCode: { fontSize: 24, fontWeight: 'bold', color: '#FF6F00' },
 });
