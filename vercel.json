@@ -1,5 +1,17 @@
 {
-  "buildCommand": "expo export --platform web",
+  "buildCommand": "npx expo export --platform web",
   "outputDirectory": "dist",
-  "installCommand": "npm install"
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "env": {
+    "EXPO_PUBLIC_SMSBRANA_LOGIN": "@smsbrana_login",
+    "EXPO_PUBLIC_SMSBRANA_PASSWORD": "@smsbrana_password",
+    "EXPO_PUBLIC_SUPABASE_URL": "@supabase_url",
+    "EXPO_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key"
+  }
 }

@@ -30,27 +30,115 @@ Aplikace používá HTTP API endpoint:
 https://api.smsbrana.cz/smsconnect/http.php
 ```
 
+**DŮLEŽITÉ**: SMSBrána API používá **Pokročilé přihlášení se zabezpečením** (hash-based autentizace).
+
+### Nastavení v portálu:
+
+V SMSBrána portálu v sekci **API → Nastavení API** vyberte:
+- **Pokročilé přihlášení (doporučujeme)** ✅
+
+### Autentizační parametry:
+
+API vyžaduje následující parametry pro autentizaci:
+1. `login` - Váš API login (např. "Jardaa_h1")
+2. `sul` - Náhodný salt (10-50 alfanumerických znaků)
+3. `time` - Timestamp ve formátu `YYYYMMDDTHHMMSS` (např. "20260103T200157")
+4. `auth` - MD5 hash vypočítaný jako: `MD5(password + time + sul)`
+
+**Příklad generování auth hash:**
+```javascript
+const sul = generateRandomSalt(10); // např. "aBcD123456"
+const time = "20260103T200157"; // YYYYMMDDTHHMMSS
+const auth = MD5(password + time + sul);
+```
+
 ### Parametry odesílání SMS:
 
 | Parametr | Hodnota | Popis |
 |----------|---------|-------|
 | action | send_sms | Akce pro odeslání SMS |
-| login | Z .env | Váš API login |
-| password | Z .env | Váš API heslo |
+| login | Z .env | Váš API login (např. "Jardaa_h1") |
+| sul | Náhodný string | 10 alfanumerických znaků |
+| time | YYYYMMDDTHHMMSS | Aktuální timestamp (např. "20260103T200157") |
+| auth | MD5 hash | MD5(password + time + sul) |
 | number | +420XXXXXXXXX | Telefonní číslo příjemce |
 | message | Text SMS | Ověřovací kód |
 | delivery_report | 1 | Požadujeme doručenku |
 
+### HTTP Metoda:
+
+**GET request** - všechny parametry se posílají v URL query stringu
+
 ### Formát odpovědi:
 
-- **Úspěch**: `OK` nebo `OK: message_id`
-- **Chyba**: `ERR:popis_chyby`
+Odpověď je ve formátu XML:
+
+- **Úspěch** (error code 0):
+```xml
+<?xml version='1.0' encoding='utf-8'?>
+<result>
+<err>0</err>
+<price>1.3068</price>
+<sms_count>1</sms_count>
+<credit>198.69</credit>
+<sms_id>3563596098</sms_id>
+</result>
+```
+
+- **Chyba** (error code > 0):
+```xml
+<?xml version='1.0' encoding='utf-8'?>
+<result>
+<err>3</err>
+</result>
+```
+
+### Error kódy:
+
+| Kód | Popis |
+|-----|-------|
+| 0 | **ÚSPĚCH** - SMS byla odeslána |
+| 1 | Neznámá chyba |
+| 2 | Nesprávné přihlašovací údaje |
+| 3 | Nesprávné přihlašovací údaje |
+| 4 | Neplatný timestamp |
+| 5 | IP adresa není povolena |
+| 8 | Chyba databáze |
+| 9 | Nedostatečný kredit |
+| 10 | Neplatné telefonní číslo |
+| 11 | Prázdná zpráva |
+| 12 | Zpráva je příliš dlouhá |
 
 ## 4. Testování
 
+### Test script (doporučeno):
+
+Pro testování SMS API bez spuštění celé aplikace použijte:
+
+```bash
+node test-sms.js +420XXXXXXXXX
+```
+
+Tento script:
+- Načte credentials z `.env`
+- Vygeneruje náhodný 6-místný kód
+- Odešle SMS přes SMSBrána API
+- Zobrazí detailní výstup včetně autentizačních parametrů
+- Ukáže stav kreditu a cenu SMS
+
+**Příklad úspěšného výstupu:**
+```
+✅ ÚSPĚCH! SMS byla odeslána
+📱 SMS by měla přijít na číslo: +420604935628
+🔑 Kód: 274820
+📨 SMS ID: 3563596350
+💰 Cena: 1.3068 Kč
+💳 Zbývající kredit: 197.39 Kč
+```
+
 ### Web (development):
 - V console.log se zobrazí vygenerovaný kód
-- SMS se ve skutečnosti neposílá
+- SMS se ve skutečnosti neposílá (pokud nejsou nastaveny credentials)
 - Zadejte kód z console.log
 
 ### Native (production):

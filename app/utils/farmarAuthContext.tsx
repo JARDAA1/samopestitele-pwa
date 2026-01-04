@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import md5 from 'md5';
 
 interface Farmar {
   id: string;
@@ -281,68 +282,71 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
 
   const sendSMSCode = async (telefon: string): Promise<boolean> => {
     try {
-      // Pro WEB - mock odeslání (uložíme kód pro testování)
+      // Vygenerovat kód
+      const kod = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log('SMS KÓD (pro testování):', kod);
+
+      // Pro WEB - uložíme kód do AsyncStorage (Supabase není nakonfigurovaný)
       if (Platform.OS === 'web') {
         // Ověříme, že farmář s tímto telefonem existuje
         const farmarData = await AsyncStorage.getItem('farmar_data');
         if (farmarData) {
           const parsedFarmar = JSON.parse(farmarData);
           if (parsedFarmar.telefon === telefon) {
-            // Vygenerujeme a uložíme kód
-            const kod = Math.floor(100000 + Math.random() * 900000).toString();
+            // Uložíme kód do AsyncStorage
             await AsyncStorage.setItem('sms_code', kod);
             await AsyncStorage.setItem('sms_code_phone', telefon);
             await AsyncStorage.setItem('sms_code_expires', (Date.now() + 5 * 60 * 1000).toString());
 
-            console.log('WEB: Mock SMS kód:', kod, 'odeslán na', telefon);
-            console.log('Pro testování použijte tento kód:', kod);
-            return true;
+            console.log('WEB: SMS kód uložen do AsyncStorage:', kod);
+          } else {
+            console.error('Telefon neodpovídá uloženému farmáři');
+            return false;
           }
+        } else {
+          console.error('Farmář není uložen v AsyncStorage');
+          return false;
         }
-        return false;
+      } else {
+        // Pro NATIVE - uložíme kód do Supabase
+        const { supabase } = require('../../lib/supabase');
+
+        // Najdeme farmáře podle telefonu (vezme prvního pokud je víc)
+        const { data: farmers, error: farmarError } = await supabase
+          .from('pestitele')
+          .select('id')
+          .eq('telefon', telefon);
+
+        if (farmarError || !farmers || farmers.length === 0) {
+          console.error('Farmář s tímto telefonem neexistuje');
+          return false;
+        }
+
+        const farmar = farmers[0]; // Použije prvního farmáře
+
+        // Uložit kód do databáze
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minut
+
+        const { error } = await supabase
+          .from('sms_codes')
+          .insert({
+            phone: telefon,
+            code: kod,
+            expires_at: expiresAt.toISOString(),
+            pestitel_id: farmar.id,
+            used: false,
+          });
+
+        if (error) {
+          console.error('Error saving SMS code:', error);
+          return false;
+        }
       }
 
-      // Pro NATIVE - reálné odeslání přes SMSBrána.cz
-      const kod = Math.floor(100000 + Math.random() * 900000).toString();
-      console.log('SMS KÓD (pro testování):', kod);
-
-      const { supabase } = require('../../lib/supabase');
-
-      // Najdeme farmáře podle telefonu
-      const { data: farmar, error: farmarError } = await supabase
-        .from('pestitele')
-        .select('id')
-        .eq('telefon', telefon)
-        .maybeSingle();
-
-      if (farmarError || !farmar) {
-        console.error('Farmář s tímto telefonem neexistuje');
-        return false;
-      }
-
-      // Uložit kód do databáze
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minut
-
-      const { error } = await supabase
-        .from('sms_codes')
-        .insert({
-          phone: telefon,
-          code: kod,
-          expires_at: expiresAt.toISOString(),
-          pestitel_id: farmar.id,
-          used: false,
-        });
-
-      if (error) {
-        console.error('Error saving SMS code:', error);
-        return false;
-      }
-
-      // Odeslat SMS přes SMSBrána.cz
+      // Odeslat SMS přes SMSBrána.cz (pro WEB i NATIVE)
       try {
         const smsText = `Samopestitele.cz - Vas overovaci kod: ${kod}. Platnost: 5 minut.`;
 
-        // TODO: Přidat API credentials do environment variables
         const SMSBRANA_LOGIN = process.env.EXPO_PUBLIC_SMSBRANA_LOGIN || '';
         const SMSBRANA_PASSWORD = process.env.EXPO_PUBLIC_SMSBRANA_PASSWORD || '';
 
@@ -351,31 +355,87 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
           return true; // V dev módu pokračujeme bez odeslání
         }
 
-        const response = await fetch('https://api.smsbrana.cz/smsconnect/http.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            action: 'send_sms',
-            login: SMSBRANA_LOGIN,
-            password: SMSBRANA_PASSWORD,
-            number: telefon,
-            message: smsText,
-            delivery_report: '1', // Požadujeme doručenku
-          }).toString(),
+        // SMSBrána API - Pokročilé přihlášení se zabezpečením
+        // Podle oficiální dokumentace: auth = MD5(password + time + sul)
+        // time formát: YYYYMMDDTHHMMSS (např. 20091001T222720)
+
+        // Generovat náhodný salt (max 50 znaků, alfanumerické)
+        const generateSalt = (length: number = 10) => {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          let salt = '';
+          for (let i = 0; i < length; i++) {
+            salt += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          return salt;
+        };
+
+        // Formát time: YYYYMMDDTHHMMSS
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const time = `${year}${month}${day}T${hours}${minutes}${seconds}`;
+
+        const sul = generateSalt(10);
+        const auth = md5(SMSBRANA_PASSWORD + time + sul);
+
+        const params = new URLSearchParams({
+          action: 'send_sms',
+          login: SMSBRANA_LOGIN,
+          time: time,
+          sul: sul,
+          auth: auth,
+          number: telefon,
+          message: smsText,
+          delivery_report: '1',
+        });
+
+        const response = await fetch(`https://api.smsbrana.cz/smsconnect/http.php?${params.toString()}`, {
+          method: 'GET',
         });
 
         const result = await response.text();
         console.log('SMSBrána response:', result);
 
-        // SMSBrána vrací: OK nebo ERR:popis_chyby
-        if (result.startsWith('OK')) {
+        // SMSBrána vrací XML s <err>kod</err>
+        // Error code 0 = úspěch!
+        if (result.includes('<err>')) {
+          const errorMatch = result.match(/<err>(\d+)<\/err>/);
+          if (errorMatch) {
+            const errorCode = errorMatch[1];
+
+            if (errorCode === '0') {
+              // Úspěch!
+              console.log('SMS successfully sent');
+              return true;
+            } else {
+              // Chyba
+              console.error('SMSBrána error code:', errorCode);
+              const errorMessages: { [key: string]: string } = {
+                '1': 'Neznámá chyba',
+                '2': 'Nesprávné přihlašovací údaje',
+                '3': 'Nesprávné přihlašovací údaje',
+                '4': 'Neplatný timestamp',
+                '5': 'IP adresa není povolena',
+                '8': 'Chyba databáze',
+                '9': 'Nedostatečný kredit',
+                '10': 'Neplatné telefonní číslo',
+                '11': 'Prázdná zpráva',
+                '12': 'Zpráva je příliš dlouhá',
+              };
+              console.error('Error:', errorMessages[errorCode] || 'Neznámý kód');
+              return false;
+            }
+          }
+        } else if (result.includes('OK')) {
           return true;
-        } else {
-          console.error('SMSBrána error:', result);
-          return false;
         }
+
+        console.error('SMSBrána unexpected response:', result);
+        return false;
       } catch (smsError) {
         console.error('Error sending SMS:', smsError);
         return false;
