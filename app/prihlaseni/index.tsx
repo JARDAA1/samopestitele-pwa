@@ -104,9 +104,9 @@ export default function PrihlaseniScreen() {
           ) : (
             // EMAIL FORMULÁŘ - Zadání emailu
             <>
-              <Text style={styles.title}>📧 Přihlášení</Text>
+              <Text style={styles.title}>📧 Přihlášení emailem</Text>
               <Text style={styles.subtitle}>
-                Zadejte svůj email. Pošleme vám přihlašovací odkaz, kterým se okamžitě přihlásíte.
+                Zadejte svůj email. Pošleme vám přihlašovací odkaz.
               </Text>
 
               <Text style={styles.label}>Email</Text>
