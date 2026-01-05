@@ -14,9 +14,11 @@ interface Farmar {
 interface FarmarAuthContextType {
   farmar: Farmar | null;
   isAuthenticated: boolean;
-  authLevel: 'none' | 'pin' | 'sms'; // Úroveň autentizace
+  authLevel: 'none' | 'pin' | 'sms' | 'magic_link'; // Úroveň autentizace
   loginWithPin: (telefon: string, pin: string) => Promise<boolean>;
   loginWithSMS: (telefon: string, kod: string) => Promise<boolean>;
+  sendMagicLink: (email: string) => Promise<{ success: boolean; error?: string }>;
+  checkMagicLinkSession: () => Promise<boolean>;
   logout: () => Promise<void>;
   register: (data: {
     telefon: string;
@@ -34,7 +36,7 @@ const FarmarAuthContext = createContext<FarmarAuthContextType | undefined>(undef
 
 export function FarmarAuthProvider({ children }: { children: React.ReactNode }) {
   const [farmar, setFarmar] = useState<Farmar | null>(null);
-  const [authLevel, setAuthLevel] = useState<'none' | 'pin' | 'sms'>('none');
+  const [authLevel, setAuthLevel] = useState<'none' | 'pin' | 'sms' | 'magic_link'>('none');
   const [isSessionChecked, setIsSessionChecked] = useState(false);
 
   useEffect(() => {
@@ -395,11 +397,111 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     return session !== null && level === 'pin';
   };
 
+  /**
+   * Odeslat magic link na email
+   */
+  const sendMagicLink = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { supabase } = require('../../lib/supabase');
+
+      // Najdeme farmáře podle emailu
+      const { data: farmers, error: farmarError } = await supabase
+        .from('pestitele')
+        .select('id, email, nazev_farmy')
+        .eq('email', email);
+
+      if (farmarError || !farmers || farmers.length === 0) {
+        console.error('Farmář s tímto emailem neexistuje', farmarError);
+        return { success: false, error: 'Email není registrován' };
+      }
+
+      // Odeslat magic link přes Supabase Auth
+      const redirectUrl = Platform.OS === 'web'
+        ? `${window.location.origin}/auth/callback`
+        : 'samopestitele://auth/callback';
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          emailRedirectTo: redirectUrl,
+          shouldCreateUser: false, // Nebudeme vytvářet nové uživatele
+        }
+      });
+
+      if (error) {
+        console.error('Error sending magic link:', error);
+        return { success: false, error: error.message };
+      }
+
+      console.log('Magic link sent to:', email);
+      return { success: true };
+    } catch (error: any) {
+      console.error('Send magic link error:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  /**
+   * Zkontrolovat, jestli je aktivní Supabase Auth session
+   */
+  const checkMagicLinkSession = async (): Promise<boolean> => {
+    try {
+      const { supabase } = require('../../lib/supabase');
+
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        return false;
+      }
+
+      // Máme aktivní session, načteme farmáře podle emailu
+      const userEmail = session.user.email;
+
+      if (!userEmail) {
+        return false;
+      }
+
+      const { data: farmers, error: farmarError } = await supabase
+        .from('pestitele')
+        .select('*')
+        .eq('email', userEmail);
+
+      if (farmarError || !farmers || farmers.length === 0) {
+        return false;
+      }
+
+      const farmarData = farmers[0];
+
+      // Nastavíme farmáře jako přihlášeného
+      setFarmar(farmarData);
+      setAuthLevel('magic_link');
+
+      await AsyncStorage.setItem('farmar_session', JSON.stringify(farmarData));
+      await AsyncStorage.setItem('auth_level', 'magic_link');
+
+      return true;
+    } catch (error) {
+      console.error('Check magic link session error:', error);
+      return false;
+    }
+  };
+
   const logout = async () => {
     setFarmar(null);
     setAuthLevel('none');
     await AsyncStorage.removeItem('farmar_session');
     await AsyncStorage.removeItem('auth_level');
+
+    // Pokud je uživatel přihlášen přes magic link, odhlásíme ho i z Supabase Auth
+    if (authLevel === 'magic_link') {
+      try {
+        const { supabase } = require('../../lib/supabase');
+        await supabase.auth.signOut();
+      } catch (error) {
+        console.error('Error signing out from Supabase Auth:', error);
+      }
+    }
+
     // Nebudeme mazat farmar_data ani farmar_pin - uživatel se může znovu přihlásit
   };
 
@@ -409,6 +511,8 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     authLevel,
     loginWithPin,
     loginWithSMS,
+    sendMagicLink,
+    checkMagicLinkSession,
     logout,
     register,
     verifyPhone,
