@@ -195,43 +195,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
 
   const loginWithSMS = async (telefon: string, kod: string): Promise<boolean> => {
     try {
-      // Pro WEB - ověření uloženého kódu
-      if (Platform.OS === 'web') {
-        const storedCode = await AsyncStorage.getItem('sms_code');
-        const storedPhone = await AsyncStorage.getItem('sms_code_phone');
-        const expiresAt = await AsyncStorage.getItem('sms_code_expires');
-
-        // Kontrola platnosti kódu
-        if (storedCode === kod && storedPhone === telefon) {
-          // Kontrola expirace
-          if (expiresAt && Date.now() < parseInt(expiresAt)) {
-            const farmarData = await AsyncStorage.getItem('farmar_data');
-
-            if (farmarData) {
-              const parsedFarmar = JSON.parse(farmarData);
-
-              // Ověříme, že telefon sedí
-              if (parsedFarmar.telefon === telefon) {
-                setFarmar(parsedFarmar);
-                setAuthLevel('sms');
-
-                await AsyncStorage.setItem('farmar_session', farmarData);
-                await AsyncStorage.setItem('auth_level', 'sms');
-
-                // Smažeme použitý kód
-                await AsyncStorage.removeItem('sms_code');
-                await AsyncStorage.removeItem('sms_code_phone');
-                await AsyncStorage.removeItem('sms_code_expires');
-
-                return true;
-              }
-            }
-          }
-        }
-        return false;
-      }
-
-      // Pro NATIVE - ověření přes Supabase
+      // Ověření přes Supabase (pro WEB i NATIVE)
       const { supabase } = require('../../lib/supabase');
 
       const { data, error } = await supabase
@@ -286,62 +250,41 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
       const kod = Math.floor(100000 + Math.random() * 900000).toString();
       console.log('SMS KÓD (pro testování):', kod);
 
-      // Pro WEB - uložíme kód do AsyncStorage (Supabase není nakonfigurovaný)
-      if (Platform.OS === 'web') {
-        // Ověříme, že farmář s tímto telefonem existuje
-        const farmarData = await AsyncStorage.getItem('farmar_data');
-        if (farmarData) {
-          const parsedFarmar = JSON.parse(farmarData);
-          if (parsedFarmar.telefon === telefon) {
-            // Uložíme kód do AsyncStorage
-            await AsyncStorage.setItem('sms_code', kod);
-            await AsyncStorage.setItem('sms_code_phone', telefon);
-            await AsyncStorage.setItem('sms_code_expires', (Date.now() + 5 * 60 * 1000).toString());
+      // Uložení kódu do Supabase (pro WEB i NATIVE)
+      const { supabase } = require('../../lib/supabase');
 
-            console.log('WEB: SMS kód uložen do AsyncStorage:', kod);
-          } else {
-            console.error('Telefon neodpovídá uloženému farmáři');
-            return false;
-          }
-        } else {
-          console.error('Farmář není uložen v AsyncStorage');
-          return false;
-        }
-      } else {
-        // Pro NATIVE - uložíme kód do Supabase
-        const { supabase } = require('../../lib/supabase');
+      // Najdeme farmáře podle telefonu (vezme prvního pokud je víc)
+      const { data: farmers, error: farmarError } = await supabase
+        .from('pestitele')
+        .select('id')
+        .eq('telefon', telefon);
 
-        // Najdeme farmáře podle telefonu (vezme prvního pokud je víc)
-        const { data: farmers, error: farmarError } = await supabase
-          .from('pestitele')
-          .select('id')
-          .eq('telefon', telefon);
-
-        if (farmarError || !farmers || farmers.length === 0) {
-          console.error('Farmář s tímto telefonem neexistuje');
-          return false;
-        }
-
-        const farmar = farmers[0]; // Použije prvního farmáře
-
-        // Uložit kód do databáze
-        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minut
-
-        const { error } = await supabase
-          .from('sms_codes')
-          .insert({
-            phone: telefon,
-            code: kod,
-            expires_at: expiresAt.toISOString(),
-            pestitel_id: farmar.id,
-            used: false,
-          });
-
-        if (error) {
-          console.error('Error saving SMS code:', error);
-          return false;
-        }
+      if (farmarError || !farmers || farmers.length === 0) {
+        console.error('Farmář s tímto telefonem neexistuje', farmarError);
+        return false;
       }
+
+      const farmar = farmers[0]; // Použije prvního farmáře
+
+      // Uložit kód do databáze
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minut
+
+      const { error } = await supabase
+        .from('sms_codes')
+        .insert({
+          phone: telefon,
+          code: kod,
+          expires_at: expiresAt.toISOString(),
+          pestitel_id: farmar.id,
+          used: false,
+        });
+
+      if (error) {
+        console.error('Error saving SMS code:', error);
+        return false;
+      }
+
+      console.log('SMS kód uložen do Supabase:', kod, 'pro telefon:', telefon);
 
       // Odeslat SMS přes SMSBrána.cz (pro WEB i NATIVE)
       try {
