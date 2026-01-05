@@ -166,7 +166,7 @@ export default function PrihlaseniScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Přihlášení farmáře</Text>
+        <Text style={styles.headerTitle}>Přihlášení</Text>
         <View style={styles.headerSpacer} />
       </View>
 
