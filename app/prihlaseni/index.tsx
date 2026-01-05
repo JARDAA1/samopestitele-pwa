@@ -4,13 +4,9 @@ import { useState } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
 
 export default function PrihlaseniScreen() {
-  const { loginWithSMS, sendSMSCode, sendMagicLink, isAuthenticated } = useFarmarAuth();
+  const { sendMagicLink, isAuthenticated } = useFarmarAuth();
 
-  const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email'); // Výchozí metoda: email
-  const [krok, setKrok] = useState(1); // 1 = zadání (email/telefon), 2 = SMS kód
   const [email, setEmail] = useState('');
-  const [telefon, setTelefon] = useState('');
-  const [smsKod, setSmsKod] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
@@ -68,96 +64,6 @@ export default function PrihlaseniScreen() {
     }
   };
 
-  /**
-   * KROK 1: Odeslat SMS kód
-   */
-  const handleOdeslatKod = async () => {
-    // Validace telefonu
-    let cleanPhone = telefon.trim().replace(/\s/g, '');
-
-    if (!cleanPhone) {
-      if (Platform.OS === 'web') {
-        alert('Zadejte telefonní číslo');
-      } else {
-        Alert.alert('Chyba', 'Zadejte telefonní číslo');
-      }
-      return;
-    }
-
-    // Pokud nezačíná +420, přidáme předvolbu
-    if (!cleanPhone.startsWith('+')) {
-      cleanPhone = '+420' + cleanPhone;
-    }
-
-    // Validace formátu
-    if (!cleanPhone.match(/^\+420\d{9}$/)) {
-      if (Platform.OS === 'web') {
-        alert('Zadejte platné české telefonní číslo (9 číslic)');
-      } else {
-        Alert.alert('Chyba', 'Zadejte platné české telefonní číslo (9 číslic)');
-      }
-      return;
-    }
-
-    // Uložíme normalizované číslo
-    setTelefon(cleanPhone);
-
-    setLoading(true);
-    const success = await sendSMSCode(cleanPhone);
-    setLoading(false);
-
-    if (success) {
-      if (Platform.OS === 'web') {
-        alert('SMS kód byl odeslán na ' + cleanPhone);
-      } else {
-        Alert.alert('SMS odeslána ✓', 'Zadejte kód z SMS zprávy');
-      }
-      setKrok(2);
-    } else {
-      if (Platform.OS === 'web') {
-        alert('Nepodařilo se odeslat SMS. Zkontrolujte telefonní číslo.');
-      } else {
-        Alert.alert('Chyba', 'Nepodařilo se odeslat SMS. Zkontrolujte telefonní číslo.');
-      }
-    }
-  };
-
-  /**
-   * KROK 2: Ověřit SMS kód a přihlásit
-   */
-  const handleOveritKod = async () => {
-    if (smsKod.length !== 6) {
-      if (Platform.OS === 'web') {
-        alert('Zadejte 6-místný kód z SMS');
-      } else {
-        Alert.alert('Chyba', 'Zadejte 6-místný kód z SMS');
-      }
-      return;
-    }
-
-    setLoading(true);
-    const success = await loginWithSMS(telefon, smsKod);
-    setLoading(false);
-
-    if (success) {
-      router.replace('/(tabs)/moje-farma');
-    } else {
-      if (Platform.OS === 'web') {
-        alert('Neplatný SMS kód. Zkuste to znovu nebo požádejte o nový kód.');
-      } else {
-        Alert.alert('Chyba', 'Neplatný SMS kód. Zkuste to znovu nebo požádejte o nový kód.');
-      }
-      setSmsKod('');
-    }
-  };
-
-  /**
-   * Zpět na zadání telefonu
-   */
-  const handleZpet = () => {
-    setKrok(1);
-    setSmsKod('');
-  };
 
   return (
     <View style={styles.container}>
@@ -173,165 +79,56 @@ export default function PrihlaseniScreen() {
       {/* Content */}
       <View style={styles.content}>
         <View style={styles.card}>
-          {/* Tabs pro výběr metody přihlášení */}
-          <View style={styles.tabs}>
-            <TouchableOpacity
-              style={[styles.tab, loginMethod === 'email' && styles.tabActive]}
-              onPress={() => {
-                setLoginMethod('email');
-                setKrok(1);
-                setEmailSent(false);
-              }}
-            >
-              <Text style={[styles.tabText, loginMethod === 'email' && styles.tabTextActive]}>
-                📧 Email
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, loginMethod === 'phone' && styles.tabActive]}
-              onPress={() => {
-                setLoginMethod('phone');
-                setKrok(1);
-                setEmailSent(false);
-              }}
-            >
-              <Text style={[styles.tabText, loginMethod === 'phone' && styles.tabTextActive]}>
-                📱 Telefon
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {loginMethod === 'email' ? (
-            // EMAIL PŘIHLÁŠENÍ - Magic Link
-            emailSent ? (
-              <>
-                <Text style={styles.title}>✉️ Email odeslán</Text>
-                <Text style={styles.subtitle}>
-                  Zkontrolujte svou emailovou schránku ({email}) a klikněte na přihlašovací odkaz.
-                </Text>
-                <View style={styles.emailSentBox}>
-                  <Text style={styles.emailSentText}>
-                    ℹ️ Pokud email nevidíte, zkontrolujte složku spam nebo nevyžádanou poštu.
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.resendLink}
-                  onPress={handleOdeslatMagicLink}
-                  disabled={loading}
-                >
-                  <Text style={styles.resendLinkText}>
-                    Odeslat znovu
-                  </Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <Text style={styles.title}>📧 Přihlášení emailem</Text>
-                <Text style={styles.subtitle}>
-                  Zadejte svůj email. Pošleme vám přihlašovací odkaz, kterým se okamžitě přihlásíte.
-                </Text>
-
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="vas@email.cz"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  autoFocus
-                  onSubmitEditing={handleOdeslatMagicLink}
-                />
-
-                <TouchableOpacity
-                  style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-                  onPress={handleOdeslatMagicLink}
-                  disabled={loading}
-                >
-                  <Text style={styles.loginButtonText}>
-                    {loading ? 'Odesílám...' : 'Odeslat přihlašovací odkaz'}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )
-          ) : krok === 1 ? (
-            // TELEFON PŘIHLÁŠENÍ - KROK 1: Zadání telefonu
+          {emailSent ? (
+            // EMAIL ODESLÁN - Potvrzení
             <>
-              <Text style={styles.title}>📱 Přihlášení telefonem</Text>
+              <Text style={styles.title}>✉️ Email odeslán</Text>
               <Text style={styles.subtitle}>
-                Zadejte telefonní číslo. Na toto číslo vám pošleme SMS s ověřovacím kódem.
+                Zkontrolujte svou emailovou schránku ({email}) a klikněte na přihlašovací odkaz.
               </Text>
-
-              <Text style={styles.label}>Telefonní číslo</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Např. 123456789"
-                value={telefon}
-                onChangeText={setTelefon}
-                keyboardType="phone-pad"
-                autoFocus
-                autoComplete="tel"
-                onSubmitEditing={handleOdeslatKod}
-              />
-
+              <View style={styles.emailSentBox}>
+                <Text style={styles.emailSentText}>
+                  ℹ️ Pokud email nevidíte, zkontrolujte složku spam nebo nevyžádanou poštu.
+                </Text>
+              </View>
               <TouchableOpacity
-                style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-                onPress={handleOdeslatKod}
+                style={styles.resendLink}
+                onPress={handleOdeslatMagicLink}
                 disabled={loading}
               >
-                <Text style={styles.loginButtonText}>
-                  {loading ? 'Odesílám SMS...' : 'Odeslat SMS kód'}
+                <Text style={styles.resendLinkText}>
+                  Odeslat znovu
                 </Text>
               </TouchableOpacity>
             </>
           ) : (
-            // KROK 2: Zadání SMS kódu
+            // EMAIL FORMULÁŘ - Zadání emailu
             <>
-              <Text style={styles.title}>🔐 Ověření</Text>
+              <Text style={styles.title}>📧 Přihlášení</Text>
               <Text style={styles.subtitle}>
-                Zadejte 6-místný kód, který jsme vám poslali na {telefon}
+                Zadejte svůj email. Pošleme vám přihlašovací odkaz, kterým se okamžitě přihlásíte.
               </Text>
 
-              <Text style={styles.label}>SMS kód</Text>
+              <Text style={styles.label}>Email</Text>
               <TextInput
-                style={styles.pinInput}
-                placeholder="••••••"
-                value={smsKod}
-                onChangeText={setSmsKod}
-                keyboardType="number-pad"
-                maxLength={6}
-                secureTextEntry
+                style={styles.input}
+                placeholder="vas@email.cz"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
                 autoFocus
-                onSubmitEditing={handleOveritKod}
+                onSubmitEditing={handleOdeslatMagicLink}
               />
 
               <TouchableOpacity
                 style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-                onPress={handleOveritKod}
+                onPress={handleOdeslatMagicLink}
                 disabled={loading}
               >
                 <Text style={styles.loginButtonText}>
-                  {loading ? 'Ověřuji...' : 'Přihlásit se'}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.backLink}
-                onPress={handleZpet}
-              >
-                <Text style={styles.backLinkText}>
-                  ← Změnit telefonní číslo
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.resendLink}
-                onPress={handleOdeslatKod}
-                disabled={loading}
-              >
-                <Text style={styles.resendLinkText}>
-                  Znovu odeslat SMS kód
+                  {loading ? 'Odesílám...' : 'Odeslat přihlašovací odkaz'}
                 </Text>
               </TouchableOpacity>
             </>
@@ -550,35 +347,6 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontSize: 14,
     fontWeight: '600',
-  },
-  tabs: {
-    flexDirection: 'row',
-    marginBottom: 24,
-    borderRadius: 12,
-    backgroundColor: '#F5F5F5',
-    padding: 4,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 10,
-  },
-  tabActive: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#999',
-  },
-  tabTextActive: {
-    color: '#2E7D32',
   },
   emailSentBox: {
     backgroundColor: '#E3F2FD',
