@@ -4,21 +4,13 @@ import { useState } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
 
 export default function PrihlaseniScreen() {
-  const { sendMagicLink, isAuthenticated } = useFarmarAuth();
+  const { sendMagicLink } = useFarmarAuth();
 
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
-  // Poznámka: Nebudeme zde dělat automatický redirect,
-  // protože to může způsobit problémy při načítání.
-  // Redirect se udělá až po úspěšném přihlášení.
-
-  /**
-   * KROK 1: Odeslat magic link na email
-   */
   const handleOdeslatMagicLink = async () => {
-    // Validace emailu
     const cleanEmail = email.trim().toLowerCase();
 
     if (!cleanEmail) {
@@ -30,7 +22,6 @@ export default function PrihlaseniScreen() {
       return;
     }
 
-    // Validace formátu emailu
     if (!cleanEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       if (Platform.OS === 'web') {
         alert('Zadejte platnou emailovou adresu');
@@ -64,10 +55,8 @@ export default function PrihlaseniScreen() {
     }
   };
 
-
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backIcon}>←</Text>
@@ -76,11 +65,9 @@ export default function PrihlaseniScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
-      {/* Content */}
       <View style={styles.content}>
         <View style={styles.card}>
           {emailSent ? (
-            // EMAIL ODESLÁN - Potvrzení
             <>
               <Text style={styles.title}>✉️ Email odeslán</Text>
               <Text style={styles.subtitle}>
@@ -102,7 +89,6 @@ export default function PrihlaseniScreen() {
               </TouchableOpacity>
             </>
           ) : (
-            // EMAIL FORMULÁŘ - Zadání emailu
             <>
               <Text style={styles.title}>📧 Přihlášení emailem</Text>
               <Text style={styles.subtitle}>
@@ -146,21 +132,6 @@ export default function PrihlaseniScreen() {
           >
             <Text style={styles.registerLinkText}>
               Ještě nemám účet - Zaregistrovat se
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.helpCard}>
-          <Text style={styles.helpTitle}>💡 Nemáte přístup k telefonu?</Text>
-          <Text style={styles.helpText}>
-            Pokud nemáte přístup k registrovanému telefonu, můžete požádat o obnovení přístupu přes email.
-          </Text>
-          <TouchableOpacity
-            style={styles.helpButton}
-            onPress={() => router.push('/zapomenute-heslo')}
-          >
-            <Text style={styles.helpButtonText}>
-              Obnovit přístup přes email
             </Text>
           </TouchableOpacity>
         </View>
@@ -246,18 +217,6 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
     marginBottom: 16,
   },
-  pinInput: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    padding: 18,
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    letterSpacing: 8,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    marginBottom: 24,
-  },
   loginButton: {
     backgroundColor: '#4CAF50',
     borderRadius: 12,
@@ -296,48 +255,6 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontSize: 14,
     fontWeight: '600',
-  },
-  helpCard: {
-    backgroundColor: '#FFF9E6',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 24,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FFC107',
-  },
-  helpTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#F57C00',
-    marginBottom: 6,
-  },
-  helpText: {
-    fontSize: 13,
-    color: '#666',
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  helpButton: {
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#FFC107',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-  },
-  helpButtonText: {
-    color: '#F57C00',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  backLink: {
-    padding: 12,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  backLinkText: {
-    color: '#666',
-    fontSize: 14,
   },
   resendLink: {
     padding: 12,
