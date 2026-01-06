@@ -420,11 +420,12 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         ? `${window.location.origin}/auth/callback`
         : 'samopestitele://auth/callback';
 
+      // Povolíme vytvoření uživatele pokud ještě neexistuje v Auth
       const { error } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
           emailRedirectTo: redirectUrl,
-          shouldCreateUser: false, // Nebudeme vytvářet nové uživatele
+          shouldCreateUser: true, // Povolíme vytvoření Auth uživatele pokud neexistuje
         }
       });
 
