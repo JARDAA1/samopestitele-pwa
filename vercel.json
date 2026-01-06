@@ -20,8 +20,6 @@
     }
   ],
   "env": {
-    "EXPO_PUBLIC_SMSBRANA_LOGIN": "@smsbrana_login",
-    "EXPO_PUBLIC_SMSBRANA_PASSWORD": "@smsbrana_password",
     "EXPO_PUBLIC_SUPABASE_URL": "@supabase_url",
     "EXPO_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key"
   }
