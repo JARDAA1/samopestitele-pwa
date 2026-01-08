@@ -45,7 +45,6 @@ export default function UpravitFarmuScreen() {
 
   useEffect(() => {
     if (!isAuthenticated || !farmar) {
-      Alert.alert('Chyba', 'Nejste přihlášeni');
       router.replace('/prihlaseni');
       return;
     }
