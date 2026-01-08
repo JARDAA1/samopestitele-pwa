@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
+import { supabase } from '../../lib/supabase';
 
 /**
  * Callback handler pro magic link autentizaci
@@ -10,7 +11,7 @@ import { useFarmarAuth } from '../utils/farmarAuthContext';
  * Zpracuje autentizaci a přesměruje uživatele na hlavní stránku.
  */
 export default function AuthCallbackScreen() {
-  const { checkMagicLinkSession } = useFarmarAuth();
+  const { checkMagicLinkSession, farmar } = useFarmarAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -27,7 +28,26 @@ export default function AuthCallbackScreen() {
 
       if (success) {
         setStatus('success');
-        // Počkáme chvíli, aby uživatel viděl úspěšnou zprávu
+
+        // Zkontrolujeme, jestli má uživatel nastavený PIN
+        // Pokud ne, přesměrujeme ho na vytvoření PINu
+        if (farmar && farmar.id) {
+          const { data: farmarData } = await supabase
+            .from('pestitele')
+            .select('heslo_hash')
+            .eq('id', farmar.id)
+            .single();
+
+          // Pokud nemá PIN (heslo_hash je null nebo prázdné), přesměrujeme na vytvoření PINu
+          if (!farmarData?.heslo_hash) {
+            setTimeout(() => {
+              router.replace('/prihlaseni/vytvorit-pin');
+            }, 1500);
+            return;
+          }
+        }
+
+        // Pokud má PIN nebo se něco pokazilo, jdeme na moje-farma
         setTimeout(() => {
           router.replace('/(tabs)/moje-farma');
         }, 1500);

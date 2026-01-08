@@ -19,6 +19,7 @@ interface FarmarAuthContextType {
   loginWithSMS: (telefon: string, kod: string) => Promise<boolean>;
   sendMagicLink: (email: string) => Promise<{ success: boolean; error?: string }>;
   checkMagicLinkSession: () => Promise<boolean>;
+  createPin: (pin: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   register: (data: {
     telefon: string;
@@ -177,8 +178,8 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         return false;
       }
 
-      // Ověříme PIN (v produkci by to měl být hash!)
-      if (farmarData.pin_hash === pin) {
+      // Ověříme PIN proti heslo_hash sloupci (v produkci by to měl být hash!)
+      if (farmarData.heslo_hash === pin) {
         setFarmar(farmarData);
         setAuthLevel('pin');
 
@@ -443,6 +444,45 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
   };
 
   /**
+   * Vytvořit/změnit PIN pro aktuálního farmáře
+   */
+  const createPin = async (pin: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      if (!farmar || !farmar.id) {
+        return { success: false, error: 'Musíte být přihlášeni' };
+      }
+
+      // Validace PINu
+      if (pin.length < 4 || pin.length > 6) {
+        return { success: false, error: 'PIN musí mít 4-6 číslic' };
+      }
+
+      if (!/^\d+$/.test(pin)) {
+        return { success: false, error: 'PIN může obsahovat pouze číslice' };
+      }
+
+      const { supabase } = require('../../lib/supabase');
+
+      // Uložíme PIN do sloupce heslo_hash (v produkci by to měl být hash!)
+      const { error } = await supabase
+        .from('pestitele')
+        .update({ heslo_hash: pin })
+        .eq('id', farmar.id);
+
+      if (error) {
+        console.error('Error creating PIN:', error);
+        return { success: false, error: error.message };
+      }
+
+      console.log('PIN successfully created for user:', farmar.id);
+      return { success: true };
+    } catch (error: any) {
+      console.error('Create PIN error:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  /**
    * Zkontrolovat, jestli je aktivní Supabase Auth session
    */
   const checkMagicLinkSession = async (): Promise<boolean> => {
@@ -514,6 +554,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     loginWithSMS,
     sendMagicLink,
     checkMagicLinkSession,
+    createPin,
     logout,
     register,
     verifyPhone,
