@@ -36,6 +36,13 @@ export default function UpravitFarmuScreen() {
   const [myLocationLat, setMyLocationLat] = useState<number | null>(null);
   const [myLocationLng, setMyLocationLng] = useState<number | null>(null);
 
+  // PIN pro Prodejnu
+  const [currentPin, setCurrentPin] = useState<string>('');
+  const [showPinSection, setShowPinSection] = useState(false);
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [savingPin, setSavingPin] = useState(false);
+
   useEffect(() => {
     if (!isAuthenticated || !farmar) {
       Alert.alert('Chyba', 'Nejste přihlášeni');
@@ -74,12 +81,58 @@ export default function UpravitFarmuScreen() {
         setMesto(data.mesto || '');
         setAdresa(data.adresa || '');
         setPopis(data.popis || '');
+        setCurrentPin(data.heslo_hash || '');
       }
     } catch (error) {
       console.error('Chyba při načítání dat farmáře:', error);
       Alert.alert('Chyba', 'Nepodařilo se načíst data farmáře');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Funkce pro změnu PINu
+  const handleZmenitPin = async () => {
+    // Validace
+    if (newPin.length < 4 || newPin.length > 6) {
+      Alert.alert('Chyba', 'PIN musí mít 4-6 číslic');
+      return;
+    }
+
+    if (!/^\d+$/.test(newPin)) {
+      Alert.alert('Chyba', 'PIN může obsahovat pouze číslice');
+      return;
+    }
+
+    if (newPin !== confirmPin) {
+      Alert.alert('Chyba', 'PINy se neshodují');
+      return;
+    }
+
+    setSavingPin(true);
+    try {
+      if (!farmar?.id) {
+        Alert.alert('Chyba', 'Nejste přihlášeni');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('pestitele')
+        .update({ heslo_hash: newPin })
+        .eq('id', farmar.id);
+
+      if (error) throw error;
+
+      setCurrentPin(newPin);
+      setNewPin('');
+      setConfirmPin('');
+      setShowPinSection(false);
+      Alert.alert('Úspěch', 'PIN byl úspěšně změněn');
+    } catch (error) {
+      console.error('Chyba při změně PINu:', error);
+      Alert.alert('Chyba', 'Nepodařilo se změnit PIN');
+    } finally {
+      setSavingPin(false);
     }
   };
 
@@ -316,6 +369,116 @@ export default function UpravitFarmuScreen() {
             editable={false}
           />
           <Text style={styles.helperText}>Telefon nelze změnit</Text>
+        </View>
+
+        {/* PIN pro Prodejnu */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>🏪 PIN pro Prodejnu</Text>
+          <Text style={styles.sectionDescription}>
+            PIN slouží pro rychlé přihlášení do sekce Prodejna pomocí telefonu
+          </Text>
+
+          {currentPin ? (
+            <>
+              <View style={styles.pinDisplayContainer}>
+                <View style={styles.pinDisplay}>
+                  <Text style={styles.pinLabel}>Aktuální PIN:</Text>
+                  <Text style={styles.pinValue}>{currentPin}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.changePinButton}
+                  onPress={() => setShowPinSection(!showPinSection)}
+                >
+                  <Text style={styles.changePinButtonText}>
+                    {showPinSection ? 'Zrušit' : '✏️ Změnit PIN'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {showPinSection && (
+                <View style={styles.changePinSection}>
+                  <Text style={styles.label}>Nový PIN (4-6 číslic)</Text>
+                  <TextInput
+                    style={styles.pinInput}
+                    placeholder="••••"
+                    value={newPin}
+                    onChangeText={setNewPin}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    secureTextEntry
+                  />
+
+                  <Text style={styles.label}>Potvrďte nový PIN</Text>
+                  <TextInput
+                    style={styles.pinInput}
+                    placeholder="••••"
+                    value={confirmPin}
+                    onChangeText={setConfirmPin}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    secureTextEntry
+                  />
+
+                  <TouchableOpacity
+                    style={[styles.savePinButton, savingPin && styles.buttonDisabled]}
+                    onPress={handleZmenitPin}
+                    disabled={savingPin}
+                  >
+                    <Text style={styles.savePinButtonText}>
+                      {savingPin ? 'Ukládám...' : '💾 Uložit nový PIN'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </>
+          ) : (
+            <>
+              <View style={styles.noPinContainer}>
+                <Text style={styles.noPinText}>⚠️ Nemáte nastavený PIN</Text>
+                <Text style={styles.noPinDescription}>
+                  Vytvořte si PIN pro rychlé přihlášení do Prodejny
+                </Text>
+              </View>
+
+              <Text style={styles.label}>Nový PIN (4-6 číslic)</Text>
+              <TextInput
+                style={styles.pinInput}
+                placeholder="••••"
+                value={newPin}
+                onChangeText={setNewPin}
+                keyboardType="number-pad"
+                maxLength={6}
+                secureTextEntry
+              />
+
+              <Text style={styles.label}>Potvrďte PIN</Text>
+              <TextInput
+                style={styles.pinInput}
+                placeholder="••••"
+                value={confirmPin}
+                onChangeText={setConfirmPin}
+                keyboardType="number-pad"
+                maxLength={6}
+                secureTextEntry
+              />
+
+              <TouchableOpacity
+                style={[styles.savePinButton, savingPin && styles.buttonDisabled]}
+                onPress={handleZmenitPin}
+                disabled={savingPin}
+              >
+                <Text style={styles.savePinButtonText}>
+                  {savingPin ? 'Vytvářím...' : '🔐 Vytvořit PIN'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          <View style={styles.pinInfoBox}>
+            <Text style={styles.pinInfoText}>
+              💡 S PINem se můžete rychle přihlásit do Prodejny pomocí telefonu + PIN. Session je platná 30 dní.
+            </Text>
+          </View>
         </View>
 
         <View style={styles.card}>
@@ -590,4 +753,110 @@ const styles = StyleSheet.create({
   },
   saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
   buttonDisabled: { opacity: 0.5 },
+
+  // PIN Styles
+  sectionDescription: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 20,
+    lineHeight: 18,
+  },
+  pinDisplayContainer: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  pinDisplay: {
+    flex: 1,
+  },
+  pinLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 4,
+  },
+  pinValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#4CAF50',
+    letterSpacing: 4,
+    fontFamily: 'monospace',
+  },
+  changePinButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  changePinButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  changePinSection: {
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  pinInput: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 24,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    marginBottom: 16,
+    textAlign: 'center',
+    letterSpacing: 8,
+    fontWeight: '700',
+  },
+  savePinButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  savePinButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  noPinContainer: {
+    backgroundColor: '#FFF3E0',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF9800',
+  },
+  noPinText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#E65100',
+    marginBottom: 4,
+  },
+  noPinDescription: {
+    fontSize: 13,
+    color: '#666',
+    lineHeight: 18,
+  },
+  pinInfoBox: {
+    backgroundColor: '#E3F2FD',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2196F3',
+  },
+  pinInfoText: {
+    fontSize: 12,
+    color: '#1976D2',
+    lineHeight: 16,
+  },
 });
