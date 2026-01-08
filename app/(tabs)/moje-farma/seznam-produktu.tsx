@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../../lib/supabase';
+import { useFarmarAuth } from '../../utils/farmarAuthContext';
 
 interface Produkt {
   id: string;
@@ -17,6 +17,7 @@ interface Produkt {
 }
 
 export default function SeznamProduktScreen() {
+  const { farmar, isAuthenticated } = useFarmarAuth();
   const params = useLocalSearchParams();
   const filtr = params.filtr as string; // 'vse' nebo 'skladem'
 
@@ -24,21 +25,22 @@ export default function SeznamProduktScreen() {
   const [produkty, setProdukty] = useState<Produkt[]>([]);
 
   useEffect(() => {
-    loadProdukty();
-  }, []);
+    if (isAuthenticated && farmar?.id) {
+      loadProdukty();
+    }
+  }, [isAuthenticated, farmar]);
 
   const loadProdukty = async () => {
     try {
-      const pestitelId = await AsyncStorage.getItem('pestitelId');
-      if (!pestitelId) {
-        router.replace('/moje-farma');
+      if (!farmar?.id) {
+        router.replace('/prihlaseni');
         return;
       }
 
       let query = supabase
         .from('produkty')
         .select('*')
-        .eq('pestitel_id', pestitelId)
+        .eq('pestitel_id', farmar.id)
         .order('created_at', { ascending: false });
 
       // Pokud je filtr "skladem", zobraz jen dostupné produkty

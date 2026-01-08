@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../../lib/supabase';
+import { useFarmarAuth } from '../../utils/farmarAuthContext';
 
 // Sada ikon pro produkty
 const PRODUCT_ICONS = [
@@ -14,6 +14,7 @@ const PRODUCT_ICONS = [
 ];
 
 export default function PridatProduktScreen() {
+  const { farmar, isAuthenticated } = useFarmarAuth();
   const [loading, setLoading] = useState(false);
   const [nazev, setNazev] = useState('');
   const [popis, setPopis] = useState('');
@@ -39,10 +40,9 @@ export default function PridatProduktScreen() {
     setLoading(true);
     try {
       // Získej ID přihlášeného farmáře
-      const pestitelId = await AsyncStorage.getItem('pestitelId');
-      if (!pestitelId) {
+      if (!farmar?.id) {
         Alert.alert('Chyba', 'Nejste přihlášeni');
-        router.replace('/moje-farma');
+        router.replace('/prihlaseni');
         return;
       }
 
@@ -50,7 +50,7 @@ export default function PridatProduktScreen() {
       const { data, error } = await supabase
         .from('produkty')
         .insert({
-          pestitel_id: Number(pestitelId),
+          pestitel_id: Number(farmar.id),
           nazev: nazev.trim(),
           popis: popis.trim() || null,
           cena: Number(cena),

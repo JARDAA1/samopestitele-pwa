@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../../lib/supabase';
 import * as Location from 'expo-location';
+import { useFarmarAuth } from '../../utils/farmarAuthContext';
 
 interface FarmarData {
   id: string;
@@ -19,6 +19,7 @@ interface FarmarData {
 }
 
 export default function UpravitFarmuScreen() {
+  const { farmar, isAuthenticated } = useFarmarAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [farmarData, setFarmarData] = useState<FarmarData | null>(null);
@@ -36,24 +37,28 @@ export default function UpravitFarmuScreen() {
   const [myLocationLng, setMyLocationLng] = useState<number | null>(null);
 
   useEffect(() => {
+    if (!isAuthenticated || !farmar) {
+      Alert.alert('Chyba', 'Nejste přihlášeni');
+      router.replace('/prihlaseni');
+      return;
+    }
     loadFarmarData();
-  }, []);
+  }, [isAuthenticated, farmar]);
 
   const loadFarmarData = async () => {
     try {
-      const pestitelId = await AsyncStorage.getItem('pestitelId');
-      console.log('🔑 pestitelId from AsyncStorage:', pestitelId, 'type:', typeof pestitelId);
-
-      if (!pestitelId) {
+      if (!farmar?.id) {
         Alert.alert('Chyba', 'Nejste přihlášeni');
         router.back();
         return;
       }
 
+      console.log('🔑 Loading data for farmer ID:', farmar.id);
+
       const { data, error } = await supabase
         .from('pestitele')
         .select('*')
-        .eq('id', pestitelId)
+        .eq('id', farmar.id)
         .single();
 
       console.log('📥 Load farmer data response:', { data, error });
@@ -161,8 +166,7 @@ export default function UpravitFarmuScreen() {
 
     setSaving(true);
     try {
-      const pestitelId = await AsyncStorage.getItem('pestitelId');
-      if (!pestitelId) {
+      if (!farmar?.id) {
         Alert.alert('Chyba', 'Nejste přihlášeni');
         setSaving(false);
         return;
@@ -192,7 +196,7 @@ export default function UpravitFarmuScreen() {
               {
                 text: 'Pokračovat',
                 onPress: async () => {
-                  await saveData(pestitelId, 0, 0);
+                  await saveData(farmar.id, 0, 0);
                 }
               }
             ]
@@ -205,8 +209,8 @@ export default function UpravitFarmuScreen() {
         console.log('✅ GPS from address:', { finalLat, finalLng });
       }
 
-      console.log('💾 Calling saveData with:', { pestitelId, finalLat, finalLng });
-      await saveData(pestitelId, finalLat, finalLng);
+      console.log('💾 Calling saveData with:', { farmerId: farmar.id, finalLat, finalLng });
+      await saveData(farmar.id, finalLat, finalLng);
     } catch (error) {
       console.error('Chyba při ukládání:', error);
       Alert.alert('Chyba', 'Nepodařilo se uložit změny');
@@ -214,9 +218,9 @@ export default function UpravitFarmuScreen() {
     }
   };
 
-  const saveData = async (pestitelId: string, gpsLat: number, gpsLng: number) => {
+  const saveData = async (farmerId: string, gpsLat: number, gpsLng: number) => {
     try {
-      console.log('📤 saveData called with:', { pestitelId, gpsLat, gpsLng, pestitelIdType: typeof pestitelId });
+      console.log('📤 saveData called with:', { farmerId, gpsLat, gpsLng });
 
       const updateData = {
         nazev_farmy: nazevFarmy.trim(),
@@ -231,30 +235,17 @@ export default function UpravitFarmuScreen() {
 
       console.log('📦 Update data:', updateData);
 
-      // Pokusíme se o update s původním ID
-      let result = await supabase
+      const { data, error } = await supabase
         .from('pestitele')
         .update(updateData)
-        .eq('id', pestitelId)
+        .eq('id', farmerId)
         .select();
 
-      console.log('📥 Supabase response (string ID):', result);
+      console.log('📥 Supabase response:', { data, error });
 
-      // Pokud to nefungovalo, zkusíme s ID jako číslo
-      if (result.data && result.data.length === 0 && !result.error) {
-        console.log('⚠️ No rows updated with string ID, trying with integer ID...');
-        result = await supabase
-          .from('pestitele')
-          .update(updateData)
-          .eq('id', parseInt(pestitelId))
-          .select();
+      if (error) throw error;
 
-        console.log('📥 Supabase response (integer ID):', result);
-      }
-
-      if (result.error) throw result.error;
-
-      if (!result.data || result.data.length === 0) {
+      if (!data || data.length === 0) {
         throw new Error('Nepodařilo se aktualizovat záznam. Možná nemáte oprávnění nebo záznam neexistuje.');
       }
 

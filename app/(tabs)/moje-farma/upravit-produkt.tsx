@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../../lib/supabase';
+import { useFarmarAuth } from '../../utils/farmarAuthContext';
 
 // Sada ikon pro produkty
 const PRODUCT_ICONS = [
@@ -14,6 +14,7 @@ const PRODUCT_ICONS = [
 ];
 
 export default function UpravitProduktScreen() {
+  const { farmar, isAuthenticated } = useFarmarAuth();
   const params = useLocalSearchParams();
   const produktId = params.id as string;
 
@@ -83,10 +84,9 @@ export default function UpravitProduktScreen() {
 
     setSaving(true);
     try {
-      const pestitelId = await AsyncStorage.getItem('pestitelId');
-      if (!pestitelId) {
+      if (!farmar?.id) {
         Alert.alert('Chyba', 'Nejste přihlášeni');
-        router.push('/moje-farma');
+        router.replace('/prihlaseni');
         return;
       }
 

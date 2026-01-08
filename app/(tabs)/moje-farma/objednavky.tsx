@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../../lib/supabase';
+import { useFarmarAuth } from '../../utils/farmarAuthContext';
 
 interface Objednavka {
   id: string;
@@ -15,26 +15,28 @@ interface Objednavka {
 }
 
 export default function ObjednavkyScreen() {
+  const { farmar, isAuthenticated } = useFarmarAuth();
   const [loading, setLoading] = useState(true);
   const [objednavky, setObjednavky] = useState<Objednavka[]>([]);
 
   useEffect(() => {
-    loadObjednavky();
-  }, []);
+    if (isAuthenticated && farmar?.id) {
+      loadObjednavky();
+    }
+  }, [isAuthenticated, farmar]);
 
   const loadObjednavky = async () => {
     try {
-      const pestitelId = await AsyncStorage.getItem('pestitelId');
-      if (!pestitelId) {
-        router.replace('/moje-farma');
+      if (!farmar?.id) {
+        router.replace('/prihlaseni');
         return;
       }
 
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from('objednavky')
         .select('*')
-        .eq('pestitel_id', pestitelId)
-        .order('created_at', { ascending: false });
+        .eq('pestitel_id', farmar.id)
+        .order('created_at', { ascending: false});
 
       if (error) {
         console.error('Chyba při načítání objednávek:', error);

@@ -81,34 +81,33 @@ export default function MojeProdejnaScreen() {
   // Staré přihlašovací state proměnné - ODSTRANĚNO (nyní používáme /prihlaseni)
 
   useEffect(() => {
-    checkLoginAndLoadData();
-  }, []);
+    if (isAuthenticated && farmar?.id) {
+      checkLoginAndLoadData();
+    } else {
+      setLoading(false);
+    }
+  }, [isAuthenticated, farmar]);
 
   // Reload produktů při návratu na obrazovku
   useFocusEffect(
     useCallback(() => {
       const reloadIfLoggedIn = async () => {
-        const logged = await AsyncStorage.getItem('pestitelLoggedIn');
-        const pestitelId = await AsyncStorage.getItem('pestitelId');
-        if (logged === 'true' && pestitelId) {
-          await loadProdukty(pestitelId);
+        if (isAuthenticated && farmar?.id) {
+          await loadProdukty(farmar.id);
         }
       };
       reloadIfLoggedIn();
-    }, [])
+    }, [isAuthenticated, farmar])
   );
 
   const checkLoginAndLoadData = async () => {
     try {
-      const logged = await AsyncStorage.getItem('pestitelLoggedIn');
-      const pestitelId = await AsyncStorage.getItem('pestitelId');
-
-      if (logged === 'true' && pestitelId) {
+      if (farmar?.id) {
         setIsLoggedIn(true);
-        await loadFarmarData(pestitelId);
-        await loadProdukty(pestitelId);
-        await loadPocetObjednavek(pestitelId);
-        await loadStanky(pestitelId);
+        await loadFarmarData(farmar.id);
+        await loadProdukty(farmar.id);
+        await loadPocetObjednavek(farmar.id);
+        await loadStanky(farmar.id);
       }
     } catch (error) {
       console.error('Chyba při načítání dat:', error);
