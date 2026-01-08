@@ -296,21 +296,25 @@ export default function UpravitFarmuScreen() {
 
       console.log('📥 Supabase response:', { data, error });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
+      }
 
       if (!data || data.length === 0) {
+        console.error('❌ No data returned from update');
         throw new Error('Nepodařilo se aktualizovat záznam. Možná nemáte oprávnění nebo záznam neexistuje.');
       }
 
       console.log('✅ Save successful!');
+      setSaving(false);
       Alert.alert('Uloženo', 'Informace o farmě byly úspěšně aktualizovány', [
         { text: 'OK', onPress: () => router.back() }
       ]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Chyba při ukládání do databáze:', error);
-      Alert.alert('Chyba', 'Nepodařilo se uložit změny');
-    } finally {
       setSaving(false);
+      Alert.alert('Chyba', error?.message || 'Nepodařilo se uložit změny');
     }
   };
 
