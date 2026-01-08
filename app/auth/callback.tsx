@@ -47,9 +47,9 @@ export default function AuthCallbackScreen() {
           }
         }
 
-        // Pokud má PIN nebo se něco pokazilo, jdeme na moje-farma
+        // Pokud má PIN nebo se něco pokazilo, jdeme na můj profil
         setTimeout(() => {
-          router.replace('/(tabs)/moje-farma');
+          router.replace('/muj-profil');
         }, 1500);
       } else {
         setStatus('error');

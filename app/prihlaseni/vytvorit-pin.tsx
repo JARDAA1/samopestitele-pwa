@@ -50,12 +50,12 @@ export default function VytvoritPinScreen() {
         Alert.alert(
           'Hotovo!',
           'PIN byl úspěšně vytvořen! Nyní se můžete přihlašovat do Prodejny pomocí telefonu a PINu.',
-          [{ text: 'OK', onPress: () => router.replace('/(tabs)/moje-farma') }]
+          [{ text: 'OK', onPress: () => router.replace('/muj-profil') }]
         );
       }
 
       if (Platform.OS === 'web') {
-        router.replace('/(tabs)/moje-farma');
+        router.replace('/muj-profil');
       }
     } else {
       if (Platform.OS === 'web') {
@@ -70,7 +70,7 @@ export default function VytvoritPinScreen() {
     if (Platform.OS === 'web') {
       const confirmed = confirm('Opravdu chcete přeskočit vytvoření PINu? Budete se muset vždy přihlašovat emailem.');
       if (confirmed) {
-        router.replace('/(tabs)/moje-farma');
+        router.replace('/muj-profil');
       }
     } else {
       Alert.alert(
@@ -78,7 +78,7 @@ export default function VytvoritPinScreen() {
         'Opravdu chcete přeskočit vytvoření PINu? Budete se muset vždy přihlašovat emailem.',
         [
           { text: 'Zrušit', style: 'cancel' },
-          { text: 'Přeskočit', onPress: () => router.replace('/(tabs)/moje-farma') }
+          { text: 'Přeskočit', onPress: () => router.replace('/muj-profil') }
         ]
       );
     }
