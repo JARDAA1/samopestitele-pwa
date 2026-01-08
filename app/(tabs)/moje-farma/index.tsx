@@ -44,7 +44,10 @@ export default function MojeProdejnaScreen() {
   // Pokud není přihlášený, přesměruj na přihlášení
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace('/prihlaseni');
+      // Použijeme setTimeout, aby se redirect provedl až po dokončení aktuálního renderu
+      setTimeout(() => {
+        router.replace('/prihlaseni');
+      }, 0);
     }
   }, [isAuthenticated]);
 
