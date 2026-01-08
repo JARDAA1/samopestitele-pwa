@@ -8,12 +8,16 @@ export default function MujProfilScreen() {
 
   // Pokud není přihlášen, přesměruj na přihlášení
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
     if (!isAuthenticated) {
-      // Použijeme setTimeout, aby se redirect provedl až po dokončení aktuálního renderu
-      setTimeout(() => {
+      // Odložíme redirect mimo render cycle
+      timeoutId = setTimeout(() => {
         router.replace('/prihlaseni');
-      }, 0);
+      }, 100);
     }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [isAuthenticated]);
 
   // Pokud není přihlášen, nezobrazuj obsah

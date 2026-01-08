@@ -41,16 +41,6 @@ interface Stanek {
 export default function MojeProdejnaScreen() {
   const { isAuthenticated, farmar, authLevel, logout } = useFarmarAuth();
 
-  // Pokud není přihlášený, přesměruj na přihlášení
-  useEffect(() => {
-    if (!isAuthenticated) {
-      // Použijeme setTimeout, aby se redirect provedl až po dokončení aktuálního renderu
-      setTimeout(() => {
-        router.replace('/prihlaseni');
-      }, 0);
-    }
-  }, [isAuthenticated]);
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [farmarData, setFarmarData] = useState<FarmarData | null>(null);
@@ -59,7 +49,20 @@ export default function MojeProdejnaScreen() {
   const [farmaInfoExpanded, setFarmaInfoExpanded] = useState(false);
   const [expandedProduktId, setExpandedProduktId] = useState<string | null>(null);
 
-  // Pokud není autentizovaný, nezobrazuj obsah
+  // Pokud není autentizovaný, zobraz loader (redirect se stane přes useEffect)
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (!isAuthenticated) {
+      // Odložíme redirect mimo render cycle
+      timeoutId = setTimeout(() => {
+        router.replace('/prihlaseni');
+      }, 100);
+    }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isAuthenticated]);
+
   if (!isAuthenticated) {
     return (
       <View style={styles.container}>
