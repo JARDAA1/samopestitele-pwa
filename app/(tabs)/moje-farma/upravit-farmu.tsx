@@ -332,176 +332,228 @@ export default function UpravitFarmuScreen() {
         <Text style={styles.headerTitle}>✏️ Upravit informace o farmě</Text>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Základní údaje - kompaktní */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Základní údaje</Text>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIconCircle}>
+              <Text style={styles.sectionIcon}>👤</Text>
+            </View>
+            <Text style={styles.sectionTitle}>Základní údaje</Text>
+          </View>
 
-          <Text style={styles.label}>Název farmy *</Text>
-          <TextInput
-            style={styles.input}
-            value={nazevFarmy}
-            onChangeText={setNazevFarmy}
-            placeholder="např. Bio Farma Svoboda"
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Název farmy *</Text>
+            <TextInput
+              style={styles.input}
+              value={nazevFarmy}
+              onChangeText={setNazevFarmy}
+              placeholder="Bio Farma Svoboda"
+              placeholderTextColor="#999"
+            />
+          </View>
 
-          <Text style={styles.label}>Jméno farmáře *</Text>
-          <TextInput
-            style={styles.input}
-            value={jmeno}
-            onChangeText={setJmeno}
-            placeholder="např. Jan Svoboda"
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Jméno farmáře *</Text>
+            <TextInput
+              style={styles.input}
+              value={jmeno}
+              onChangeText={setJmeno}
+              placeholder="Jan Svoboda"
+              placeholderTextColor="#999"
+            />
+          </View>
 
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="vas.email@priklad.cz"
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+          <View style={styles.inputRow}>
+            <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="email@priklad.cz"
+                placeholderTextColor="#999"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
 
-          <Text style={styles.label}>Telefon</Text>
-          <TextInput
-            style={[styles.input, styles.inputDisabled]}
-            value={farmarData?.telefon}
-            editable={false}
-          />
-          <Text style={styles.helperText}>Telefon nelze změnit</Text>
+            <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
+              <Text style={styles.label}>Telefon</Text>
+              <TextInput
+                style={[styles.input, styles.inputDisabled]}
+                value={farmarData?.telefon}
+                editable={false}
+              />
+            </View>
+          </View>
         </View>
 
         {/* PIN pro Prodejnu */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>🏪 PIN pro Prodejnu</Text>
-          <Text style={styles.sectionDescription}>
-            PIN slouží pro rychlé přihlášení do sekce Prodejna pomocí telefonu
-          </Text>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconCircle, { backgroundColor: '#FFF3E0' }]}>
+              <Text style={styles.sectionIcon}>🔐</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.sectionTitle}>PIN pro Prodejnu</Text>
+              <Text style={styles.sectionSubtitle}>
+                Rychlé přihlášení telefonem
+              </Text>
+            </View>
+          </View>
 
           {currentPin ? (
             <>
-              <View style={styles.pinDisplayContainer}>
-                <View style={styles.pinDisplay}>
-                  <Text style={styles.pinLabel}>Aktuální PIN:</Text>
+              <View style={styles.pinDisplayBox}>
+                <View style={styles.pinValueBox}>
+                  <Text style={styles.pinLabel}>Váš PIN</Text>
                   <Text style={styles.pinValue}>{currentPin}</Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.changePinButton}
-                  onPress={() => setShowPinSection(!showPinSection)}
-                >
-                  <Text style={styles.changePinButtonText}>
-                    {showPinSection ? 'Zrušit' : '✏️ Změnit PIN'}
-                  </Text>
-                </TouchableOpacity>
+                {!showPinSection && (
+                  <TouchableOpacity
+                    style={styles.changeButton}
+                    onPress={() => setShowPinSection(true)}
+                  >
+                    <Text style={styles.changeButtonText}>Změnit</Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
               {showPinSection && (
-                <View style={styles.changePinSection}>
-                  <Text style={styles.label}>Nový PIN (4-6 číslic)</Text>
-                  <TextInput
-                    style={styles.pinInput}
-                    placeholder="••••"
-                    value={newPin}
-                    onChangeText={setNewPin}
-                    keyboardType="number-pad"
-                    maxLength={6}
-                    secureTextEntry
-                  />
+                <View style={styles.pinChangeForm}>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Nový PIN (4-6 číslic)</Text>
+                    <TextInput
+                      style={styles.pinInput}
+                      placeholder="••••"
+                      placeholderTextColor="#999"
+                      value={newPin}
+                      onChangeText={setNewPin}
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      secureTextEntry
+                    />
+                  </View>
 
-                  <Text style={styles.label}>Potvrďte nový PIN</Text>
-                  <TextInput
-                    style={styles.pinInput}
-                    placeholder="••••"
-                    value={confirmPin}
-                    onChangeText={setConfirmPin}
-                    keyboardType="number-pad"
-                    maxLength={6}
-                    secureTextEntry
-                  />
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Potvrďte nový PIN</Text>
+                    <TextInput
+                      style={styles.pinInput}
+                      placeholder="••••"
+                      placeholderTextColor="#999"
+                      value={confirmPin}
+                      onChangeText={setConfirmPin}
+                      keyboardType="number-pad"
+                      maxLength={6}
+                      secureTextEntry
+                    />
+                  </View>
 
-                  <TouchableOpacity
-                    style={[styles.savePinButton, savingPin && styles.buttonDisabled]}
-                    onPress={handleZmenitPin}
-                    disabled={savingPin}
-                  >
-                    <Text style={styles.savePinButtonText}>
-                      {savingPin ? 'Ukládám...' : '💾 Uložit nový PIN'}
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={styles.buttonRow}>
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={() => {
+                        setShowPinSection(false);
+                        setNewPin('');
+                        setConfirmPin('');
+                      }}
+                    >
+                      <Text style={styles.cancelButtonText}>Zrušit</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.primaryButton, savingPin && styles.buttonDisabled]}
+                      onPress={handleZmenitPin}
+                      disabled={savingPin}
+                    >
+                      <Text style={styles.primaryButtonText}>
+                        {savingPin ? 'Ukládám...' : 'Uložit'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
             </>
           ) : (
             <>
-              <View style={styles.noPinContainer}>
-                <Text style={styles.noPinText}>⚠️ Nemáte nastavený PIN</Text>
-                <Text style={styles.noPinDescription}>
-                  Vytvořte si PIN pro rychlé přihlášení do Prodejny
-                </Text>
+              <View style={styles.alertBox}>
+                <Text style={styles.alertText}>Nemáte nastavený PIN</Text>
               </View>
 
-              <Text style={styles.label}>Nový PIN (4-6 číslic)</Text>
-              <TextInput
-                style={styles.pinInput}
-                placeholder="••••"
-                value={newPin}
-                onChangeText={setNewPin}
-                keyboardType="number-pad"
-                maxLength={6}
-                secureTextEntry
-              />
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Nový PIN (4-6 číslic)</Text>
+                <TextInput
+                  style={styles.pinInput}
+                  placeholder="••••"
+                  placeholderTextColor="#999"
+                  value={newPin}
+                  onChangeText={setNewPin}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  secureTextEntry
+                />
+              </View>
 
-              <Text style={styles.label}>Potvrďte PIN</Text>
-              <TextInput
-                style={styles.pinInput}
-                placeholder="••••"
-                value={confirmPin}
-                onChangeText={setConfirmPin}
-                keyboardType="number-pad"
-                maxLength={6}
-                secureTextEntry
-              />
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Potvrďte PIN</Text>
+                <TextInput
+                  style={styles.pinInput}
+                  placeholder="••••"
+                  placeholderTextColor="#999"
+                  value={confirmPin}
+                  onChangeText={setConfirmPin}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  secureTextEntry
+                />
+              </View>
 
               <TouchableOpacity
-                style={[styles.savePinButton, savingPin && styles.buttonDisabled]}
+                style={[styles.primaryButton, savingPin && styles.buttonDisabled]}
                 onPress={handleZmenitPin}
                 disabled={savingPin}
               >
-                <Text style={styles.savePinButtonText}>
-                  {savingPin ? 'Vytvářím...' : '🔐 Vytvořit PIN'}
+                <Text style={styles.primaryButtonText}>
+                  {savingPin ? 'Vytvářím...' : 'Vytvořit PIN'}
                 </Text>
               </TouchableOpacity>
             </>
           )}
-
-          <View style={styles.pinInfoBox}>
-            <Text style={styles.pinInfoText}>
-              💡 S PINem se můžete rychle přihlásit do Prodejny pomocí telefonu + PIN. Session je platná 30 dní.
-            </Text>
-          </View>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Lokalita</Text>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconCircle, { backgroundColor: '#E3F2FD' }]}>
+              <Text style={styles.sectionIcon}>📍</Text>
+            </View>
+            <Text style={styles.sectionTitle}>Lokalita</Text>
+          </View>
 
-          <Text style={styles.label}>Město *</Text>
-          <TextInput
-            style={styles.input}
-            value={mesto}
-            onChangeText={setMesto}
-            placeholder="např. Praha"
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Město *</Text>
+            <TextInput
+              style={styles.input}
+              value={mesto}
+              onChangeText={setMesto}
+              placeholder="Praha"
+              placeholderTextColor="#999"
+            />
+          </View>
 
-          <Text style={styles.label}>Adresa</Text>
-          <TextInput
-            style={styles.input}
-            value={adresa}
-            onChangeText={setAdresa}
-            placeholder="např. Hlavní 123"
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Adresa</Text>
+            <TextInput
+              style={styles.input}
+              value={adresa}
+              onChangeText={setAdresa}
+              placeholder="Hlavní 123"
+              placeholderTextColor="#999"
+            />
+          </View>
 
           <View style={styles.gpsOptionsContainer}>
-            <Text style={styles.gpsOptionsTitle}>GPS souřadnice pro mapu:</Text>
+            <Text style={styles.label}>GPS souřadnice</Text>
 
             <TouchableOpacity
               style={styles.gpsOption}
@@ -569,74 +621,157 @@ export default function UpravitFarmuScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>O farmě</Text>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionIconCircle, { backgroundColor: '#F3E5F5' }]}>
+              <Text style={styles.sectionIcon}>📝</Text>
+            </View>
+            <Text style={styles.sectionTitle}>O farmě</Text>
+          </View>
 
-          <Text style={styles.label}>Popis farmy</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={popis}
-            onChangeText={setPopis}
-            placeholder="Napište něco o vaší farmě..."
-            multiline
-            numberOfLines={4}
-          />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Popis farmy</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={popis}
+              onChangeText={setPopis}
+              placeholder="Napište něco o vaší farmě..."
+              placeholderTextColor="#999"
+              multiline
+              numberOfLines={4}
+            />
+          </View>
         </View>
 
-        <TouchableOpacity
-          style={[styles.saveButton, (saving || fetchingGPS) && styles.buttonDisabled]}
-          onPress={handleUlozit}
-          disabled={saving || fetchingGPS}
-        >
-          <Text style={styles.saveButtonText}>
-            {fetchingGPS ? '📍 Hledám GPS souřadnice...' : saving ? 'Ukládám...' : '💾 Uložit změny'}
-          </Text>
-        </TouchableOpacity>
+        {/* Sticky Save Button */}
+        <View style={styles.saveButtonContainer}>
+          <TouchableOpacity
+            style={[styles.saveButton, (saving || fetchingGPS) && styles.buttonDisabled]}
+            onPress={handleUlozit}
+            disabled={saving || fetchingGPS}
+          >
+            <Text style={styles.saveButtonText}>
+              {fetchingGPS ? 'Hledám GPS...' : saving ? 'Ukládám...' : 'Uložit změny'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
-  centerContent: { justifyContent: 'center', alignItems: 'center' },
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA'
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   header: {
     backgroundColor: '#4CAF50',
     paddingTop: 60,
-    paddingBottom: 20,
+    paddingBottom: 16,
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 15,
   },
-  backButton: { marginRight: 10 },
-  backButtonText: { fontSize: 16, color: '#FFFFFF', fontWeight: '600' },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF', flex: 1 },
-  loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
-  content: { flex: 1 },
+  backButton: {
+    marginRight: 12
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '600'
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    flex: 1
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666'
+  },
+  content: {
+    flex: 1
+  },
   card: {
     backgroundColor: '#FFFFFF',
-    margin: 15,
+    marginHorizontal: 16,
+    marginTop: 16,
     padding: 20,
-    borderRadius: 12,
-    elevation: 2,
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#2E7D32', marginBottom: 15 },
-  label: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 8, marginTop: 15 },
+
+  // Section Headers
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sectionIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E8F5E9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  sectionIcon: {
+    fontSize: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1A1A'
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 2,
+  },
+
+  // Input Groups
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 8
+  },
   input: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    color: '#1A1A1A',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#E8EAED',
   },
-  inputDisabled: { backgroundColor: '#EEEEEE', color: '#999' },
-  textArea: { minHeight: 100, textAlignVertical: 'top' },
-  helperText: { fontSize: 12, color: '#999', marginTop: 5 },
+  inputDisabled: {
+    backgroundColor: '#F5F5F5',
+    color: '#999'
+  },
+  textArea: {
+    minHeight: 100,
+    textAlignVertical: 'top',
+    paddingTop: 14,
+  },
   infoBox: {
     backgroundColor: '#E8F5E9',
     borderRadius: 8,
@@ -751,83 +886,75 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
-  saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
-  buttonDisabled: { opacity: 0.5 },
-
-  // PIN Styles
-  sectionDescription: {
-    fontSize: 13,
-    color: '#666',
-    marginBottom: 20,
-    lineHeight: 18,
+  saveButtonContainer: {
+    padding: 16,
+    paddingBottom: 32,
   },
-  pinDisplayContainer: {
-    backgroundColor: '#F5F5F5',
+  saveButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700'
+  },
+  buttonDisabled: {
+    opacity: 0.5
+  },
+
+  // PIN Section Styles
+  pinDisplayBox: {
+    backgroundColor: '#F8F9FA',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  pinDisplay: {
+  pinValueBox: {
     flex: 1,
   },
   pinLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#666',
     marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   pinValue: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
     color: '#4CAF50',
-    letterSpacing: 4,
-    fontFamily: 'monospace',
+    letterSpacing: 6,
   },
-  changePinButton: {
+  changeButton: {
     backgroundColor: '#4CAF50',
     paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingHorizontal: 20,
+    borderRadius: 10,
   },
-  changePinButtonText: {
+  changeButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
-  changePinSection: {
-    paddingTop: 16,
+  pinChangeForm: {
+    marginTop: 20,
+    paddingTop: 20,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: '#E8EAED',
   },
   pinInput: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F8F9FA',
     borderRadius: 12,
     padding: 16,
     fontSize: 24,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    marginBottom: 16,
+    color: '#1A1A1A',
+    borderWidth: 1,
+    borderColor: '#E8EAED',
     textAlign: 'center',
     letterSpacing: 8,
     fontWeight: '700',
   },
-  savePinButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  savePinButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  noPinContainer: {
+  alertBox: {
     backgroundColor: '#FFF3E0',
     borderRadius: 12,
     padding: 16,
@@ -835,28 +962,44 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: '#FF9800',
   },
-  noPinText: {
-    fontSize: 15,
-    fontWeight: '700',
+  alertText: {
+    fontSize: 14,
+    fontWeight: '600',
     color: '#E65100',
-    marginBottom: 4,
   },
-  noPinDescription: {
-    fontSize: 13,
+
+  // Buttons
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  primaryButton: {
+    flex: 1,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E8EAED',
+  },
+  cancelButtonText: {
     color: '#666',
-    lineHeight: 18,
-  },
-  pinInfoBox: {
-    backgroundColor: '#E3F2FD',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#2196F3',
-  },
-  pinInfoText: {
-    fontSize: 12,
-    color: '#1976D2',
-    lineHeight: 16,
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
