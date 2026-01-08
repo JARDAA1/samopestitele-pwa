@@ -241,14 +241,16 @@ export default function UpravitFarmuScreen() {
         setFetchingGPS(false);
 
         if (!gpsCoords) {
+          setSaving(false); // Reset button state first
           Alert.alert(
             'GPS souřadnice nenalezeny',
             'Nepodařilo se najít GPS souřadnice pro zadanou adresu. Vaše farma se nebude zobrazovat na mapě. Chcete přesto pokračovat?',
             [
-              { text: 'Zrušit', style: 'cancel', onPress: () => { setSaving(false); return; } },
+              { text: 'Zrušit', style: 'cancel' },
               {
                 text: 'Pokračovat',
                 onPress: async () => {
+                  setSaving(true);
                   await saveData(farmar.id, 0, 0);
                 }
               }
