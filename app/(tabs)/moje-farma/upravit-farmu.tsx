@@ -233,9 +233,14 @@ export default function UpravitFarmuScreen() {
         finalLat = myLocationLat;
         finalLng = myLocationLng;
         console.log('✅ Using my location GPS:', { finalLat, finalLng });
+      } else if (farmarData?.gps_lat && farmarData?.gps_lng) {
+        // Použijeme existující GPS souřadnice z databáze
+        finalLat = farmarData.gps_lat;
+        finalLng = farmarData.gps_lng;
+        console.log('✅ Using existing GPS from database:', { finalLat, finalLng });
       } else {
         console.log('🔍 Getting GPS from address...');
-        // Automatické získání GPS z adresy
+        // Automatické získání GPS z adresy pouze pokud ještě žádné nemáme
         setFetchingGPS(true);
         const gpsCoords = await getGPSFromAddress(mesto.trim(), adresa.trim());
         setFetchingGPS(false);
