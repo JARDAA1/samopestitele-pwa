@@ -528,24 +528,35 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
   };
 
   const logout = async () => {
-    setFarmar(null);
-    setAuthLevel('none');
+    console.log('🚪 Logout called, current authLevel:', authLevel);
+
+    // Uložíme si authLevel před resetem
+    const currentAuthLevel = authLevel;
+
+    // Pokud je uživatel přihlášen přes magic link, odhlásíme ho i z Supabase Auth
+    if (currentAuthLevel === 'magic_link') {
+      try {
+        console.log('🔐 Signing out from Supabase Auth...');
+        const { supabase } = require('../../lib/supabase');
+        await supabase.auth.signOut();
+        console.log('✅ Supabase Auth signed out');
+      } catch (error) {
+        console.error('❌ Error signing out from Supabase Auth:', error);
+      }
+    }
 
     // Smažeme všechny klíče spojené s přihlášením
+    console.log('🗑️ Removing AsyncStorage keys...');
     await AsyncStorage.removeItem('farmar_session');
     await AsyncStorage.removeItem('auth_level');
     await AsyncStorage.removeItem('farmar_pin');
     await AsyncStorage.removeItem('farmar_data');
+    console.log('✅ AsyncStorage cleared');
 
-    // Pokud je uživatel přihlášen přes magic link, odhlásíme ho i z Supabase Auth
-    if (authLevel === 'magic_link') {
-      try {
-        const { supabase } = require('../../lib/supabase');
-        await supabase.auth.signOut();
-      } catch (error) {
-        console.error('Error signing out from Supabase Auth:', error);
-      }
-    }
+    // Resetujeme state
+    setFarmar(null);
+    setAuthLevel('none');
+    console.log('✅ Logout complete');
   };
 
   const value: FarmarAuthContextType = {
