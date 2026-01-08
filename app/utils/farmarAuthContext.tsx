@@ -530,8 +530,12 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
   const logout = async () => {
     setFarmar(null);
     setAuthLevel('none');
+
+    // Smažeme všechny klíče spojené s přihlášením
     await AsyncStorage.removeItem('farmar_session');
     await AsyncStorage.removeItem('auth_level');
+    await AsyncStorage.removeItem('farmar_pin');
+    await AsyncStorage.removeItem('farmar_data');
 
     // Pokud je uživatel přihlášen přes magic link, odhlásíme ho i z Supabase Auth
     if (authLevel === 'magic_link') {
@@ -542,8 +546,6 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         console.error('Error signing out from Supabase Auth:', error);
       }
     }
-
-    // Nebudeme mazat farmar_data ani farmar_pin - uživatel se může znovu přihlásit
   };
 
   const value: FarmarAuthContextType = {
