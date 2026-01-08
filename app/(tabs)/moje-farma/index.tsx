@@ -304,17 +304,25 @@ function MojeProdejnaScreenContent() {
   // Staré přihlašovací funkce ODSTRANĚNY - nyní se používá nový auth systém
 
   const handleOdhlasit = async () => {
+    console.log('🔴 handleOdhlasit CALLED!');
     Alert.alert(
       'Odhlásit se?',
       'Opravdu se chcete odhlásit?',
       [
-        { text: 'Zrušit', style: 'cancel' },
+        {
+          text: 'Zrušit',
+          style: 'cancel',
+          onPress: () => console.log('User cancelled logout')
+        },
         {
           text: 'Odhlásit',
           style: 'destructive',
           onPress: async () => {
+            console.log('🔴 User confirmed logout - calling logout()...');
             await logout();
+            console.log('🔴 Logout complete - redirecting...');
             router.replace('/prihlaseni');
+            console.log('🔴 Redirect called');
           }
         }
       ]
