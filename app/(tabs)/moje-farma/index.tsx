@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../../lib/supabase';
 import { useFarmarAuth } from '../../utils/farmarAuthContext';
+import { ProtectedRoute } from '../../utils/ProtectedRoute';
 
 interface FarmarData {
   id: string;
@@ -38,7 +39,7 @@ interface Stanek {
   aktivni: boolean;
 }
 
-export default function MojeProdejnaScreen() {
+function MojeProdejnaScreenContent() {
   const { isAuthenticated, farmar, authLevel, logout } = useFarmarAuth();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -48,28 +49,6 @@ export default function MojeProdejnaScreen() {
   const [pocetObjednavek, setPocetObjednavek] = useState(0);
   const [farmaInfoExpanded, setFarmaInfoExpanded] = useState(false);
   const [expandedProduktId, setExpandedProduktId] = useState<string | null>(null);
-
-  // Pokud není autentizovaný, zobraz loader (redirect se stane přes useEffect)
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    if (!isAuthenticated) {
-      // Odložíme redirect mimo render cycle
-      timeoutId = setTimeout(() => {
-        router.replace('/prihlaseni');
-      }, 100);
-    }
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [isAuthenticated]);
-
-  if (!isAuthenticated) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-      </View>
-    );
-  }
 
   // Stánky
   const [stanky, setStanky] = useState<Stanek[]>([]);
@@ -694,6 +673,14 @@ export default function MojeProdejnaScreen() {
         </View>
       </ScrollView>
     </View>
+  );
+}
+
+export default function MojeProdejnaScreen() {
+  return (
+    <ProtectedRoute>
+      <MojeProdejnaScreenContent />
+    </ProtectedRoute>
   );
 }
 
