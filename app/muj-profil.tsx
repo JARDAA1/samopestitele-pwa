@@ -1,21 +1,20 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { router } from 'expo-router';
+import { useEffect } from 'react';
 import { useFarmarAuth } from './utils/farmarAuthContext';
 
 export default function MujProfilScreen() {
   const { isAuthenticated, farmar, logout } = useFarmarAuth();
 
-  // Pokud není přihlášen, zobraz alert
+  // Pokud není přihlášen, přesměruj na přihlášení
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace('/prihlaseni');
+    }
+  }, [isAuthenticated]);
+
+  // Pokud není přihlášen, nezobrazuj obsah
   if (!isAuthenticated) {
-    Alert.alert(
-      'Přihlašte se nebo se registrujte',
-      'Pro přístup k profilu se musíte přihlásit.',
-      [
-        { text: 'Registrovat se', onPress: () => router.push('/registrace') },
-        { text: 'Přihlásit se', onPress: () => router.push('/prihlaseni') },
-        { text: 'Zrušit', style: 'cancel', onPress: () => router.back() }
-      ]
-    );
     return null;
   }
 
