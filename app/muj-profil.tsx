@@ -1,77 +1,22 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { router } from 'expo-router';
-import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFarmarAuth } from './utils/farmarAuthContext';
 
 export default function MujProfilScreen() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    checkLogin();
-  }, []);
-
-  const checkLogin = async () => {
-    try {
-      const logged = await AsyncStorage.getItem('pestitelLoggedIn');
-      setIsLoggedIn(logged === 'true');
-    } catch (error) {
-      console.error('Chyba při kontrole přihlášení:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { isAuthenticated, farmar, logout } = useFarmarAuth();
 
   // Pokud není přihlášen, zobraz alert
-  useEffect(() => {
-    if (!loading && !isLoggedIn) {
-      Alert.alert(
-        'Přihlašte se nebo se registrujte',
-        'Pro přístup k profilu se musíte přihlásit.',
-        [
-          { text: 'Registrovat se', onPress: () => router.push('/registrace') },
-          { text: 'Přihlásit se', onPress: () => router.push('/login') },
-          { text: 'Zrušit', style: 'cancel' }
-        ]
-      );
-    }
-  }, [loading, isLoggedIn]);
-
-  if (loading) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.loadingText}>Načítám...</Text>
-      </View>
+  if (!isAuthenticated) {
+    Alert.alert(
+      'Přihlašte se nebo se registrujte',
+      'Pro přístup k profilu se musíte přihlásit.',
+      [
+        { text: 'Registrovat se', onPress: () => router.push('/registrace') },
+        { text: 'Přihlásit se', onPress: () => router.push('/prihlaseni') },
+        { text: 'Zrušit', style: 'cancel', onPress: () => router.back() }
+      ]
     );
-  }
-
-  if (!isLoggedIn) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>👤 Můj profil</Text>
-        </View>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>🔐</Text>
-          <Text style={styles.emptyTitle}>Nejste přihlášeni</Text>
-          <Text style={styles.emptyText}>Přihlaste se pro přístup k profilu</Text>
-          
-          <TouchableOpacity 
-            style={styles.buttonPrimary} 
-            onPress={() => router.push('/registrace')}
-          >
-            <Text style={styles.buttonText}>Registrovat se</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.buttonSecondary} 
-            onPress={() => router.push('/login')}
-          >
-            <Text style={styles.buttonSecondaryText}>Přihlásit se</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
+    return null;
   }
 
   // PŘIHLÁŠENÝ PĚSTITEL - Profil
@@ -81,15 +26,14 @@ export default function MujProfilScreen() {
       'Opravdu se chcete odhlásit?',
       [
         { text: 'Zrušit', style: 'cancel' },
-        { 
-          text: 'Odhlásit', 
+        {
+          text: 'Odhlásit',
           style: 'destructive',
           onPress: async () => {
-            await AsyncStorage.removeItem('pestitelLoggedIn');
-            await AsyncStorage.removeItem('pestitelId');
-            await AsyncStorage.removeItem('pestitelTelefon');
-            setIsLoggedIn(false);
-            Alert.alert('Odhlášeno', 'Byli jste úspěšně odhlášeni');
+            await logout();
+            Alert.alert('Odhlášeno', 'Byli jste úspěšně odhlášeni', [
+              { text: 'OK', onPress: () => router.push('/prihlaseni') }
+            ]);
           }
         }
       ]
@@ -109,15 +53,18 @@ export default function MujProfilScreen() {
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>🌾</Text>
           </View>
-          <Text style={styles.profileName}>Farma U Nováků</Text>
-          <Text style={styles.profilePhone}>+420 777 123 456</Text>
+          <Text style={styles.profileName}>{farmar?.nazev_farmy || 'Farma'}</Text>
+          <Text style={styles.profilePhone}>{farmar?.telefon || ''}</Text>
         </View>
 
         {/* Menu */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Nastavení účtu</Text>
-          
-          <TouchableOpacity style={styles.menuItem}>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/moje-farma/upravit-farmu')}
+          >
             <Text style={styles.menuIcon}>✏️</Text>
             <View style={styles.menuInfo}>
               <Text style={styles.menuTitle}>Upravit profil</Text>
