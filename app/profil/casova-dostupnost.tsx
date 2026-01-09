@@ -10,6 +10,7 @@ function CasovaDostupnostContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dostupnost, setDostupnost] = useState('');
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
 
   useEffect(() => {
     loadDostupnost();
@@ -40,6 +41,7 @@ function CasovaDostupnostContent() {
     try {
       if (!farmar?.id) {
         Alert.alert('Chyba', 'Nejste přihlášeni');
+        setSaving(false);
         return;
       }
 
@@ -50,9 +52,25 @@ function CasovaDostupnostContent() {
 
       if (error) throw error;
 
-      Alert.alert('Uloženo', 'Časová dostupnost byla aktualizována', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      // Formátovat datum a čas
+      const now = new Date();
+      const datum = now.toLocaleDateString('cs-CZ', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      const cas = now.toLocaleTimeString('cs-CZ', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      setSavedMessage(`Uloženo ${datum} v ${cas}`);
+
+      // Skrýt zprávu po 5 sekundách
+      setTimeout(() => {
+        setSavedMessage(null);
+      }, 5000);
+
     } catch (error: any) {
       console.error('Chyba při ukládání:', error);
       Alert.alert('Chyba', error?.message || 'Nepodařilo se uložit změny');
@@ -80,6 +98,12 @@ function CasovaDostupnostContent() {
       </View>
 
       <ScrollView style={styles.content}>
+        {savedMessage && (
+          <View style={styles.successBanner}>
+            <Text style={styles.successText}>✓ {savedMessage}</Text>
+          </View>
+        )}
+
         <View style={styles.card}>
           <Text style={styles.label}>Kdy jste k zastižení?</Text>
           <Text style={styles.hint}>
@@ -244,5 +268,23 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  successBanner: {
+    backgroundColor: '#4CAF50',
+    marginHorizontal: 16,
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  successText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
