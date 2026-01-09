@@ -109,16 +109,30 @@ export async function validateImage(
     // Kontrola typu
     const ext = uri.split('.').pop()?.toLowerCase();
     const validExts = ['jpg', 'jpeg', 'png', 'webp'];
-    
+
     if (!ext || !validExts.includes(ext)) {
-      return { 
-        valid: false, 
-        error: 'Neplatný formát (povoleno: JPG, PNG, WEBP)' 
+      return {
+        valid: false,
+        error: 'Neplatný formát (povoleno: JPG, PNG, WEBP)'
       };
     }
 
-    // Poznámka: Velikost kontrolujeme až při uploadu
-    // FileSystem.getInfoAsync je deprecated, Supabase má vlastní limity
+    // Kontrola velikosti souboru
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(uri);
+      if (fileInfo.exists && 'size' in fileInfo) {
+        const fileSizeMB = fileInfo.size / (1024 * 1024);
+        if (fileSizeMB > maxSizeMB) {
+          return {
+            valid: false,
+            error: `Obrázek je příliš velký (${fileSizeMB.toFixed(1)} MB). Maximální velikost je ${maxSizeMB} MB.`
+          };
+        }
+      }
+    } catch (sizeError) {
+      console.warn('⚠️ Nelze zjistit velikost souboru:', sizeError);
+      // Pokračujeme bez kontroly velikosti - Supabase má vlastní limity
+    }
 
     return { valid: true };
 

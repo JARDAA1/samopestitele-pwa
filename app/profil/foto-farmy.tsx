@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
 import { ProtectedRoute } from '../utils/ProtectedRoute';
 import { supabase } from '../../lib/supabase';
+import * as ImagePicker from 'expo-image-picker';
+import { uploadImage, validateImage, deleteImage } from '../utils/imageUpload';
 
 function FotoFarmyContent() {
   const { farmar } = useFarmarAuth();
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
+  const [fotoPath, setFotoPath] = useState<string | null>(null);
 
   useEffect(() => {
     loadFoto();
@@ -21,13 +24,14 @@ function FotoFarmyContent() {
 
       const { data, error } = await supabase
         .from('pestitele')
-        .select('foto_url')
+        .select('foto_url, foto_path')
         .eq('id', farmar.id)
         .single();
 
       if (error) throw error;
 
       setFotoUrl(data?.foto_url || null);
+      setFotoPath(data?.foto_path || null);
     } catch (error) {
       console.error('Chyba při načítání foto:', error);
     } finally {
@@ -35,47 +39,73 @@ function FotoFarmyContent() {
     }
   };
 
-  const handleNahratFoto = () => {
-    Alert.alert(
-      'Nahrát foto',
-      'Funkce uploadu fotek bude brzy dostupná. Zatím můžete vložit URL adresu obrázku.',
-      [
-        { text: 'Zrušit', style: 'cancel' },
-        {
-          text: 'Vložit URL',
-          onPress: () => {
-            if (typeof window !== 'undefined') {
-              const url = prompt('Vložte URL adresu obrázku:');
-              if (url) {
-                ulozitFotoUrl(url);
-              }
-            }
-          }
-        }
-      ]
-    );
-  };
-
-  const ulozitFotoUrl = async (url: string) => {
-    setUploading(true);
+  const handleNahratFoto = async () => {
     try {
-      if (!farmar?.id) {
-        Alert.alert('Chyba', 'Nejste přihlášeni');
+      // Požádat o oprávnění
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== 'granted') {
+        Alert.alert(
+          'Oprávnění',
+          'Pro nahrání fotky je potřeba povolit přístup k fotogalerii.',
+          [{ text: 'OK' }]
+        );
         return;
       }
 
+      // Otevřít výběr obrázku
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (result.canceled) return;
+
+      const uri = result.assets[0].uri;
+
+      // Validace velikosti a formátu
+      const validation = await validateImage(uri, 5);
+      if (!validation.valid) {
+        Alert.alert('Chyba', validation.error || 'Neplatný obrázek');
+        return;
+      }
+
+      // Upload obrázku
+      setUploading(true);
+
+      const uploaded = await uploadImage(uri, 'farmy');
+
+      if (!uploaded) {
+        Alert.alert('Chyba', 'Nepodařilo se nahrát obrázek. Zkuste to znovu.');
+        setUploading(false);
+        return;
+      }
+
+      // Smazat starý obrázek z Storage, pokud existuje
+      if (fotoPath) {
+        await deleteImage(fotoPath);
+      }
+
+      // Uložit do databáze
       const { error } = await supabase
         .from('pestitele')
-        .update({ foto_url: url })
+        .update({
+          foto_url: uploaded.url,
+          foto_path: uploaded.path
+        })
         .eq('id', farmar.id);
 
       if (error) throw error;
 
-      setFotoUrl(url);
-      Alert.alert('Uloženo', 'Foto bylo úspěšně uloženo');
+      setFotoUrl(uploaded.url);
+      setFotoPath(uploaded.path);
+      Alert.alert('Uloženo', 'Foto bylo úspěšně nahráno');
+
     } catch (error: any) {
-      console.error('Chyba při ukládání:', error);
-      Alert.alert('Chyba', error?.message || 'Nepodařilo se uložit foto');
+      console.error('Chyba při nahrávání:', error);
+      Alert.alert('Chyba', error?.message || 'Nepodařilo se nahrát foto');
     } finally {
       setUploading(false);
     }
@@ -94,14 +124,21 @@ function FotoFarmyContent() {
             try {
               if (!farmar?.id) return;
 
+              // Smazat ze Storage
+              if (fotoPath) {
+                await deleteImage(fotoPath);
+              }
+
+              // Smazat z databáze
               const { error } = await supabase
                 .from('pestitele')
-                .update({ foto_url: null })
+                .update({ foto_url: null, foto_path: null })
                 .eq('id', farmar.id);
 
               if (error) throw error;
 
               setFotoUrl(null);
+              setFotoPath(null);
               Alert.alert('Smazáno', 'Foto bylo odstraněno');
             } catch (error: any) {
               Alert.alert('Chyba', error?.message || 'Nepodařilo se smazat foto');
@@ -170,6 +207,9 @@ function FotoFarmyContent() {
 
           <Text style={styles.helperText}>
             💡 Tip: Použijte jasné foto, které pomůže zákazníkům vás najít. Ideální je foto vašeho stánku nebo vývěsního štítu.
+          </Text>
+          <Text style={styles.helperText}>
+            📏 Maximální velikost: 5 MB • Formáty: JPG, PNG, WEBP
           </Text>
         </View>
       </ScrollView>
