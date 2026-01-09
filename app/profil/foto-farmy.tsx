@@ -137,6 +137,11 @@ function FotoFarmyContent() {
   };
 
   const handleSmazatFoto = () => {
+    console.log('🗑️ handleSmazatFoto called');
+    console.log('   Current fotoPath:', fotoPath);
+    console.log('   Current fotoUrl:', fotoUrl);
+    console.log('   Farmar ID:', farmar?.id);
+
     Alert.alert(
       'Smazat foto?',
       'Opravdu chcete smazat foto?',
@@ -147,25 +152,41 @@ function FotoFarmyContent() {
           style: 'destructive',
           onPress: async () => {
             try {
-              if (!farmar?.id) return;
+              console.log('🚀 Starting delete process...');
+
+              if (!farmar?.id) {
+                console.error('❌ No farmar ID');
+                return;
+              }
 
               // Smazat ze Storage
               if (fotoPath) {
-                await deleteImage(fotoPath);
+                console.log('🗑️ Deleting from Storage:', fotoPath);
+                const deleted = await deleteImage(fotoPath);
+                console.log('   Delete result:', deleted);
+              } else {
+                console.log('⚠️ No fotoPath to delete from Storage');
               }
 
               // Smazat z databáze
+              console.log('💾 Updating database...');
               const { error } = await supabase
                 .from('pestitele')
                 .update({ foto_url: null, foto_path: null })
                 .eq('id', farmar.id);
 
-              if (error) throw error;
+              if (error) {
+                console.error('❌ Database error:', error);
+                throw error;
+              }
+
+              console.log('✅ Database updated successfully');
 
               setFotoUrl(null);
               setFotoPath(null);
               Alert.alert('Smazáno', 'Foto bylo odstraněno');
             } catch (error: any) {
+              console.error('❌ Delete error:', error);
               Alert.alert('Chyba', error?.message || 'Nepodařilo se smazat foto');
             }
           }
