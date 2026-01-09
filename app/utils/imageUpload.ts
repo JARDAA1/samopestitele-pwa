@@ -18,20 +18,47 @@ export async function uploadImage(
   try {
     console.log('📤 Nahrávám obrázek:', uri);
 
-    // 1. Získat base64 data
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: 'base64',
-    });
-
-    console.log('📊 Base64 délka:', base64.length, 'znaků');
-
-    // 2. Detekce MIME typu z URI
-    const fileExt = uri.split('.').pop()?.toLowerCase() || 'jpg';
+    // 1. Získat binary data (pro web použít fetch, pro native FileSystem)
+    let blob: Blob;
     let contentType = 'image/jpeg';
 
-    if (fileExt === 'png') contentType = 'image/png';
-    if (fileExt === 'webp') contentType = 'image/webp';
-    if (fileExt === 'jpg') contentType = 'image/jpeg';
+    if (uri.startsWith('blob:') || uri.startsWith('http')) {
+      // Web: použít fetch
+      console.log('🌐 Web mode: using fetch');
+      const response = await fetch(uri);
+      blob = await response.blob();
+      contentType = blob.type || 'image/jpeg';
+      console.log('📋 Blob type:', blob.type);
+      console.log('📦 Blob size:', blob.size, 'bytes', `(${(blob.size / 1024 / 1024).toFixed(2)} MB)`);
+    } else {
+      // React Native: použít FileSystem
+      console.log('📱 Native mode: using FileSystem');
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: 'base64',
+      });
+
+      console.log('📊 Base64 délka:', base64.length, 'znaků');
+
+      // Detekce MIME typu z URI
+      const fileExt = uri.split('.').pop()?.toLowerCase() || 'jpg';
+      if (fileExt === 'png') contentType = 'image/png';
+      else if (fileExt === 'webp') contentType = 'image/webp';
+      else if (fileExt === 'jpg' || fileExt === 'jpeg') contentType = 'image/jpeg';
+
+      // Převést base64 na blob
+      const byteCharacters = atob(base64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      blob = new Blob([byteArray], { type: contentType });
+    }
+
+    // 2. Určit příponu z content type
+    let fileExt = 'jpg';
+    if (contentType === 'image/png') fileExt = 'png';
+    else if (contentType === 'image/webp') fileExt = 'webp';
 
     // 3. Vytvořit unikátní název souboru
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -39,37 +66,10 @@ export async function uploadImage(
     console.log('📝 Název souboru:', fileName);
     console.log('📋 Content-Type:', contentType);
 
-    // 4. Převést base64 na binary (opravená verze pro velké soubory)
-    let byteArray: Uint8Array;
-
-    try {
-      // Pokus použít globální atob (web)
-      if (typeof atob !== 'undefined') {
-        const decode = atob(base64);
-        byteArray = new Uint8Array(decode.length);
-        for (let i = 0; i < decode.length; i++) {
-          byteArray[i] = decode.charCodeAt(i);
-        }
-      } else {
-        // Fallback pro React Native
-        const binaryString = Buffer.from(base64, 'base64').toString('binary');
-        byteArray = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          byteArray[i] = binaryString.charCodeAt(i);
-        }
-      }
-    } catch (conversionError) {
-      console.error('❌ Chyba při konverzi base64:', conversionError);
-      // Poslední záchrana - použít Buffer přímo
-      byteArray = new Uint8Array(Buffer.from(base64, 'base64'));
-    }
-
-    console.log('📦 Binary velikost:', byteArray.length, 'bytes', `(${(byteArray.length / 1024 / 1024).toFixed(2)} MB)`);
-
-    // 5. Upload do Supabase Storage
+    // 4. Upload do Supabase Storage
     const { data, error } = await supabase.storage
       .from('pestitele-fotky')
-      .upload(fileName, byteArray, {
+      .upload(fileName, blob, {
         contentType: contentType,
         upsert: false,
       });
@@ -83,7 +83,7 @@ export async function uploadImage(
 
     console.log('✅ Upload úspěšný:', data.path);
 
-    // 6. Získat veřejnou URL
+    // 5. Získat veřejnou URL
     const { data: urlData } = supabase.storage
       .from('pestitele-fotky')
       .getPublicUrl(data.path);
