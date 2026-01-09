@@ -79,7 +79,10 @@ export default function MujProfilScreen() {
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/profil/foto-farmy')}
+          >
             <Text style={styles.menuIcon}>📸</Text>
             <View style={styles.menuInfo}>
               <Text style={styles.menuTitle}>Tady mě najdete</Text>
@@ -88,7 +91,10 @@ export default function MujProfilScreen() {
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/profil/casova-dostupnost')}
+          >
             <Text style={styles.menuIcon}>🕐</Text>
             <View style={styles.menuInfo}>
               <Text style={styles.menuTitle}>Moje časová dostupnost</Text>
@@ -97,7 +103,10 @@ export default function MujProfilScreen() {
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/moje-farma/upravit-farmu')}
+          >
             <Text style={styles.menuIcon}>📍</Text>
             <View style={styles.menuInfo}>
               <Text style={styles.menuTitle}>Kde mě najdete</Text>
