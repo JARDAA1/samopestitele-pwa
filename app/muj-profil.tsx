@@ -27,23 +27,48 @@ export default function MujProfilScreen() {
 
   // PŘIHLÁŠENÝ PĚSTITEL - Profil
   const handleOdhlasit = async () => {
-    Alert.alert(
-      'Odhlásit se?',
-      'Opravdu se chcete odhlásit?',
-      [
-        { text: 'Zrušit', style: 'cancel' },
-        {
-          text: 'Odhlásit',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            Alert.alert('Odhlášeno', 'Byli jste úspěšně odhlášeni', [
-              { text: 'OK', onPress: () => router.push('/prihlaseni') }
-            ]);
-          }
-        }
-      ]
-    );
+    console.log('🚪 handleOdhlasit called');
+
+    // Pro web použít window.confirm(), pro native Alert.alert
+    const shouldLogout = typeof window !== 'undefined' && typeof window.confirm === 'function'
+      ? window.confirm('Opravdu se chcete odhlásit?')
+      : await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            'Odhlásit se?',
+            'Opravdu se chcete odhlásit?',
+            [
+              { text: 'Zrušit', style: 'cancel', onPress: () => resolve(false) },
+              { text: 'Odhlásit', style: 'destructive', onPress: () => resolve(true) }
+            ]
+          );
+        });
+
+    if (!shouldLogout) {
+      console.log('❌ User cancelled logout');
+      return;
+    }
+
+    try {
+      console.log('🔓 Logging out...');
+      await logout();
+      console.log('✅ Logout successful');
+
+      // Zobrazit zprávu a přesměrovat
+      if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+        window.alert('Byli jste úspěšně odhlášeni');
+      } else {
+        Alert.alert('Odhlášeno', 'Byli jste úspěšně odhlášeni');
+      }
+
+      router.push('/prihlaseni');
+    } catch (error: any) {
+      console.error('❌ Logout error:', error);
+      if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+        window.alert('Chyba při odhlašování: ' + (error?.message || 'Neznámá chyba'));
+      } else {
+        Alert.alert('Chyba', 'Nepodařilo se odhlásit');
+      }
+    }
   };
 
   return (
