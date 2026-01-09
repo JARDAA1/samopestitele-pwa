@@ -132,22 +132,17 @@ export async function validateImage(
   maxSizeMB: number = 5
 ): Promise<{ valid: boolean; error?: string }> {
   try {
-    // Kontrola typu
-    const ext = uri.split('.').pop()?.toLowerCase();
-    const validExts = ['jpg', 'jpeg', 'png', 'webp'];
-
-    if (!ext || !validExts.includes(ext)) {
-      return {
-        valid: false,
-        error: 'Neplatný formát (povoleno: JPG, PNG, WEBP)'
-      };
-    }
+    console.log('🔍 Validating image URI:', uri);
 
     // Kontrola velikosti souboru
     try {
       const fileInfo = await FileSystem.getInfoAsync(uri);
+      console.log('📊 File info:', fileInfo);
+
       if (fileInfo.exists && 'size' in fileInfo) {
         const fileSizeMB = fileInfo.size / (1024 * 1024);
+        console.log('📏 File size:', fileSizeMB.toFixed(2), 'MB');
+
         if (fileSizeMB > maxSizeMB) {
           return {
             valid: false,
@@ -160,9 +155,12 @@ export async function validateImage(
       // Pokračujeme bez kontroly velikosti - Supabase má vlastní limity
     }
 
+    // ImagePicker už vrací jen obrázky, takže formát nemusíme kontrolovat
+    console.log('✅ Validation passed');
     return { valid: true };
 
   } catch (error: any) {
+    console.error('❌ Validation error:', error);
     return { valid: false, error: error.message };
   }
 }
