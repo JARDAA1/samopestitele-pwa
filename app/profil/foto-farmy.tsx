@@ -41,8 +41,11 @@ function FotoFarmyContent() {
 
   const handleNahratFoto = async () => {
     try {
+      console.log('🎬 START: handleNahratFoto');
+
       // Požádat o oprávnění
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('📋 Permission status:', status);
 
       if (status !== 'granted') {
         Alert.alert(
@@ -54,6 +57,7 @@ function FotoFarmyContent() {
       }
 
       // Otevřít výběr obrázku
+      console.log('📂 Opening image picker...');
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -61,23 +65,36 @@ function FotoFarmyContent() {
         quality: 0.8,
       });
 
-      if (result.canceled) return;
+      console.log('📸 Image picker result:', result);
+
+      if (result.canceled) {
+        console.log('❌ User canceled image selection');
+        return;
+      }
 
       const uri = result.assets[0].uri;
+      console.log('📍 Selected image URI:', uri);
 
       // Validace velikosti a formátu
+      console.log('🔍 Validating image...');
       const validation = await validateImage(uri, 5);
+      console.log('✅ Validation result:', validation);
+
       if (!validation.valid) {
+        console.log('❌ Validation failed:', validation.error);
         Alert.alert('Chyba', validation.error || 'Neplatný obrázek');
         return;
       }
 
       // Upload obrázku
+      console.log('⬆️ Starting upload...');
       setUploading(true);
 
       const uploaded = await uploadImage(uri, 'farmy');
+      console.log('📦 Upload result:', uploaded);
 
       if (!uploaded) {
+        console.log('❌ Upload returned null');
         Alert.alert('Chyba', 'Nepodařilo se nahrát obrázek. Zkuste to znovu.');
         setUploading(false);
         return;
@@ -85,10 +102,12 @@ function FotoFarmyContent() {
 
       // Smazat starý obrázek z Storage, pokud existuje
       if (fotoPath) {
+        console.log('🗑️ Deleting old image:', fotoPath);
         await deleteImage(fotoPath);
       }
 
       // Uložit do databáze
+      console.log('💾 Saving to database...');
       const { error } = await supabase
         .from('pestitele')
         .update({
@@ -97,16 +116,22 @@ function FotoFarmyContent() {
         })
         .eq('id', farmar.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database save error:', error);
+        throw error;
+      }
 
+      console.log('✅ SUCCESS: Image uploaded and saved');
       setFotoUrl(uploaded.url);
       setFotoPath(uploaded.path);
       Alert.alert('Uloženo', 'Foto bylo úspěšně nahráno');
 
     } catch (error: any) {
-      console.error('Chyba při nahrávání:', error);
+      console.error('❌ ERROR in handleNahratFoto:', error);
+      console.error('❌ Error stack:', error?.stack);
       Alert.alert('Chyba', error?.message || 'Nepodařilo se nahrát foto');
     } finally {
+      console.log('🏁 FINISH: handleNahratFoto (uploading = false)');
       setUploading(false);
     }
   };
