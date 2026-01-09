@@ -136,63 +136,79 @@ function FotoFarmyContent() {
     }
   };
 
-  const handleSmazatFoto = () => {
+  const handleSmazatFoto = async () => {
     console.log('🗑️ handleSmazatFoto called');
     console.log('   Current fotoPath:', fotoPath);
     console.log('   Current fotoUrl:', fotoUrl);
     console.log('   Farmar ID:', farmar?.id);
 
-    Alert.alert(
-      'Smazat foto?',
-      'Opravdu chcete smazat foto?',
-      [
-        { text: 'Zrušit', style: 'cancel' },
-        {
-          text: 'Smazat',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              console.log('🚀 Starting delete process...');
+    // Pro web použít window.confirm(), pro native Alert.alert
+    const shouldDelete = typeof window !== 'undefined' && typeof window.confirm === 'function'
+      ? window.confirm('Opravdu chcete smazat foto?')
+      : await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            'Smazat foto?',
+            'Opravdu chcete smazat foto?',
+            [
+              { text: 'Zrušit', style: 'cancel', onPress: () => resolve(false) },
+              { text: 'Smazat', style: 'destructive', onPress: () => resolve(true) }
+            ]
+          );
+        });
 
-              if (!farmar?.id) {
-                console.error('❌ No farmar ID');
-                return;
-              }
+    if (!shouldDelete) {
+      console.log('❌ User cancelled delete');
+      return;
+    }
 
-              // Smazat ze Storage
-              if (fotoPath) {
-                console.log('🗑️ Deleting from Storage:', fotoPath);
-                const deleted = await deleteImage(fotoPath);
-                console.log('   Delete result:', deleted);
-              } else {
-                console.log('⚠️ No fotoPath to delete from Storage');
-              }
+    try {
+      console.log('🚀 Starting delete process...');
 
-              // Smazat z databáze
-              console.log('💾 Updating database...');
-              const { error } = await supabase
-                .from('pestitele')
-                .update({ foto_url: null, foto_path: null })
-                .eq('id', farmar.id);
+      if (!farmar?.id) {
+        console.error('❌ No farmar ID');
+        return;
+      }
 
-              if (error) {
-                console.error('❌ Database error:', error);
-                throw error;
-              }
+      // Smazat ze Storage
+      if (fotoPath) {
+        console.log('🗑️ Deleting from Storage:', fotoPath);
+        const deleted = await deleteImage(fotoPath);
+        console.log('   Delete result:', deleted);
+      } else {
+        console.log('⚠️ No fotoPath to delete from Storage');
+      }
 
-              console.log('✅ Database updated successfully');
+      // Smazat z databáze
+      console.log('💾 Updating database...');
+      const { error } = await supabase
+        .from('pestitele')
+        .update({ foto_url: null, foto_path: null })
+        .eq('id', farmar.id);
 
-              setFotoUrl(null);
-              setFotoPath(null);
-              Alert.alert('Smazáno', 'Foto bylo odstraněno');
-            } catch (error: any) {
-              console.error('❌ Delete error:', error);
-              Alert.alert('Chyba', error?.message || 'Nepodařilo se smazat foto');
-            }
-          }
-        }
-      ]
-    );
+      if (error) {
+        console.error('❌ Database error:', error);
+        throw error;
+      }
+
+      console.log('✅ Database updated successfully');
+
+      setFotoUrl(null);
+      setFotoPath(null);
+
+      // Zobrazit success message
+      if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+        window.alert('Foto bylo odstraněno');
+      } else {
+        Alert.alert('Smazáno', 'Foto bylo odstraněno');
+      }
+    } catch (error: any) {
+      console.error('❌ Delete error:', error);
+      if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+        window.alert('Chyba: ' + (error?.message || 'Nepodařilo se smazat foto'));
+      } else {
+        Alert.alert('Chyba', error?.message || 'Nepodařilo se smazat foto');
+      }
+    }
   };
 
   if (loading) {
