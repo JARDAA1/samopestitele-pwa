@@ -23,12 +23,15 @@ export async function uploadImage(
       encoding: 'base64',
     });
 
+    console.log('📊 Base64 délka:', base64.length, 'znaků');
+
     // 2. Detekce MIME typu z URI
     const fileExt = uri.split('.').pop()?.toLowerCase() || 'jpg';
     let contentType = 'image/jpeg';
-    
+
     if (fileExt === 'png') contentType = 'image/png';
     if (fileExt === 'webp') contentType = 'image/webp';
+    if (fileExt === 'jpg') contentType = 'image/jpeg';
 
     // 3. Vytvořit unikátní název souboru
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -36,12 +39,32 @@ export async function uploadImage(
     console.log('📝 Název souboru:', fileName);
     console.log('📋 Content-Type:', contentType);
 
-    // 4. Převést base64 na binary
-    const decode = atob(base64);
-    const byteArray = new Uint8Array(decode.length);
-    for (let i = 0; i < decode.length; i++) {
-      byteArray[i] = decode.charCodeAt(i);
+    // 4. Převést base64 na binary (opravená verze pro velké soubory)
+    let byteArray: Uint8Array;
+
+    try {
+      // Pokus použít globální atob (web)
+      if (typeof atob !== 'undefined') {
+        const decode = atob(base64);
+        byteArray = new Uint8Array(decode.length);
+        for (let i = 0; i < decode.length; i++) {
+          byteArray[i] = decode.charCodeAt(i);
+        }
+      } else {
+        // Fallback pro React Native
+        const binaryString = Buffer.from(base64, 'base64').toString('binary');
+        byteArray = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          byteArray[i] = binaryString.charCodeAt(i);
+        }
+      }
+    } catch (conversionError) {
+      console.error('❌ Chyba při konverzi base64:', conversionError);
+      // Poslední záchrana - použít Buffer přímo
+      byteArray = new Uint8Array(Buffer.from(base64, 'base64'));
     }
+
+    console.log('📦 Binary velikost:', byteArray.length, 'bytes', `(${(byteArray.length / 1024 / 1024).toFixed(2)} MB)`);
 
     // 5. Upload do Supabase Storage
     const { data, error } = await supabase.storage
@@ -53,6 +76,8 @@ export async function uploadImage(
 
     if (error) {
       console.error('❌ Upload error:', error);
+      console.error('   Status:', error.statusCode);
+      console.error('   Message:', error.message);
       throw error;
     }
 
@@ -72,6 +97,7 @@ export async function uploadImage(
 
   } catch (error: any) {
     console.error('❌ Chyba při uploadu:', error);
+    console.error('   Error detail:', JSON.stringify(error, null, 2));
     return null;
   }
 }
