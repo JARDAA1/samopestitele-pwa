@@ -82,8 +82,8 @@ export default function MujProfilScreen() {
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuIcon}>📸</Text>
             <View style={styles.menuInfo}>
-              <Text style={styles.menuTitle}>Fotky farmy</Text>
-              <Text style={styles.menuSubtitle}>Galerie vašich produktů</Text>
+              <Text style={styles.menuTitle}>Tady mě najdete</Text>
+              <Text style={styles.menuSubtitle}>Zde můžete vložit foto</Text>
             </View>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
@@ -91,8 +91,8 @@ export default function MujProfilScreen() {
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuIcon}>🕐</Text>
             <View style={styles.menuInfo}>
-              <Text style={styles.menuTitle}>Otevírací doba</Text>
-              <Text style={styles.menuSubtitle}>Nastavte dostupnost</Text>
+              <Text style={styles.menuTitle}>Moje časová dostupnost</Text>
+              <Text style={styles.menuSubtitle}>Kdy jste k zastižení</Text>
             </View>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
@@ -100,8 +100,8 @@ export default function MujProfilScreen() {
           <TouchableOpacity style={styles.menuItem}>
             <Text style={styles.menuIcon}>📍</Text>
             <View style={styles.menuInfo}>
-              <Text style={styles.menuTitle}>Adresa</Text>
-              <Text style={styles.menuSubtitle}>GPS souřadnice</Text>
+              <Text style={styles.menuTitle}>Kde mě najdete</Text>
+              <Text style={styles.menuSubtitle}>Adresa a GPS souřadnice</Text>
             </View>
             <Text style={styles.menuArrow}>›</Text>
           </TouchableOpacity>
