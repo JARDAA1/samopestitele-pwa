@@ -41,15 +41,6 @@ export default function StankyLoginScreen() {
     }
   };
 
-  const handleScanQR = () => {
-    // TODO: Otevřít kameru a naskenovat QR kód
-    if (Platform.OS === 'web') {
-      alert('QR skenování je dostupné pouze v mobilní aplikaci');
-    } else {
-      Alert.alert('Info', 'QR scanner bude implementován v další verzi');
-    }
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -68,7 +59,7 @@ export default function StankyLoginScreen() {
 
           <Text style={styles.title}>Rychlý přístup</Text>
           <Text style={styles.subtitle}>
-            Naskenujte QR kód nebo zadejte 6místný kód pro okamžitý přístup ke stánkům
+            Zadejte 6místný kód pro okamžitý přístup ke stánkům
           </Text>
 
           <View style={styles.securityInfo}>
@@ -76,23 +67,6 @@ export default function StankyLoginScreen() {
             <Text style={styles.securityText}>
               Jednorázový kód • Session 24 hodin • Pouze aktualizace zásob
             </Text>
-          </View>
-
-          {/* QR Scanner Button */}
-          <TouchableOpacity
-            style={styles.qrButton}
-            onPress={handleScanQR}
-          >
-            <View style={styles.qrIconContainer}>
-              <Text style={styles.qrIcon}>📷</Text>
-            </View>
-            <Text style={styles.qrButtonText}>Naskenovat QR kód</Text>
-          </TouchableOpacity>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>NEBO</Text>
-            <View style={styles.dividerLine} />
           </View>
 
           {/* Manual Code Input */}
@@ -124,7 +98,7 @@ export default function StankyLoginScreen() {
             <Text style={styles.helpText}>
               1. Přihlaste se do Prodejny pomocí PINu{'\n'}
               2. Klikněte na "Vygenerovat přístup pro Stánky"{'\n'}
-              3. Zobrazí se QR kód a 6místný kód{'\n'}
+              3. Zobrazí se 6místný kód{'\n'}
               4. Kód je platný 24 hodin
             </Text>
           </View>
@@ -234,42 +208,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     lineHeight: 16,
-  },
-  qrButton: {
-    backgroundColor: '#FF9800',
-    borderRadius: 12,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  qrIconContainer: {
-    marginRight: 12,
-  },
-  qrIcon: {
-    fontSize: 32,
-  },
-  qrButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E0E0E0',
-  },
-  dividerText: {
-    marginHorizontal: 12,
-    fontSize: 12,
-    color: '#999',
-    fontWeight: '600',
   },
   label: {
     fontSize: 14,
