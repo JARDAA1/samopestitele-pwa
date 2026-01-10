@@ -380,6 +380,10 @@ function MojeProdejnaScreenContent() {
 
           {farmaInfoExpanded && (
             <View style={styles.infoGrid}>
+              <Text style={styles.profileHintText}>
+                Zde můžete změnit PIN nebo svůj profil v sekci Můj profil
+              </Text>
+
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Farmář:</Text>
                 <Text style={styles.infoValue}>{farmarData?.jmeno}</Text>
@@ -724,6 +728,7 @@ const styles = StyleSheet.create({
   logoutButton: { backgroundColor: '#FF5252', padding: 14, borderRadius: 8, alignItems: 'center', marginTop: 20 },
   logoutButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
   infoGrid: { gap: 12 },
+  profileHintText: { fontSize: 12, color: '#FF5252', marginBottom: 12, fontStyle: 'italic' },
   infoItem: { marginBottom: 8 },
   infoLabel: { fontSize: 13, color: '#666', marginBottom: 3 },
   infoValue: { fontSize: 15, color: '#333', fontWeight: '500' },
