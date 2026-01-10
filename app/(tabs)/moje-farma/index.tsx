@@ -378,12 +378,12 @@ function MojeProdejnaScreenContent() {
             )}
           </TouchableOpacity>
 
+          <Text style={styles.profileHintText}>
+            Zde můžete změnit PIN nebo svůj profil v sekci Můj profil
+          </Text>
+
           {farmaInfoExpanded && (
             <View style={styles.infoGrid}>
-              <Text style={styles.profileHintText}>
-                Zde můžete změnit PIN nebo svůj profil v sekci Můj profil
-              </Text>
-
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Farmář:</Text>
                 <Text style={styles.infoValue}>{farmarData?.jmeno}</Text>
