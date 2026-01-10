@@ -229,10 +229,6 @@ function MojeStankyScreenContent() {
             <Text style={styles.cardTitle}>🏪 Moje stánky ({stanky.length})</Text>
           </View>
 
-          <Text style={styles.profileHintText}>
-            Zde můžete změnit PIN nebo svůj profil v sekci Můj profil
-          </Text>
-
           {/* Formulář pro přidání/editaci stánku */}
           {showStanekForm && (
             <View style={styles.stanekForm}>
@@ -397,7 +393,6 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#FFFFFF', margin: 15, padding: 20, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   cardTitle: { fontSize: 20, fontWeight: 'bold', color: '#E65100' },
-  profileHintText: { fontSize: 12, color: '#FF5252', marginBottom: 12, fontStyle: 'italic' },
   label: { fontSize: 15, fontWeight: '600', color: '#333', marginBottom: 8, marginTop: 15 },
   input: { backgroundColor: '#F5F5F5', borderRadius: 8, padding: 15, fontSize: 16, borderWidth: 1, borderColor: '#E0E0E0' },
   loginButton: { backgroundColor: '#FF9800', padding: 16, borderRadius: 10, alignItems: 'center', marginTop: 25 },

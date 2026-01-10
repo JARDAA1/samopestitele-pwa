@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear All Cache</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #ff9800;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        h1 {
+            margin-top: 0;
+            color: #ff9800;
+        }
+        button {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #f57c00;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 14px;
+        }
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧹 CLEAR ALL CACHE & FORCE RELOAD</h1>
+
+        <div class="warning">
+            <strong>⚠️ Tento nástroj:</strong>
+            <ul>
+                <li>Smaže VŠECHNA data z localStorage</li>
+                <li>Smaže VŠECHNA data z sessionStorage</li>
+                <li>Smaže všechny Service Workers</li>
+                <li>Vyčistí Cache API</li>
+                <li>Vynutí reload aplikace</li>
+            </ul>
+        </div>
+
+        <button onclick="clearEverything()">🗑️ VYMAZAT VŠECHNO A RELOAD</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function clearEverything() {
+            const result = document.getElementById('result');
+            let log = '<h3>🧹 Čištění cache...</h3><ul>';
+
+            // 1. Clear localStorage
+            const localStorageCount = localStorage.length;
+            localStorage.clear();
+            log += `<li>✅ localStorage: vymazáno ${localStorageCount} klíčů</li>`;
+            console.log(`✅ localStorage cleared (${localStorageCount} items)`);
+
+            // 2. Clear sessionStorage
+            const sessionStorageCount = sessionStorage.length;
+            sessionStorage.clear();
+            log += `<li>✅ sessionStorage: vymazáno ${sessionStorageCount} klíčů</li>`;
+            console.log(`✅ sessionStorage cleared (${sessionStorageCount} items)`);
+
+            // 3. Unregister all service workers
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                    }
+                    log += `<li>✅ Service Workers: odregistrováno ${registrations.length}</li>`;
+                    console.log(`✅ Service workers unregistered (${registrations.length})`);
+                } catch (error) {
+                    log += `<li>⚠️ Service Workers: ${error.message}</li>`;
+                }
+            }
+
+            // 4. Clear Cache API
+            if ('caches' in window) {
+                try {
+                    const cacheNames = await caches.keys();
+                    for (let cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                    }
+                    log += `<li>✅ Cache API: vymazáno ${cacheNames.length} cache</li>`;
+                    console.log(`✅ Cache API cleared (${cacheNames.length} caches)`);
+                } catch (error) {
+                    log += `<li>⚠️ Cache API: ${error.message}</li>`;
+                }
+            }
+
+            // 5. Clear IndexedDB
+            if ('indexedDB' in window) {
+                try {
+                    const dbs = await indexedDB.databases();
+                    for (let db of dbs) {
+                        if (db.name) {
+                            indexedDB.deleteDatabase(db.name);
+                        }
+                    }
+                    log += `<li>✅ IndexedDB: vymazáno ${dbs.length} databází</li>`;
+                    console.log(`✅ IndexedDB cleared (${dbs.length} databases)`);
+                } catch (error) {
+                    log += `<li>⚠️ IndexedDB: ${error.message}</li>`;
+                }
+            }
+
+            log += '</ul>';
+            log += `
+                <h3>✅ VŠECHNO VYMAZÁNO!</h3>
+                <p><strong>Za 3 sekundy se aplikace automaticky znovu načte...</strong></p>
+                <p>Pokud problém přetrvává, zkuste:</p>
+                <ol>
+                    <li>Otevřít aplikaci v <strong>inkognito režimu</strong></li>
+                    <li>Vyčistit cache v nastavení prohlížeče (Cmd+Shift+Delete)</li>
+                    <li>Restartovat prohlížeč</li>
+                </ol>
+            `;
+
+            result.className = 'result';
+            result.innerHTML = log;
+
+            // Force reload after 3 seconds
+            setTimeout(() => {
+                window.location.href = 'about:blank';
+                setTimeout(() => {
+                    window.close();
+                }, 500);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

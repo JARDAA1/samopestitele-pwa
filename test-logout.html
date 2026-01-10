@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Logout</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.danger {
+            background: #f44336;
+        }
+        button.danger:hover {
+            background: #da190b;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .log div {
+            margin: 3px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔍 Test Logout & LocalStorage</h1>
+
+        <h3>Akce:</h3>
+        <button onclick="showStorage()">📊 Zobrazit localStorage</button>
+        <button onclick="testLogout()" class="danger">🚪 Simulovat Logout</button>
+        <button onclick="clearAll()" class="danger">🗑️ Vymazat vše</button>
+        <button onclick="checkSupabaseSession()">🔐 Zkontrolovat Supabase Session</button>
+        <button onclick="clearLog()">🧹 Vyčistit log</button>
+
+        <h3>localStorage obsah:</h3>
+        <pre id="storage-content">Klikněte na "Zobrazit localStorage"</pre>
+
+        <h3>Console Log:</h3>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        const logEl = document.getElementById('log');
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            const timestamp = new Date().toLocaleTimeString();
+            const emoji = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warn' ? '⚠️' : '📝';
+            div.textContent = `[${timestamp}] ${emoji} ${message}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            logEl.innerHTML = '';
+            log('Log cleared');
+        }
+
+        function showStorage() {
+            const keys = [
+                'farmar_session',
+                'auth_level',
+                'farmar_pin',
+                'farmar_data',
+                'zakaznik_id',
+                'pestitelLoggedIn',
+                'pestitelId',
+                'pestitelTelefon'
+            ];
+
+            const data = {};
+            let totalKeys = 0;
+
+            keys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value !== null) {
+                    totalKeys++;
+                    try {
+                        data[key] = JSON.parse(value);
+                    } catch (e) {
+                        data[key] = value;
+                    }
+                }
+            });
+
+            document.getElementById('storage-content').textContent =
+                `Celkem klíčů: ${totalKeys}\n\n` + JSON.stringify(data, null, 2);
+
+            log(`LocalStorage obsahuje ${totalKeys} klíčů`, 'info');
+        }
+
+        function testLogout() {
+            log('🚪 Starting logout simulation...', 'info');
+
+            const keys = [
+                'farmar_session',
+                'auth_level',
+                'farmar_pin',
+                'farmar_data'
+            ];
+
+            let removed = 0;
+            keys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value !== null) {
+                    localStorage.removeItem(key);
+                    removed++;
+                    log(`Removed: ${key}`, 'success');
+                } else {
+                    log(`Not found: ${key}`, 'warn');
+                }
+            });
+
+            log(`✅ Logout complete - removed ${removed} keys`, 'success');
+            showStorage();
+        }
+
+        function clearAll() {
+            if (!confirm('Opravdu vymazat VŠECHNA data z localStorage?')) {
+                return;
+            }
+
+            const before = localStorage.length;
+            localStorage.clear();
+            const after = localStorage.length;
+
+            log(`🗑️ Cleared ALL localStorage (${before} items)`, 'success');
+            showStorage();
+        }
+
+        async function checkSupabaseSession() {
+            log('🔐 Checking Supabase session...', 'info');
+
+            try {
+                // Check if there's a Supabase session cookie/storage
+                const allKeys = Object.keys(localStorage);
+                const supabaseKeys = allKeys.filter(k => k.includes('supabase'));
+
+                log(`Found ${supabaseKeys.length} Supabase-related keys:`, 'info');
+                supabaseKeys.forEach(key => {
+                    log(`  - ${key}`, 'info');
+                });
+
+                if (supabaseKeys.length > 0) {
+                    log('⚠️ Supabase session still exists!', 'warn');
+                } else {
+                    log('✅ No Supabase session found', 'success');
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-show storage on load
+        window.addEventListener('load', () => {
+            log('Test page loaded', 'success');
+            showStorage();
+        });
+    </script>
+</body>
+</html>

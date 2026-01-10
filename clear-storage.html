@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vyčistit AsyncStorage</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.danger {
+            background: #f44336;
+        }
+        button.danger:hover {
+            background: #da190b;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: none;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧹 Vyčistit AsyncStorage cache</h1>
+        <p>Tento nástroj vymaže všechny uložené údaje z prohlížeče (localStorage) pro aplikaci Samopěstitelé.</p>
+
+        <h3>Aktuální data:</h3>
+        <pre id="current-data">Načítám...</pre>
+
+        <button onclick="showCurrentData()">🔍 Zobrazit data</button>
+        <button class="danger" onclick="clearStorage()">🗑️ Vymazat vše</button>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        function showCurrentData() {
+            const data = {};
+            const keys = [
+                'farmar_session',
+                'auth_level',
+                'farmar_pin',
+                'farmar_data',
+                'zakaznik_id',
+                'pestitelLoggedIn'
+            ];
+
+            keys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    try {
+                        data[key] = JSON.parse(value);
+                    } catch (e) {
+                        data[key] = value;
+                    }
+                } else {
+                    data[key] = null;
+                }
+            });
+
+            document.getElementById('current-data').textContent = JSON.stringify(data, null, 2);
+        }
+
+        function clearStorage() {
+            if (!confirm('Opravdu chcete vymazat všechna data? Budete odhlášeni.')) {
+                return;
+            }
+
+            const keys = [
+                'farmar_session',
+                'auth_level',
+                'farmar_pin',
+                'farmar_data',
+                'zakaznik_id',
+                'pestitelLoggedIn'
+            ];
+
+            let removed = 0;
+            keys.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    localStorage.removeItem(key);
+                    removed++;
+                }
+            });
+
+            const result = document.getElementById('result');
+            result.style.display = 'block';
+            result.className = 'result';
+            result.innerHTML = `✅ Vymazáno ${removed} položek!<br><br>Nyní obnovte aplikaci (F5) a přihlaste se znovu.`;
+
+            showCurrentData();
+        }
+
+        // Show data on load
+        showCurrentData();
+    </script>
+</body>
+</html>

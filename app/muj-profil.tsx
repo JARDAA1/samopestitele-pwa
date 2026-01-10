@@ -141,6 +141,23 @@ export default function MujProfilScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Stánky */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Stánky</Text>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/moje-stanky')}
+          >
+            <Text style={styles.menuIcon}>🏪</Text>
+            <View style={styles.menuInfo}>
+              <Text style={styles.menuTitle}>Moje stánky</Text>
+              <Text style={styles.menuSubtitle}>Správa stánků na trzích</Text>
+            </View>
+            <Text style={styles.menuArrow}>›</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Bezpečnost */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Bezpečnost</Text>

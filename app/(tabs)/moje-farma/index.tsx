@@ -362,21 +362,6 @@ function MojeProdejnaScreenContent() {
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Odkaz na Moje stánky */}
-        <TouchableOpacity
-          style={styles.stankyLinkCard}
-          onPress={() => router.push('/moje-stanky')}
-        >
-          <View style={styles.stankyLinkContent}>
-            <Text style={styles.stankyLinkIcon}>🏪</Text>
-            <View style={styles.stankyLinkText}>
-              <Text style={styles.stankyLinkTitle}>Moje stánky</Text>
-              <Text style={styles.stankyLinkSubtitle}>Spravujte své stánky na trzích</Text>
-            </View>
-            <Text style={styles.stankyLinkArrow}>›</Text>
-          </View>
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -468,12 +453,4 @@ const styles = StyleSheet.create({
   testCode: { fontSize: 24, fontWeight: 'bold', color: '#FF6F00' },
   editIconButton: { padding: 8 },
   editIconText: { fontSize: 20 },
-  // Styly pro odkaz na Moje stánky
-  stankyLinkCard: { backgroundColor: '#FFF3E0', margin: 15, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, borderLeftWidth: 4, borderLeftColor: '#FF9800' },
-  stankyLinkContent: { flexDirection: 'row', alignItems: 'center', padding: 20 },
-  stankyLinkIcon: { fontSize: 40, marginRight: 15 },
-  stankyLinkText: { flex: 1 },
-  stankyLinkTitle: { fontSize: 20, fontWeight: 'bold', color: '#E65100', marginBottom: 4 },
-  stankyLinkSubtitle: { fontSize: 14, color: '#666' },
-  stankyLinkArrow: { fontSize: 30, color: '#FF9800', fontWeight: 'bold' },
 });
