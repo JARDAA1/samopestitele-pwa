@@ -147,7 +147,7 @@ export default function MujProfilScreen() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => router.push('/moje-stanky')}
+            onPress={() => router.push('/(tabs)/moje-stanky')}
           >
             <Text style={styles.menuIcon}>🏪</Text>
             <View style={styles.menuInfo}>
