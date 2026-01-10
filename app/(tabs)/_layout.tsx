@@ -10,6 +10,7 @@ export default function TabLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="jsem-farmar" />
       <Stack.Screen name="moje-farma" />
+      <Stack.Screen name="moje-stanky" />
       <Stack.Screen name="explore" />
     </Stack>
   );
