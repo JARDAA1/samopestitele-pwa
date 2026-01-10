@@ -546,6 +546,10 @@ function MojeProdejnaScreenContent() {
             </TouchableOpacity>
           </View>
 
+          <Text style={styles.profileHintText}>
+            Zde můžete změnit PIN nebo svůj profil v sekci Můj profil
+          </Text>
+
           {/* Formulář pro přidání/editaci stánku */}
           {showStanekForm && (
             <View style={styles.stanekForm}>
