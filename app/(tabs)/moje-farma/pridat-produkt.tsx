@@ -1,34 +1,59 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useFarmarAuth } from '../../utils/farmarAuthContext';
 
-// Sada ikon pro produkty
-const PRODUCT_ICONS = [
-  '🍅', '🥕', '🥒', '🌶️', '🫑', '🥔', '🧅', '🧄', '🥬', '🥦',
-  '🍄', '🌽', '🥗', '🍇', '🍈', '🍉', '🍊', '🍋', '🍌', '🍍',
-  '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🫐', '🥝', '🥥',
-  '🥚', '🥛', '🧀', '🧈', '🥩', '🍗', '🥓', '🍖', '🐟', '🍯',
-  '🍞', '🥖', '🥨', '🥐', '🥯', '🫓', '🥞', '🧇', '🥔', '🌾'
-];
+type PredefinedProduct = {
+  id: number;
+  nazev: string;
+  emoji: string;
+  kategorie: string;
+};
 
 export default function PridatProduktScreen() {
   const { farmar, isAuthenticated } = useFarmarAuth();
   const [loading, setLoading] = useState(false);
-  const [nazev, setNazev] = useState('');
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [predefinedProducts, setPredefinedProducts] = useState<PredefinedProduct[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<PredefinedProduct | null>(null);
   const [popis, setPopis] = useState('');
   const [cena, setCena] = useState('');
-  // const [mnozstvi, setMnozstvi] = useState(''); // ZAKOMENTOVÁNO - nepoužíváme
   const [jednotka, setJednotka] = useState('kg');
-  const [kategorie, setKategorie] = useState('Zelenina');
   const [dostupnost, setDostupnost] = useState(true);
-  const [selectedEmoji, setSelectedEmoji] = useState<string>('📦');
+
+  // Načíst předdefinované produkty z databáze
+  useEffect(() => {
+    loadPredefinedProducts();
+  }, []);
+
+  const loadPredefinedProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('predefinovane_produkty')
+        .select('*')
+        .order('kategorie', { ascending: true })
+        .order('nazev', { ascending: true });
+
+      if (error) throw error;
+      setPredefinedProducts(data || []);
+    } catch (error: any) {
+      console.error('Chyba při načítání produktů:', error);
+      Alert.alert('Chyba', 'Nepodařilo se načíst seznam produktů');
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  // Funkce pro výběr produktu ze seznamu
+  const handleSelectProduct = (product: PredefinedProduct) => {
+    setSelectedProduct(product);
+  };
 
   const handlePridatProdukt = async () => {
     // Validace
-    if (!nazev.trim()) {
-      Alert.alert('Chyba', 'Zadejte název produktu');
+    if (!selectedProduct) {
+      Alert.alert('Chyba', 'Vyberte produkt ze seznamu');
       return;
     }
 
@@ -51,14 +76,14 @@ export default function PridatProduktScreen() {
         .from('produkty')
         .insert({
           pestitel_id: Number(farmar.id),
-          nazev: nazev.trim(),
+          nazev: selectedProduct.nazev,
           popis: popis.trim() || null,
           cena: Number(cena),
-          mnozstvi: null, // ZAKOMENTOVÁNO - nepoužíváme
+          mnozstvi: null,
           jednotka: jednotka,
-          kategorie: kategorie,
+          kategorie: selectedProduct.kategorie,
           dostupnost: dostupnost,
-          emoji: selectedEmoji, // Použij emoji místo fotky
+          emoji: selectedProduct.emoji,
         })
         .select()
         .single();
@@ -71,14 +96,11 @@ export default function PridatProduktScreen() {
       }
 
       // Vymaž formulář pro další produkt
-      setNazev('');
+      setSelectedProduct(null);
       setPopis('');
       setCena('');
-      // setMnozstvi(''); // ZAKOMENTOVÁNO
       setJednotka('kg');
-      setKategorie('Zelenina');
       setDostupnost(true);
-      setSelectedEmoji('📦');
       setLoading(false);
 
       Alert.alert('Úspěch', 'Produkt byl přidán! Můžeš přidat další.', [
@@ -106,158 +128,158 @@ export default function PridatProduktScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={true}
       >
-        <View style={styles.form}>
-          <Text style={styles.label}>🎨 Ikona produktu</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.emojiScroll}
-            contentContainerStyle={styles.emojiScrollContent}
-          >
-            {PRODUCT_ICONS.map((emoji) => (
-              <TouchableOpacity
-                key={emoji}
-                style={[
-                  styles.emojiButton,
-                  selectedEmoji === emoji && styles.emojiButtonSelected
-                ]}
-                onPress={() => setSelectedEmoji(emoji)}
-              >
-                <Text style={styles.emojiText}>{emoji}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          <Text style={styles.label}>Název produktu *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="např. Rajčata cherry"
-            value={nazev}
-            onChangeText={setNazev}
-            autoCapitalize="sentences"
-          />
-
-          <Text style={styles.label}>Popis</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="Volitelný popis produktu..."
-            value={popis}
-            onChangeText={setPopis}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-
-          <Text style={styles.label}>Cena *</Text>
-          <View style={styles.row}>
-            <TextInput
-              style={[styles.input, styles.inputPrice]}
-              placeholder="0"
-              value={cena}
-              onChangeText={setCena}
-              keyboardType="numeric"
-            />
-            <Text style={styles.currency}>Kč</Text>
+        {loadingProducts ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.loadingText}>Načítám produkty...</Text>
           </View>
+        ) : (
+          <View style={styles.form}>
+            <Text style={styles.sectionTitle}>📦 Vyberte produkt</Text>
+            <Text style={styles.hint}>
+              Vyberte produkt ze seznamu. Název, ikona a kategorie se vyplní automaticky.
+            </Text>
 
-          {/* ZAKOMENTOVÁNO - Množství na skladě
-          <Text style={styles.label}>Množství na skladě</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="např. 10"
-            value={mnozstvi}
-            onChangeText={setMnozstvi}
-            keyboardType="numeric"
-          />
-          */}
-
-          <Text style={styles.label}>Kategorie *</Text>
-          <View style={styles.categoryButtons}>
-            {['Zelenina', 'Ovoce', 'Vejce', 'Mléčné výrobky', 'Med', 'Ostatní'].map((cat) => (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  styles.categoryButton,
-                  kategorie === cat && styles.categoryButtonActive
-                ]}
-                onPress={() => setKategorie(cat)}
-              >
-                <Text style={[
-                  styles.categoryButtonText,
-                  kategorie === cat && styles.categoryButtonTextActive
-                ]}>
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <Text style={styles.label}>Jednotka</Text>
-          <View style={styles.unitButtons}>
-            {['kg', 'ks', 'l', 'balení'].map((unit) => (
-              <TouchableOpacity
-                key={unit}
-                style={[
-                  styles.unitButton,
-                  jednotka === unit && styles.unitButtonActive
-                ]}
-                onPress={() => setJednotka(unit)}
-              >
-                <Text style={[
-                  styles.unitButtonText,
-                  jednotka === unit && styles.unitButtonTextActive
-                ]}>
-                  {unit}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <Text style={styles.label}>Dostupnost</Text>
-          <View style={styles.availabilityButtons}>
-            <TouchableOpacity
-              style={[
-                styles.availabilityButton,
-                dostupnost && styles.availabilityButtonActive
-              ]}
-              onPress={() => setDostupnost(true)}
-            >
-              <Text style={[
-                styles.availabilityButtonText,
-                dostupnost && styles.availabilityButtonTextActive
-              ]}>
-                ✓ Skladem
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.availabilityButton,
-                !dostupnost && styles.availabilityButtonUnavailable
-              ]}
-              onPress={() => setDostupnost(false)}
-            >
-              <Text style={[
-                styles.availabilityButtonText,
-                !dostupnost && styles.availabilityButtonTextUnavailable
-              ]}>
-                ✗ Vyprodáno
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-            onPress={handlePridatProdukt}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.submitButtonText}>Přidat produkt</Text>
+            {/* Vybraný produkt */}
+            {selectedProduct && (
+              <View style={styles.selectedProductBox}>
+                <Text style={styles.selectedEmoji}>{selectedProduct.emoji}</Text>
+                <View style={styles.selectedInfo}>
+                  <Text style={styles.selectedName}>{selectedProduct.nazev}</Text>
+                  <Text style={styles.selectedCategory}>{selectedProduct.kategorie}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.changeButton}
+                  onPress={() => setSelectedProduct(null)}
+                >
+                  <Text style={styles.changeButtonText}>Změnit</Text>
+                </TouchableOpacity>
+              </View>
             )}
-          </TouchableOpacity>
-        </View>
+
+            {/* Seznam produktů podle kategorií */}
+            {!selectedProduct && (
+              <ScrollView style={styles.productList} nestedScrollEnabled={true}>
+                {['Zelenina', 'Ovoce', 'Vejce', 'Mléčné výrobky', 'Med', 'Ostatní'].map((kategorie) => {
+                  const products = predefinedProducts.filter(p => p.kategorie === kategorie);
+                  if (products.length === 0) return null;
+
+                  return (
+                    <View key={kategorie}>
+                      <Text style={styles.categoryHeader}>{kategorie}</Text>
+                      <View style={styles.productGrid}>
+                        {products.map((product) => (
+                          <TouchableOpacity
+                            key={product.id}
+                            style={styles.productCard}
+                            onPress={() => handleSelectProduct(product)}
+                          >
+                            <Text style={styles.productEmoji}>{product.emoji}</Text>
+                            <Text style={styles.productName}>{product.nazev}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            )}
+
+            {/* Detaily produktu - zobrazit jen když je produkt vybraný */}
+            {selectedProduct && (
+              <>
+                <Text style={styles.label}>Popis (volitelné)</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  placeholder="Volitelný popis produktu..."
+                  value={popis}
+                  onChangeText={setPopis}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+
+                <Text style={styles.label}>Cena *</Text>
+                <View style={styles.row}>
+                  <TextInput
+                    style={[styles.input, styles.inputPrice]}
+                    placeholder="0"
+                    value={cena}
+                    onChangeText={setCena}
+                    keyboardType="numeric"
+                  />
+                  <Text style={styles.currency}>Kč</Text>
+                </View>
+
+                <Text style={styles.label}>Jednotka</Text>
+                <View style={styles.unitButtons}>
+                  {['kg', 'ks', 'l', 'balení'].map((unit) => (
+                    <TouchableOpacity
+                      key={unit}
+                      style={[
+                        styles.unitButton,
+                        jednotka === unit && styles.unitButtonActive
+                      ]}
+                      onPress={() => setJednotka(unit)}
+                    >
+                      <Text style={[
+                        styles.unitButtonText,
+                        jednotka === unit && styles.unitButtonTextActive
+                      ]}>
+                        {unit}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={styles.label}>Dostupnost</Text>
+                <View style={styles.availabilityButtons}>
+                  <TouchableOpacity
+                    style={[
+                      styles.availabilityButton,
+                      dostupnost && styles.availabilityButtonActive
+                    ]}
+                    onPress={() => setDostupnost(true)}
+                  >
+                    <Text style={[
+                      styles.availabilityButtonText,
+                      dostupnost && styles.availabilityButtonTextActive
+                    ]}>
+                      ✓ Skladem
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.availabilityButton,
+                      !dostupnost && styles.availabilityButtonUnavailable
+                    ]}
+                    onPress={() => setDostupnost(false)}
+                  >
+                    <Text style={[
+                      styles.availabilityButtonText,
+                      !dostupnost && styles.availabilityButtonTextUnavailable
+                    ]}>
+                      ✗ Vyprodáno
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+                  onPress={handlePridatProdukt}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.submitButtonText}>Přidat produkt</Text>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -304,39 +326,112 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666'
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8
+  },
+  hint: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+    lineHeight: 20
+  },
+  selectedProductBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#4CAF50'
+  },
+  selectedEmoji: {
+    fontSize: 48,
+    marginRight: 16
+  },
+  selectedInfo: {
+    flex: 1
+  },
+  selectedName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4
+  },
+  selectedCategory: {
+    fontSize: 14,
+    color: '#4CAF50',
+    fontWeight: '600'
+  },
+  changeButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8
+  },
+  changeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600'
+  },
+  productList: {
+    maxHeight: 500,
+    marginBottom: 20
+  },
+  categoryHeader: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginTop: 16,
+    marginBottom: 12,
+    paddingHorizontal: 4
+  },
+  productGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 8
+  },
+  productCard: {
+    width: '30%',
+    minWidth: 100,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E0E0E0'
+  },
+  productEmoji: {
+    fontSize: 36,
+    marginBottom: 8
+  },
+  productName: {
+    fontSize: 13,
+    color: '#333',
+    textAlign: 'center',
+    fontWeight: '500'
+  },
   label: {
     fontSize: 15,
     fontWeight: '600',
     color: '#333',
     marginBottom: 8,
     marginTop: 15
-  },
-  emojiScroll: {
-    maxHeight: 100,
-    marginBottom: 10
-  },
-  emojiScrollContent: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingVertical: 10
-  },
-  emojiButton: {
-    width: 60,
-    height: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#E0E0E0'
-  },
-  emojiButtonSelected: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50',
-    borderWidth: 3
-  },
-  emojiText: {
-    fontSize: 32
   },
   input: {
     backgroundColor: '#F5F5F5',
@@ -362,31 +457,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#666'
-  },
-  categoryButtons: {
-    flexDirection: 'row',
-    gap: 10,
-    flexWrap: 'wrap'
-  },
-  categoryButton: {
-    backgroundColor: '#F5F5F5',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#E0E0E0'
-  },
-  categoryButtonActive: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50'
-  },
-  categoryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666'
-  },
-  categoryButtonTextActive: {
-    color: '#4CAF50'
   },
   unitButtons: {
     flexDirection: 'row',
