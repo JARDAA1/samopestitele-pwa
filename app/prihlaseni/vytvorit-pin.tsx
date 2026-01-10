@@ -11,16 +11,17 @@ export default function VytvoritPinScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleVytvoritPin = async () => {
-    // Validace
-    if (pin.length < 4 || pin.length > 6) {
+    // Validace délky
+    if (pin.length !== 6) {
       if (Platform.OS === 'web') {
-        alert('PIN musí mít 4-6 číslic');
+        alert('PIN musí mít přesně 6 číslic');
       } else {
-        Alert.alert('Chyba', 'PIN musí mít 4-6 číslic');
+        Alert.alert('Chyba', 'PIN musí mít přesně 6 číslic');
       }
       return;
     }
 
+    // Validace že obsahuje pouze číslice
     if (!/^\d+$/.test(pin)) {
       if (Platform.OS === 'web') {
         alert('PIN může obsahovat pouze číslice');
@@ -30,6 +31,28 @@ export default function VytvoritPinScreen() {
       return;
     }
 
+    // Validace zakázaných PINů
+    const forbiddenPins = ['123456', '654321'];
+    if (forbiddenPins.includes(pin)) {
+      if (Platform.OS === 'web') {
+        alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN (ne 123456 nebo 654321).');
+      } else {
+        Alert.alert('Chyba', 'Tento PIN je příliš jednoduchý. Zvolte si jiný PIN (ne 123456 nebo 654321).');
+      }
+      return;
+    }
+
+    // Validace opakujících se číslic (111111, 222222, atd.)
+    if (/^(.)\1+$/.test(pin)) {
+      if (Platform.OS === 'web') {
+        alert('PIN nesmí obsahovat pouze stejné číslice (např. 111111).');
+      } else {
+        Alert.alert('Chyba', 'PIN nesmí obsahovat pouze stejné číslice (např. 111111).');
+      }
+      return;
+    }
+
+    // Validace shody
     if (pin !== pinPotvrzeni) {
       if (Platform.OS === 'web') {
         alert('PINy se neshodují');
@@ -45,11 +68,11 @@ export default function VytvoritPinScreen() {
 
     if (result.success) {
       if (Platform.OS === 'web') {
-        alert('PIN byl úspěšně vytvořen! Nyní se můžete přihlašovat do Prodejny pomocí telefonu a PINu.');
+        alert('PIN byl úspěšně vytvořen! Nyní se můžete přihlašovat do Prodejny pomocí 6místného PINu.');
       } else {
         Alert.alert(
           'Hotovo!',
-          'PIN byl úspěšně vytvořen! Nyní se můžete přihlašovat do Prodejny pomocí telefonu a PINu.',
+          'PIN byl úspěšně vytvořen! Nyní se můžete přihlašovat do Prodejny pomocí 6místného PINu.',
           [{ text: 'OK', onPress: () => router.replace('/muj-profil') }]
         );
       }
@@ -118,10 +141,10 @@ export default function VytvoritPinScreen() {
             </Text>
           </View>
 
-          <Text style={styles.label}>Zadejte PIN (4-6 číslic)</Text>
+          <Text style={styles.label}>Zadejte PIN (6 číslic)</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••"
+            placeholder="••••••"
             value={pin}
             onChangeText={setPin}
             keyboardType="number-pad"
@@ -133,7 +156,7 @@ export default function VytvoritPinScreen() {
           <Text style={styles.label}>Potvrďte PIN</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••"
+            placeholder="••••••"
             value={pinPotvrzeni}
             onChangeText={setPinPotvrzeni}
             keyboardType="number-pad"
@@ -155,10 +178,10 @@ export default function VytvoritPinScreen() {
           <View style={styles.helpBox}>
             <Text style={styles.helpTitle}>💡 K čemu slouží PIN?</Text>
             <Text style={styles.helpText}>
-              • Rychlé přihlášení do Prodejny pomocí telefonu + PIN{'\n'}
+              • Rychlé přihlášení do Prodejny pomocí 6místného PINu{'\n'}
               • Session platná 30 dní{'\n'}
               • Umožňuje spravovat produkty, objednávky a zákazníky{'\n'}
-              • Pro citlivé operace (nastavení profilu, platby) je stále potřeba email
+              • PIN nesmí být 123456, 654321 nebo opakující se číslice (111111)
             </Text>
           </View>
 

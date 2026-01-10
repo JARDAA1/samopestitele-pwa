@@ -6,41 +6,53 @@ import { useFarmarAuth } from '../utils/farmarAuthContext';
 export default function ProdejnaLoginScreen() {
   const { loginWithPin, sendMagicLink } = useFarmarAuth();
 
-  const [telefon, setTelefon] = useState('');
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [showMagicLinkOption, setShowMagicLinkOption] = useState(false);
 
   const handlePinLogin = async () => {
-    if (!telefon.trim()) {
+    // Validace délky PINu
+    if (pin.length !== 6) {
       if (Platform.OS === 'web') {
-        alert('Zadejte telefonní číslo');
+        alert('PIN musí mít přesně 6 číslic');
       } else {
-        Alert.alert('Chyba', 'Zadejte telefonní číslo');
+        Alert.alert('Chyba', 'PIN musí mít přesně 6 číslic');
       }
       return;
     }
 
-    if (pin.length < 4) {
+    // Validace zakázaných PINů
+    const forbiddenPins = ['123456', '654321'];
+    if (forbiddenPins.includes(pin)) {
       if (Platform.OS === 'web') {
-        alert('PIN musí mít alespoň 4 číslice');
+        alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
       } else {
-        Alert.alert('Chyba', 'PIN musí mít alespoň 4 číslice');
+        Alert.alert('Chyba', 'Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
+      }
+      return;
+    }
+
+    // Validace opakujících se číslic (111111, 222222, atd.)
+    if (/^(.)\1+$/.test(pin)) {
+      if (Platform.OS === 'web') {
+        alert('PIN nesmí obsahovat pouze stejné číslice.');
+      } else {
+        Alert.alert('Chyba', 'PIN nesmí obsahovat pouze stejné číslice.');
       }
       return;
     }
 
     setLoading(true);
-    const success = await loginWithPin(telefon, pin);
+    const success = await loginWithPin('', pin); // Telefon už nepotřebujeme
     setLoading(false);
 
     if (success) {
       router.replace('/(tabs)/moje-farma');
     } else {
       if (Platform.OS === 'web') {
-        alert('Nesprávné telefonní číslo nebo PIN');
+        alert('Nesprávný PIN');
       } else {
-        Alert.alert('Chyba', 'Nesprávné telefonní číslo nebo PIN');
+        Alert.alert('Chyba', 'Nesprávný PIN');
       }
       setShowMagicLinkOption(true);
     }
@@ -68,36 +80,26 @@ export default function ProdejnaLoginScreen() {
 
           <Text style={styles.title}>Přihlášení PIN kódem</Text>
           <Text style={styles.subtitle}>
-            Rychlý přístup k produktům, objednávkám a zákazníkům
+            Zadejte svůj 6místný PIN kód pro rychlý přístup
           </Text>
 
           <View style={styles.securityInfo}>
-            <Text style={styles.securityTitle}>🔒 Střední bezpečnost</Text>
+            <Text style={styles.securityTitle}>🔒 Jednoduchý přístup</Text>
             <Text style={styles.securityText}>
-              PIN kód • Session 30 dní • Rychlé přihlášení
+              Pouze PIN kód • Session 30 dní • Okamžité přihlášení
             </Text>
           </View>
 
-          <Text style={styles.label}>Telefonní číslo</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="+420777123456"
-            value={telefon}
-            onChangeText={setTelefon}
-            keyboardType="phone-pad"
-            autoCapitalize="none"
-            autoFocus
-          />
-
-          <Text style={styles.label}>PIN kód (4-6 číslic)</Text>
+          <Text style={styles.label}>PIN kód (6 číslic)</Text>
           <TextInput
             style={[styles.input, styles.pinInput]}
-            placeholder="••••"
+            placeholder="••••••"
             value={pin}
             onChangeText={setPin}
             keyboardType="number-pad"
             maxLength={6}
             secureTextEntry
+            autoFocus
             onSubmitEditing={handlePinLogin}
           />
 

@@ -142,46 +142,39 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
 
   const loginWithPin = async (telefon: string, pin: string): Promise<boolean> => {
     try {
-      console.log('🔐 loginWithPin called:', { telefon, pin });
+      console.log('🔐 loginWithPin called:', { pin });
 
       // Pro WEB i NATIVE - kontrola proti Supabase databázi
       const { supabase } = require('../../lib/supabase');
 
-      console.log('📞 Checking database for phone:', telefon);
+      console.log('🔑 Checking database for PIN:', pin);
 
+      // Hledáme farmáře podle PINu (heslo_hash sloupec)
       const { data: farmarData, error } = await supabase
         .from('pestitele')
         .select('*')
-        .eq('telefon', telefon)
+        .eq('heslo_hash', pin)
         .maybeSingle();
 
       console.log('📊 Database result:', { farmarData, error });
 
       if (error || !farmarData) {
-        console.log('❌ No farmer found for phone:', telefon);
+        console.log('❌ No farmer found for PIN:', pin);
         return false;
       }
 
-      // Ověříme PIN proti heslo_hash sloupci (v produkci by to měl být hash!)
-      console.log('🔑 Comparing PIN:', { stored: farmarData.heslo_hash, entered: pin });
+      console.log('✅ PIN match! Logging in...');
 
-      if (farmarData.heslo_hash === pin) {
-        console.log('✅ PIN match! Logging in...');
+      setFarmar(farmarData);
+      setAuthLevel('pin');
 
-        setFarmar(farmarData);
-        setAuthLevel('pin');
+      await AsyncStorage.setItem('farmar_session', JSON.stringify(farmarData));
+      await AsyncStorage.setItem('auth_level', 'pin');
+      await AsyncStorage.setItem('farmar_data', JSON.stringify(farmarData));
+      await AsyncStorage.setItem('farmar_pin', pin);
 
-        await AsyncStorage.setItem('farmar_session', JSON.stringify(farmarData));
-        await AsyncStorage.setItem('auth_level', 'pin');
-        await AsyncStorage.setItem('farmar_data', JSON.stringify(farmarData));
-        await AsyncStorage.setItem('farmar_pin', pin);
-
-        console.log('✅ Login successful!');
-        return true;
-      }
-
-      console.log('❌ PIN mismatch');
-      return false;
+      console.log('✅ Login successful!');
+      return true;
     } catch (error) {
       console.error('❌ PIN login error:', error);
       return false;
