@@ -495,69 +495,105 @@ function MojeStankyScreenContent() {
             <View style={styles.row}>
               <View style={styles.halfWidth}>
                 <Text style={styles.label}>Datum od *</Text>
-                <TouchableOpacity
-                  style={styles.dateTimeButton}
-                  onPress={() => {
-                    setTempDate(stanekForm.datum_od ? parseDate(stanekForm.datum_od) : new Date());
-                    setShowDatePicker('datum_od');
-                  }}
-                >
-                  <Text style={styles.dateTimeText}>
-                    {stanekForm.datum_od || '📅 Vyberte datum'}
-                  </Text>
-                </TouchableOpacity>
+                {Platform.OS === 'web' ? (
+                  <TextInput
+                    style={styles.input}
+                    placeholder="DD.MM.RRRR (např. 15.01.2025)"
+                    value={stanekForm.datum_od}
+                    onChangeText={(text) => setStanekForm({ ...stanekForm, datum_od: text })}
+                  />
+                ) : (
+                  <TouchableOpacity
+                    style={styles.dateTimeButton}
+                    onPress={() => {
+                      setTempDate(stanekForm.datum_od ? parseDate(stanekForm.datum_od) : new Date());
+                      setShowDatePicker('datum_od');
+                    }}
+                  >
+                    <Text style={styles.dateTimeText}>
+                      {stanekForm.datum_od || '📅 Vyberte datum'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
               <View style={styles.halfWidth}>
                 <Text style={styles.label}>Datum do *</Text>
-                <TouchableOpacity
-                  style={styles.dateTimeButton}
-                  onPress={() => {
-                    setTempDate(stanekForm.datum_do ? parseDate(stanekForm.datum_do) : new Date());
-                    setShowDatePicker('datum_do');
-                  }}
-                >
-                  <Text style={styles.dateTimeText}>
-                    {stanekForm.datum_do || '📅 Vyberte datum'}
-                  </Text>
-                </TouchableOpacity>
+                {Platform.OS === 'web' ? (
+                  <TextInput
+                    style={styles.input}
+                    placeholder="DD.MM.RRRR (např. 20.01.2025)"
+                    value={stanekForm.datum_do}
+                    onChangeText={(text) => setStanekForm({ ...stanekForm, datum_do: text })}
+                  />
+                ) : (
+                  <TouchableOpacity
+                    style={styles.dateTimeButton}
+                    onPress={() => {
+                      setTempDate(stanekForm.datum_do ? parseDate(stanekForm.datum_do) : new Date());
+                      setShowDatePicker('datum_do');
+                    }}
+                  >
+                    <Text style={styles.dateTimeText}>
+                      {stanekForm.datum_do || '📅 Vyberte datum'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
 
             <View style={styles.row}>
               <View style={styles.halfWidth}>
                 <Text style={styles.label}>Čas od *</Text>
-                <TouchableOpacity
-                  style={styles.dateTimeButton}
-                  onPress={() => {
-                    setTempDate(stanekForm.cas_od ? parseTime(stanekForm.cas_od) : new Date());
-                    setShowTimePicker('cas_od');
-                  }}
-                >
-                  <Text style={styles.dateTimeText}>
-                    {stanekForm.cas_od || '🕐 Vyberte čas'}
-                  </Text>
-                </TouchableOpacity>
+                {Platform.OS === 'web' ? (
+                  <TextInput
+                    style={styles.input}
+                    placeholder="HH:MM (např. 08:00)"
+                    value={stanekForm.cas_od}
+                    onChangeText={(text) => setStanekForm({ ...stanekForm, cas_od: text })}
+                  />
+                ) : (
+                  <TouchableOpacity
+                    style={styles.dateTimeButton}
+                    onPress={() => {
+                      setTempDate(stanekForm.cas_od ? parseTime(stanekForm.cas_od) : new Date());
+                      setShowTimePicker('cas_od');
+                    }}
+                  >
+                    <Text style={styles.dateTimeText}>
+                      {stanekForm.cas_od || '🕐 Vyberte čas'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
               <View style={styles.halfWidth}>
                 <Text style={styles.label}>Čas do *</Text>
-                <TouchableOpacity
-                  style={styles.dateTimeButton}
-                  onPress={() => {
-                    setTempDate(stanekForm.cas_do ? parseTime(stanekForm.cas_do) : new Date());
-                    setShowTimePicker('cas_do');
-                  }}
-                >
-                  <Text style={styles.dateTimeText}>
-                    {stanekForm.cas_do || '🕐 Vyberte čas'}
-                  </Text>
-                </TouchableOpacity>
+                {Platform.OS === 'web' ? (
+                  <TextInput
+                    style={styles.input}
+                    placeholder="HH:MM (např. 18:00)"
+                    value={stanekForm.cas_do}
+                    onChangeText={(text) => setStanekForm({ ...stanekForm, cas_do: text })}
+                  />
+                ) : (
+                  <TouchableOpacity
+                    style={styles.dateTimeButton}
+                    onPress={() => {
+                      setTempDate(stanekForm.cas_do ? parseTime(stanekForm.cas_do) : new Date());
+                      setShowTimePicker('cas_do');
+                    }}
+                  >
+                    <Text style={styles.dateTimeText}>
+                      {stanekForm.cas_do || '🕐 Vyberte čas'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
 
-            {/* Date Picker Modal */}
-            {showDatePicker && (
+            {/* Date Picker Modal - jen pro mobile */}
+            {Platform.OS !== 'web' && showDatePicker && (
               <DateTimePicker
                 value={tempDate}
                 mode="date"
@@ -566,8 +602,8 @@ function MojeStankyScreenContent() {
               />
             )}
 
-            {/* Time Picker Modal */}
-            {showTimePicker && (
+            {/* Time Picker Modal - jen pro mobile */}
+            {Platform.OS !== 'web' && showTimePicker && (
               <DateTimePicker
                 value={tempDate}
                 mode="time"
