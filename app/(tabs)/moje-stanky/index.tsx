@@ -744,8 +744,8 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', gap: 10 },
   halfWidth: { flex: 1 },
-  imageContainer: { marginBottom: 15, position: 'relative' },
-  image: { width: '100%', height: 356, aspectRatio: 9/16, borderRadius: 8 }, // Portrait preview
+  imageContainer: { marginBottom: 15, position: 'relative', aspectRatio: 9/16, width: '100%' },
+  image: { width: '100%', height: '100%', aspectRatio: 9/16, borderRadius: 8, resizeMode: 'cover' }, // Portrait preview
   changePhotoOverlay: {
     position: 'absolute',
     bottom: 0,
@@ -770,7 +770,7 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 14, color: '#999', textAlign: 'center', lineHeight: 20 },
   stanekCard: { backgroundColor: '#FFFFFF', borderRadius: 12, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, overflow: 'hidden' },
   stanekCardInaktivni: { opacity: 0.6 },
-  stanekImage: { width: '100%', height: 320, aspectRatio: 9/16 }, // Portrait mode - fotky na výšku
+  stanekImage: { width: '100%', aspectRatio: 9/16, resizeMode: 'cover' }, // Portrait mode - fotky na výšku
   stanekContent: { padding: 15 },
   stanekHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   stanekNazev: { fontSize: 18, fontWeight: 'bold', color: '#E65100', flex: 1 },
