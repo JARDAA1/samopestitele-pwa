@@ -236,21 +236,6 @@ function MojeStankyScreenContent() {
     }
   };
 
-  const handleSmazatFoto = () => {
-    Alert.alert(
-      'Smazat fotografii?',
-      'Opravdu chcete smazat fotografii stánku?',
-      [
-        { text: 'Zrušit', style: 'cancel' },
-        {
-          text: 'Smazat',
-          style: 'destructive',
-          onPress: () => setStanekForm({ ...stanekForm, foto_url: '' })
-        }
-      ]
-    );
-  };
-
   const handleUlozitStanek = async () => {
     if (!farmar?.id) return;
 
@@ -450,12 +435,14 @@ function MojeStankyScreenContent() {
             {/* Fotografie */}
             <Text style={styles.label}>Fotografie stánku</Text>
             {stanekForm.foto_url ? (
-              <View style={styles.imageContainer}>
+              <TouchableOpacity style={styles.imageContainer} onPress={handleVybratFoto} disabled={uploadingImage}>
                 <Image source={{ uri: stanekForm.foto_url }} style={styles.image} />
-                <TouchableOpacity style={styles.deleteImageButton} onPress={handleSmazatFoto}>
-                  <Text style={styles.deleteImageText}>🗑️ Smazat</Text>
-                </TouchableOpacity>
-              </View>
+                <View style={styles.changePhotoOverlay}>
+                  <Text style={styles.changePhotoText}>
+                    {uploadingImage ? 'Nahrávám...' : '📷 Změnit fotografii'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 style={styles.uploadButton}
@@ -757,10 +744,20 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', gap: 10 },
   halfWidth: { flex: 1 },
-  imageContainer: { marginBottom: 15 },
-  image: { width: '100%', height: 356, aspectRatio: 9/16, borderRadius: 8, marginBottom: 10 }, // Portrait preview
-  deleteImageButton: { backgroundColor: '#FF5252', padding: 12, borderRadius: 8, alignItems: 'center' },
-  deleteImageText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  imageContainer: { marginBottom: 15, position: 'relative' },
+  image: { width: '100%', height: 356, aspectRatio: 9/16, borderRadius: 8 }, // Portrait preview
+  changePhotoOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(255, 152, 0, 0.9)',
+    padding: 12,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    alignItems: 'center',
+  },
+  changePhotoText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   uploadButton: { backgroundColor: '#FFF3E0', borderWidth: 2, borderColor: '#FF9800', borderStyle: 'dashed', borderRadius: 8, padding: 30, alignItems: 'center', marginBottom: 15 },
   uploadIcon: { fontSize: 40, marginBottom: 10 },
   uploadText: { color: '#E65100', fontSize: 16, fontWeight: '600' },
