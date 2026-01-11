@@ -616,7 +616,7 @@ function MojeStankyScreenContent() {
               onPress={handleUlozitStanek}
             >
               <Text style={styles.saveButtonText}>
-                {editujiciStanek ? '💾 Uložit změny' : '➕ Přidat stánek'}
+                {editujiciStanek ? '💾 Uložit změny' : '💾 Uložit stánek'}
               </Text>
             </TouchableOpacity>
 
