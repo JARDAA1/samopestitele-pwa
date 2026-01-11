@@ -187,7 +187,13 @@ function MojeProdejnaScreenContent() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <View>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backIcon}>←</Text>
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
             <Text style={styles.headerTitle}>🏪 {farmarData?.nazev_farmy}</Text>
             <Text style={styles.headerSubtitle}>Správa prodejny</Text>
           </View>
@@ -379,7 +385,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   header: { backgroundColor: '#4CAF50', paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
+  backButton: { padding: 8 },
+  backIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '600' },
   headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 5 },
   headerSubtitle: { fontSize: 14, color: '#FFFFFF', opacity: 0.9 },
   addButtonHeader: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },

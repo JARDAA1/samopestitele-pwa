@@ -8,8 +8,18 @@ export default function JsemFarmarScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>👨‍🌾 Jsem farmář/ka</Text>
-        <Text style={styles.headerSubtitle}>Staňte se součástí komunity</Text>
+        <View style={styles.headerTop}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backIcon}>←</Text>
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.headerTitle}>👨‍🌾 Jsem farmář/ka</Text>
+            <Text style={styles.headerSubtitle}>Staňte se součástí komunity</Text>
+          </View>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -110,6 +120,19 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  backButton: {
+    padding: 8
+  },
+  backIcon: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: '600'
   },
   headerTitle: {
     fontSize: 28,

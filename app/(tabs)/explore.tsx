@@ -99,8 +99,18 @@ export default function PestiteleScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>⭐ Moji farmáři</Text>
-          <Text style={styles.headerSubtitle}>Oblíbení a nákupy</Text>
+          <View style={styles.headerTop}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Text style={styles.backIcon}>←</Text>
+            </TouchableOpacity>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.headerTitle}>⭐ Moji farmáři</Text>
+              <Text style={styles.headerSubtitle}>Oblíbení a nákupy</Text>
+            </View>
+          </View>
         </View>
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>🌾</Text>
@@ -122,8 +132,18 @@ export default function PestiteleScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>⭐ Moji farmáři</Text>
-        <Text style={styles.headerSubtitle}>{oblibeni.length} {oblibeni.length === 1 ? 'farmář' : 'farmářů'}</Text>
+        <View style={styles.headerTop}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backIcon}>←</Text>
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.headerTitle}>⭐ Moji farmáři</Text>
+            <Text style={styles.headerSubtitle}>{oblibeni.length} {oblibeni.length === 1 ? 'farmář' : 'farmářů'}</Text>
+          </View>
+        </View>
       </View>
 
       <ScrollView style={styles.list}>
@@ -162,6 +182,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   header: { backgroundColor: '#4CAF50', paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20 },
+  headerTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  backButton: { padding: 8 },
+  backIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '600' },
   headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 5 },
   headerSubtitle: { fontSize: 14, color: '#FFFFFF', opacity: 0.9 },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
