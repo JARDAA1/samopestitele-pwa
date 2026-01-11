@@ -421,10 +421,7 @@ function MojeStankyScreenContent() {
         </View>
       </View>
 
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={showStanekForm ? styles.contentWithFooter : undefined}
-      >
+      <ScrollView style={styles.content}>
         {/* Formulář pro přidání/editaci stánku */}
         {showStanekForm && (
           <View style={styles.formCard}>
@@ -613,6 +610,16 @@ function MojeStankyScreenContent() {
               />
             )}
 
+            {/* Tlačítko Uložit - přímo ve formuláři */}
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleUlozitStanek}
+            >
+              <Text style={styles.saveButtonText}>
+                {editujiciStanek ? '💾 Uložit změny' : '➕ Přidat stánek'}
+              </Text>
+            </TouchableOpacity>
+
           </View>
         )}
 
@@ -704,20 +711,6 @@ function MojeStankyScreenContent() {
           )}
         </View>
       </ScrollView>
-
-      {/* Sticky Footer s tlačítkem Uložit - zobrazí se jen když je formulář otevřený */}
-      {showStanekForm && (
-        <View style={styles.stickyFooter}>
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={handleUlozitStanek}
-          >
-            <Text style={styles.saveButtonText}>
-              {editujiciStanek ? '💾 Uložit změny' : '➕ Přidat stánek'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
     </View>
   );
 }
@@ -743,7 +736,6 @@ const styles = StyleSheet.create({
   addButtonHeaderText: { color: '#FF9800', fontSize: 16, fontWeight: 'bold' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   content: { flex: 1 },
-  contentWithFooter: { paddingBottom: 90 }, // Prostor pro sticky footer
   formCard: { backgroundColor: '#FFFFFF', margin: 15, padding: 20, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
   formTitle: { fontSize: 22, fontWeight: 'bold', color: '#E65100', marginBottom: 20, textAlign: 'center' },
   sectionHeader: { fontSize: 18, fontWeight: 'bold', color: '#E65100', marginTop: 20, marginBottom: 10 },
@@ -797,20 +789,4 @@ const styles = StyleSheet.create({
   deleteButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   inaktivniBadge: { backgroundColor: '#FF5252', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
   inaktivniText: { color: '#FFFFFF', fontSize: 11, fontWeight: 'bold' },
-  stickyFooter: {
-    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
-    padding: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    zIndex: 1000,
-  },
 });
