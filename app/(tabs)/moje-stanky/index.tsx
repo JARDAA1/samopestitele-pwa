@@ -332,7 +332,10 @@ function MojeStankyScreenContent() {
         </View>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={showStanekForm ? styles.contentWithFooter : undefined}
+      >
         {/* Formulář pro přidání/editaci stánku */}
         {showStanekForm && (
           <View style={styles.formCard}>
@@ -574,6 +577,7 @@ const styles = StyleSheet.create({
   addButtonHeaderText: { color: '#FF9800', fontSize: 16, fontWeight: 'bold' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   content: { flex: 1 },
+  contentWithFooter: { paddingBottom: 90 }, // Prostor pro sticky footer
   formCard: { backgroundColor: '#FFFFFF', margin: 15, padding: 20, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
   formTitle: { fontSize: 22, fontWeight: 'bold', color: '#E65100', marginBottom: 20, textAlign: 'center' },
   sectionHeader: { fontSize: 18, fontWeight: 'bold', color: '#E65100', marginTop: 20, marginBottom: 10 },
@@ -615,7 +619,7 @@ const styles = StyleSheet.create({
   inaktivniBadge: { backgroundColor: '#FF5252', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
   inaktivniText: { color: '#FFFFFF', fontSize: 11, fontWeight: 'bold' },
   stickyFooter: {
-    position: 'absolute',
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
@@ -628,5 +632,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    zIndex: 1000,
   },
 });
