@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase';
 import { useFarmarAuth } from '../../utils/farmarAuthContext';
 import { ProtectedRoute } from '../../utils/ProtectedRoute';
 import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface Stanek {
   id: string;
@@ -39,6 +40,64 @@ function MojeStankyScreenContent() {
     cas_od: '',
     cas_do: ''
   });
+
+  // Date/Time picker states
+  const [showDatePicker, setShowDatePicker] = useState<'datum_od' | 'datum_do' | null>(null);
+  const [showTimePicker, setShowTimePicker] = useState<'cas_od' | 'cas_do' | null>(null);
+  const [tempDate, setTempDate] = useState(new Date());
+
+  // Helper funkce pro formátování data DD.MM.RRRR
+  const formatDate = (date: Date): string => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
+  };
+
+  // Helper funkce pro formátování času HH:MM
+  const formatTime = (date: Date): string => {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  // Konverze DD.MM.RRRR → Date object
+  const parseDate = (dateStr: string): Date => {
+    if (!dateStr) return new Date();
+    if (dateStr.includes('.')) {
+      // Formát DD.MM.RRRR
+      const [day, month, year] = dateStr.split('.');
+      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    } else if (dateStr.includes('-')) {
+      // Formát YYYY-MM-DD (z databáze)
+      return new Date(dateStr);
+    }
+    return new Date();
+  };
+
+  // Konverze DD.MM.RRRR → YYYY-MM-DD (pro databázi)
+  const dateToDbFormat = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const [day, month, year] = dateStr.split('.');
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  };
+
+  // Konverze YYYY-MM-DD → DD.MM.RRRR (pro zobrazení)
+  const dateFromDbFormat = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}.${month}.${year}`;
+  };
+
+  // Konverze HH:MM → Date object (dnešní datum + čas)
+  const parseTime = (timeStr: string): Date => {
+    if (!timeStr) return new Date();
+    const [hours, minutes] = timeStr.split(':');
+    const date = new Date();
+    date.setHours(parseInt(hours));
+    date.setMinutes(parseInt(minutes));
+    return date;
+  };
 
   useEffect(() => {
     if (isAuthenticated && farmar?.id) {
@@ -147,6 +206,36 @@ function MojeStankyScreenContent() {
     }
   };
 
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(null);
+    }
+
+    if (selectedDate && showDatePicker) {
+      const formattedDate = formatDate(selectedDate);
+      setStanekForm({ ...stanekForm, [showDatePicker]: formattedDate });
+
+      if (Platform.OS === 'ios') {
+        setShowDatePicker(null);
+      }
+    }
+  };
+
+  const handleTimeChange = (event: any, selectedTime?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowTimePicker(null);
+    }
+
+    if (selectedTime && showTimePicker) {
+      const formattedTime = formatTime(selectedTime);
+      setStanekForm({ ...stanekForm, [showTimePicker]: formattedTime });
+
+      if (Platform.OS === 'ios') {
+        setShowTimePicker(null);
+      }
+    }
+  };
+
   const handleSmazatFoto = () => {
     Alert.alert(
       'Smazat fotografii?',
@@ -183,8 +272,8 @@ function MojeStankyScreenContent() {
             mesto: stanekForm.mesto,
             ulice: stanekForm.ulice,
             foto_url: stanekForm.foto_url || null,
-            datum_od: stanekForm.datum_od,
-            datum_do: stanekForm.datum_do,
+            datum_od: dateToDbFormat(stanekForm.datum_od),
+            datum_do: dateToDbFormat(stanekForm.datum_do),
             cas_od: stanekForm.cas_od,
             cas_do: stanekForm.cas_do,
           })
@@ -203,8 +292,8 @@ function MojeStankyScreenContent() {
             mesto: stanekForm.mesto,
             ulice: stanekForm.ulice,
             foto_url: stanekForm.foto_url || null,
-            datum_od: stanekForm.datum_od,
-            datum_do: stanekForm.datum_do,
+            datum_od: dateToDbFormat(stanekForm.datum_od),
+            datum_do: dateToDbFormat(stanekForm.datum_do),
             cas_od: stanekForm.cas_od,
             cas_do: stanekForm.cas_do,
           });
@@ -241,8 +330,8 @@ function MojeStankyScreenContent() {
       mesto: stanek.mesto,
       ulice: stanek.ulice,
       foto_url: stanek.foto_url || '',
-      datum_od: stanek.datum_od,
-      datum_do: stanek.datum_do,
+      datum_od: dateFromDbFormat(stanek.datum_od),
+      datum_do: dateFromDbFormat(stanek.datum_do),
       cas_od: stanek.cas_od,
       cas_do: stanek.cas_do,
     });
@@ -406,46 +495,87 @@ function MojeStankyScreenContent() {
             <View style={styles.row}>
               <View style={styles.halfWidth}>
                 <Text style={styles.label}>Datum od *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="2025-01-15"
-                  value={stanekForm.datum_od}
-                  onChangeText={(text) => setStanekForm({ ...stanekForm, datum_od: text })}
-                />
+                <TouchableOpacity
+                  style={styles.dateTimeButton}
+                  onPress={() => {
+                    setTempDate(stanekForm.datum_od ? parseDate(stanekForm.datum_od) : new Date());
+                    setShowDatePicker('datum_od');
+                  }}
+                >
+                  <Text style={styles.dateTimeText}>
+                    {stanekForm.datum_od || '📅 Vyberte datum'}
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               <View style={styles.halfWidth}>
                 <Text style={styles.label}>Datum do *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="2025-01-20"
-                  value={stanekForm.datum_do}
-                  onChangeText={(text) => setStanekForm({ ...stanekForm, datum_do: text })}
-                />
+                <TouchableOpacity
+                  style={styles.dateTimeButton}
+                  onPress={() => {
+                    setTempDate(stanekForm.datum_do ? parseDate(stanekForm.datum_do) : new Date());
+                    setShowDatePicker('datum_do');
+                  }}
+                >
+                  <Text style={styles.dateTimeText}>
+                    {stanekForm.datum_do || '📅 Vyberte datum'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
             <View style={styles.row}>
               <View style={styles.halfWidth}>
                 <Text style={styles.label}>Čas od *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="08:00"
-                  value={stanekForm.cas_od}
-                  onChangeText={(text) => setStanekForm({ ...stanekForm, cas_od: text })}
-                />
+                <TouchableOpacity
+                  style={styles.dateTimeButton}
+                  onPress={() => {
+                    setTempDate(stanekForm.cas_od ? parseTime(stanekForm.cas_od) : new Date());
+                    setShowTimePicker('cas_od');
+                  }}
+                >
+                  <Text style={styles.dateTimeText}>
+                    {stanekForm.cas_od || '🕐 Vyberte čas'}
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               <View style={styles.halfWidth}>
                 <Text style={styles.label}>Čas do *</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="18:00"
-                  value={stanekForm.cas_do}
-                  onChangeText={(text) => setStanekForm({ ...stanekForm, cas_do: text })}
-                />
+                <TouchableOpacity
+                  style={styles.dateTimeButton}
+                  onPress={() => {
+                    setTempDate(stanekForm.cas_do ? parseTime(stanekForm.cas_do) : new Date());
+                    setShowTimePicker('cas_do');
+                  }}
+                >
+                  <Text style={styles.dateTimeText}>
+                    {stanekForm.cas_do || '🕐 Vyberte čas'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
+
+            {/* Date Picker Modal */}
+            {showDatePicker && (
+              <DateTimePicker
+                value={tempDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleDateChange}
+              />
+            )}
+
+            {/* Time Picker Modal */}
+            {showTimePicker && (
+              <DateTimePicker
+                value={tempDate}
+                mode="time"
+                is24Hour={true}
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleTimeChange}
+              />
+            )}
 
           </View>
         )}
@@ -508,7 +638,7 @@ function MojeStankyScreenContent() {
                     styles.stanekDatum,
                     !stanek.aktivni && styles.stanekTextInaktivni
                   ]}>
-                    📅 {stanek.datum_od} až {stanek.datum_do}
+                    📅 {dateFromDbFormat(stanek.datum_od)} až {dateFromDbFormat(stanek.datum_do)}
                   </Text>
 
                   <Text style={[
@@ -584,6 +714,19 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 8, marginTop: 10 },
   input: { backgroundColor: '#F5F5F5', borderRadius: 8, padding: 15, fontSize: 16, borderWidth: 1, borderColor: '#E0E0E0' },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
+  dateTimeButton: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateTimeText: {
+    fontSize: 16,
+    color: '#333',
+  },
   row: { flexDirection: 'row', gap: 10 },
   halfWidth: { flex: 1 },
   imageContainer: { marginBottom: 15 },

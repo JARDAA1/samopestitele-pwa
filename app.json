@@ -58,7 +58,8 @@
           "locationAlwaysAndWhenInUsePermission": "Povolit přístup k poloze pro zobrazení farmářů ve vašem okolí."
         }
       ],
-      "expo-router"
+      "expo-router",
+      "@react-native-community/datetimepicker"
     ],
     "runtimeVersion": {
       "policy": "appVersion"
