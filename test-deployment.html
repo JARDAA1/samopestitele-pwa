@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Deployment</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>Test routingu Moje stánky</h1>
+
+    <h2>Test 1: Direct URL</h2>
+    <p>Zkuste otevřít přímo:</p>
+    <ul>
+        <li><a href="https://samopestitele.cz/moje-stanky" target="_blank">https://samopestitele.cz/moje-stanky</a></li>
+        <li><a href="https://samopestitele.cz/(tabs)/moje-stanky" target="_blank">https://samopestitele.cz/(tabs)/moje-stanky</a></li>
+    </ul>
+
+    <h2>Test 2: Vercel deployment info</h2>
+    <p>Zkontrolujte deployment na Vercel dashboard:</p>
+    <ul>
+        <li>Přihlaste se na <a href="https://vercel.com" target="_blank">vercel.com</a></li>
+        <li>Najděte projekt samopestitele</li>
+        <li>Ověřte, že nejnovější deployment (commit 98d9c05) má status "Ready"</li>
+        <li>Zkontrolujte čas deploymentu - měl by být z posledních minut</li>
+    </ul>
+
+    <h2>Test 3: Clear cache</h2>
+    <p>Po ověření, že deployment je ready:</p>
+    <ul>
+        <li><strong>Mac:</strong> Cmd + Shift + R</li>
+        <li><strong>Windows/Linux:</strong> Ctrl + Shift + R</li>
+        <li>Nebo zkuste <strong>Incognito mode</strong></li>
+    </ul>
+
+    <h2>Debug info</h2>
+    <p>Poslední commit: <code>98d9c05 - Fix routing: Register moje-stanky screen in tabs layout</code></p>
+    <p>Build time: <script>document.write(new Date().toLocaleString('cs-CZ'))</script></p>
+</body>
+</html>

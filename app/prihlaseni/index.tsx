@@ -39,7 +39,7 @@ export default function PrihlaseniScreen() {
             <Text style={styles.arrow}>→</Text>
           </TouchableOpacity>
 
-          {/* PRODEJNA - Střední bezpečnost */}
+          {/* MOJE PRODEJNA - Střední bezpečnost */}
           <TouchableOpacity
             style={[styles.sectionCard, styles.sectionCardSecondary]}
             onPress={() => router.push('/prihlaseni/prodejna')}
@@ -48,7 +48,7 @@ export default function PrihlaseniScreen() {
               <Text style={styles.sectionIconText}>🏪</Text>
             </View>
             <View style={styles.sectionInfo}>
-              <Text style={styles.sectionTitle}>Prodejna</Text>
+              <Text style={styles.sectionTitle}>Moje prodejna</Text>
               <Text style={styles.sectionDescription}>
                 Produkty, objednávky, zákazníci
               </Text>
@@ -59,7 +59,7 @@ export default function PrihlaseniScreen() {
             <Text style={styles.arrow}>→</Text>
           </TouchableOpacity>
 
-          {/* STÁNKY - Nízká bezpečnost */}
+          {/* MOJE STÁNKY - Střední bezpečnost */}
           <TouchableOpacity
             style={[styles.sectionCard, styles.sectionCardTertiary]}
             onPress={() => router.push('/prihlaseni/stanky')}
@@ -68,12 +68,12 @@ export default function PrihlaseniScreen() {
               <Text style={styles.sectionIconText}>🎪</Text>
             </View>
             <View style={styles.sectionInfo}>
-              <Text style={styles.sectionTitle}>Stánky</Text>
+              <Text style={styles.sectionTitle}>Moje stánky</Text>
               <Text style={styles.sectionDescription}>
-                Rychlá aktualizace zásob na trhu
+                Správa stánků na trzích (dnes tady, zítra jinde)
               </Text>
               <View style={styles.securityBadge}>
-                <Text style={styles.securityText}>🔒 QR kód / 6místný kód</Text>
+                <Text style={styles.securityText}>🔒🔒 PIN kód</Text>
               </View>
             </View>
             <Text style={styles.arrow}>→</Text>

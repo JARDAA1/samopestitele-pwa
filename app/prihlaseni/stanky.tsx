@@ -1,43 +1,41 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useFarmarAuth } from '../utils/farmarAuthContext';
 
 export default function StankyLoginScreen() {
-  const [kod, setKod] = useState('');
+  const { loginWithPin } = useFarmarAuth();
+
+  const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleKodLogin = async () => {
-    const cleanKod = kod.trim().toUpperCase();
+  const handlePinLogin = async () => {
+    if (pin.length !== 6) {
+      alert('PIN musí mít přesně 6 číslic');
+      return;
+    }
 
-    if (cleanKod.length !== 6) {
-      if (Platform.OS === 'web') {
-        alert('Zadejte 6místný kód');
-      } else {
-        Alert.alert('Chyba', 'Zadejte 6místný kód');
-      }
+    const forbiddenPins = ['123456', '654321'];
+    if (forbiddenPins.includes(pin)) {
+      alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
+      return;
+    }
+
+    if (/^(.)\1+$/.test(pin)) {
+      alert('PIN nesmí obsahovat pouze stejné číslice.');
       return;
     }
 
     setLoading(true);
 
-    // TODO: Ověřit kód proti databázi
-    // Pro nyní - mock validace
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // Simulujeme úspěšné přihlášení
-    const isValid = true; // V produkci: await validateStankyCode(cleanKod);
+    const success = await loginWithPin('', pin);
 
     setLoading(false);
 
-    if (isValid) {
-      // TODO: Uložit session pro Stánky (24h)
-      router.replace('/(tabs)/moje-farma');
+    if (success) {
+      router.replace('/(tabs)/moje-stanky');
     } else {
-      if (Platform.OS === 'web') {
-        alert('Neplatný nebo vypršelý kód');
-      } else {
-        Alert.alert('Chyba', 'Neplatný nebo vypršelý kód');
-      }
+      alert('Nesprávný PIN. Zkuste to znovu.');
     }
   };
 
@@ -47,7 +45,7 @@ export default function StankyLoginScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Stánky - Přihlášení</Text>
+        <Text style={styles.headerTitle}>Moje stánky</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -57,55 +55,57 @@ export default function StankyLoginScreen() {
             <Text style={styles.icon}>🎪</Text>
           </View>
 
-          <Text style={styles.title}>Rychlý přístup</Text>
+          <Text style={styles.title}>Přihlášení PINem</Text>
           <Text style={styles.subtitle}>
-            Zadejte 6místný kód pro okamžitý přístup ke stánkům
+            Spravujte své stánky na trzích - flexibilně, dnes tady, zítra jinde
           </Text>
 
           <View style={styles.securityInfo}>
-            <Text style={styles.securityTitle}>🔒 Základní bezpečnost</Text>
+            <Text style={styles.securityTitle}>🔒🔒 Střední bezpečnost</Text>
             <Text style={styles.securityText}>
-              Jednorázový kód • Session 24 hodin • Pouze aktualizace zásob
+              PIN kód • Správa stánků • Fotografie a lokace
             </Text>
           </View>
 
-          {/* Manual Code Input */}
-          <Text style={styles.label}>Zadejte 6místný kód</Text>
+          <Text style={styles.label}>Zadejte svůj 6místný PIN</Text>
           <TextInput
-            style={styles.codeInput}
-            placeholder="ABC123"
-            value={kod}
-            onChangeText={(text) => setKod(text.toUpperCase())}
-            autoCapitalize="characters"
+            style={styles.pinInput}
+            placeholder="••••••"
+            value={pin}
+            onChangeText={setPin}
+            secureTextEntry
+            keyboardType="numeric"
             maxLength={6}
             autoFocus
-            onSubmitEditing={handleKodLogin}
+            onSubmitEditing={handlePinLogin}
           />
 
           <TouchableOpacity
             style={[styles.loginButton, loading && styles.loginButtonDisabled]}
-            onPress={handleKodLogin}
+            onPress={handlePinLogin}
             disabled={loading}
           >
-            <Text style={styles.loginButtonText}>
-              {loading ? 'Ověřuji...' : 'Přihlásit se'}
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.loginButtonText}>Přihlásit se</Text>
+            )}
           </TouchableOpacity>
 
-          {/* Help Info */}
           <View style={styles.helpBox}>
-            <Text style={styles.helpTitle}>💡 Kde získám přístupový kód?</Text>
+            <Text style={styles.helpTitle}>💡 Co jsou Moje stánky?</Text>
             <Text style={styles.helpText}>
-              1. Přihlaste se do Prodejny pomocí PINu{'\n'}
-              2. Klikněte na "Vygenerovat přístup pro Stánky"{'\n'}
-              3. Zobrazí se 6místný kód{'\n'}
-              4. Kód je platný 24 hodin
+              Evidujte své stánky na farmářských trzích:{'\n'}
+              • Název a popis stánku{'\n'}
+              • Umístění (město, ulice){'\n'}
+              • Fotografie stánku{'\n'}
+              • Časy otevření (dny a hodiny)
             </Text>
           </View>
 
-          <View style={styles.warningBox}>
-            <Text style={styles.warningText}>
-              ⚠️ Nesdílejte přístupový kód s nikým. Umožňuje upravovat vaše zásoby.
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>
+              ℹ️ Používáte stejný PIN jako pro Prodejnu
             </Text>
           </View>
         </View>
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
   },
-  codeInput: {
+  pinInput: {
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
     padding: 20,
@@ -261,17 +261,17 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 18,
   },
-  warningBox: {
-    backgroundColor: '#FFEBEE',
+  infoBox: {
+    backgroundColor: '#E8F5E9',
     padding: 12,
     borderRadius: 8,
     marginTop: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#F44336',
+    borderLeftColor: '#4CAF50',
   },
-  warningText: {
+  infoText: {
     fontSize: 11,
-    color: '#C62828',
+    color: '#2E7D32',
     lineHeight: 14,
   },
 });
