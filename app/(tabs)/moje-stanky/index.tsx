@@ -366,7 +366,7 @@ function MojeStankyScreenContent() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          {showStanekForm && (
+          {showStanekForm ? (
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => {
@@ -375,6 +375,13 @@ function MojeStankyScreenContent() {
               }}
             >
               <Text style={styles.backIcon}>←</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.homeButton}
+              onPress={() => router.push('/')}
+            >
+              <Text style={styles.homeIcon}>🏠</Text>
             </TouchableOpacity>
           )}
           <View style={{ flex: 1 }}>
@@ -719,6 +726,8 @@ const styles = StyleSheet.create({
   headerSubtitle: { fontSize: 13, color: '#FFFFFF', opacity: 0.9 },
   backButton: { padding: 8, marginRight: 10 },
   backIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '600' },
+  homeButton: { padding: 8 },
+  homeIcon: { fontSize: 28 },
   addButtonHeader: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
   addButtonHeaderText: { color: '#FF9800', fontSize: 16, fontWeight: 'bold' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },

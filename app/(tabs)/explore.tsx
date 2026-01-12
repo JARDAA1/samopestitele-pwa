@@ -101,10 +101,10 @@ export default function PestiteleScreen() {
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
+              style={styles.homeButton}
+              onPress={() => router.push('/')}
             >
-              <Text style={styles.backIcon}>←</Text>
+              <Text style={styles.homeIcon}>🏠</Text>
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
               <Text style={styles.headerTitle}>⭐ Moji farmáři</Text>
@@ -134,10 +134,10 @@ export default function PestiteleScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
+            style={styles.homeButton}
+            onPress={() => router.push('/')}
           >
-            <Text style={styles.backIcon}>←</Text>
+            <Text style={styles.homeIcon}>🏠</Text>
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={styles.headerTitle}>⭐ Moji farmáři</Text>
@@ -183,8 +183,8 @@ const styles = StyleSheet.create({
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   header: { backgroundColor: '#4CAF50', paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20 },
   headerTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  backButton: { padding: 8 },
-  backIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '600' },
+  homeButton: { padding: 8 },
+  homeIcon: { fontSize: 28 },
   headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 5 },
   headerSubtitle: { fontSize: 14, color: '#FFFFFF', opacity: 0.9 },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },

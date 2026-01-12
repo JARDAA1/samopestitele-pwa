@@ -10,10 +10,10 @@ export default function JsemFarmarScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
+            style={styles.homeButton}
+            onPress={() => router.push('/')}
           >
-            <Text style={styles.backIcon}>←</Text>
+            <Text style={styles.homeIcon}>🏠</Text>
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={styles.headerTitle}>👨‍🌾 Jsem farmář/ka</Text>
@@ -126,13 +126,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10
   },
-  backButton: {
+  homeButton: {
     padding: 8
   },
-  backIcon: {
-    fontSize: 28,
-    color: '#FFFFFF',
-    fontWeight: '600'
+  homeIcon: {
+    fontSize: 28
   },
   headerTitle: {
     fontSize: 28,
