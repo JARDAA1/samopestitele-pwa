@@ -14,11 +14,13 @@ export default function JsemFarmarScreen() {
             onPress={() => router.push('/')}
           >
             <Text style={styles.homeIcon}>🏠</Text>
+            <Text style={styles.homeText}>Domů</Text>
           </TouchableOpacity>
-          <View style={{ flex: 1 }}>
+          <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>👨‍🌾 Jsem farmář/ka</Text>
             <Text style={styles.headerSubtitle}>Staňte se součástí komunity</Text>
           </View>
+          <View style={styles.headerSpacer} />
         </View>
       </View>
 
@@ -124,24 +126,41 @@ const styles = StyleSheet.create({
   headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 10
   },
   homeButton: {
-    padding: 8
+    alignItems: 'center',
+    padding: 8,
+    minWidth: 60
   },
   homeIcon: {
-    fontSize: 28
+    fontSize: 24
+  },
+  homeText: {
+    fontSize: 10,
+    color: '#FFFFFF',
+    marginTop: 2
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center'
+  },
+  headerSpacer: {
+    minWidth: 60
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 5
+    marginBottom: 5,
+    textAlign: 'center'
   },
   headerSubtitle: {
     fontSize: 14,
     color: '#FFFFFF',
-    opacity: 0.9
+    opacity: 0.9,
+    textAlign: 'center'
   },
   content: {
     padding: 20

@@ -382,13 +382,14 @@ function MojeStankyScreenContent() {
               onPress={() => router.push('/')}
             >
               <Text style={styles.homeIcon}>🏠</Text>
+              <Text style={styles.homeText}>Domů</Text>
             </TouchableOpacity>
           )}
-          <View style={{ flex: 1 }}>
+          <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>🏪 Moje stánky</Text>
             <Text style={styles.headerSubtitle}>Správa stánků na trzích a farmářských trzích</Text>
           </View>
-          {!showStanekForm && (
+          {!showStanekForm ? (
             <TouchableOpacity
               style={styles.addButtonHeader}
               onPress={() => {
@@ -409,6 +410,8 @@ function MojeStankyScreenContent() {
             >
               <Text style={styles.addButtonHeaderText}>+ Přidat</Text>
             </TouchableOpacity>
+          ) : (
+            <View style={styles.headerSpacer} />
           )}
         </View>
       </View>
@@ -722,12 +725,15 @@ const styles = StyleSheet.create({
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   header: { backgroundColor: '#FF9800', paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 5 },
-  headerSubtitle: { fontSize: 13, color: '#FFFFFF', opacity: 0.9 },
-  backButton: { padding: 8, marginRight: 10 },
+  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 5, textAlign: 'center' },
+  headerSubtitle: { fontSize: 13, color: '#FFFFFF', opacity: 0.9, textAlign: 'center' },
+  backButton: { padding: 8, marginRight: 10, minWidth: 60 },
   backIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '600' },
-  homeButton: { padding: 8 },
-  homeIcon: { fontSize: 28 },
+  homeButton: { alignItems: 'center', padding: 8, minWidth: 60 },
+  homeIcon: { fontSize: 24 },
+  homeText: { fontSize: 10, color: '#FFFFFF', marginTop: 2 },
+  headerCenter: { flex: 1, alignItems: 'center' },
+  headerSpacer: { minWidth: 60 },
   addButtonHeader: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
   addButtonHeaderText: { color: '#FF9800', fontSize: 16, fontWeight: 'bold' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },

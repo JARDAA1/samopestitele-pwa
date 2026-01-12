@@ -192,8 +192,9 @@ function MojeProdejnaScreenContent() {
             onPress={() => router.push('/')}
           >
             <Text style={styles.homeIcon}>🏠</Text>
+            <Text style={styles.homeText}>Domů</Text>
           </TouchableOpacity>
-          <View style={{ flex: 1 }}>
+          <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>🏪 {farmarData?.nazev_farmy}</Text>
             <Text style={styles.headerSubtitle}>Správa prodejny</Text>
           </View>
@@ -386,10 +387,12 @@ const styles = StyleSheet.create({
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   header: { backgroundColor: '#4CAF50', paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
-  homeButton: { padding: 8 },
-  homeIcon: { fontSize: 28 },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 5 },
-  headerSubtitle: { fontSize: 14, color: '#FFFFFF', opacity: 0.9 },
+  homeButton: { alignItems: 'center', padding: 8, minWidth: 60 },
+  homeIcon: { fontSize: 24 },
+  homeText: { fontSize: 10, color: '#FFFFFF', marginTop: 2 },
+  headerCenter: { flex: 1, alignItems: 'center' },
+  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 5, textAlign: 'center' },
+  headerSubtitle: { fontSize: 14, color: '#FFFFFF', opacity: 0.9, textAlign: 'center' },
   addButtonHeader: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
   addButtonHeaderText: { color: '#4CAF50', fontSize: 16, fontWeight: 'bold' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },

@@ -105,11 +105,13 @@ export default function PestiteleScreen() {
               onPress={() => router.push('/')}
             >
               <Text style={styles.homeIcon}>🏠</Text>
+              <Text style={styles.homeText}>Domů</Text>
             </TouchableOpacity>
-            <View style={{ flex: 1 }}>
+            <View style={styles.headerCenter}>
               <Text style={styles.headerTitle}>⭐ Moji farmáři</Text>
               <Text style={styles.headerSubtitle}>Oblíbení a nákupy</Text>
             </View>
+            <View style={styles.headerSpacer} />
           </View>
         </View>
         <View style={styles.emptyState}>
@@ -138,11 +140,13 @@ export default function PestiteleScreen() {
             onPress={() => router.push('/')}
           >
             <Text style={styles.homeIcon}>🏠</Text>
+            <Text style={styles.homeText}>Domů</Text>
           </TouchableOpacity>
-          <View style={{ flex: 1 }}>
+          <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>⭐ Moji farmáři</Text>
             <Text style={styles.headerSubtitle}>{oblibeni.length} {oblibeni.length === 1 ? 'farmář' : 'farmářů'}</Text>
           </View>
+          <View style={styles.headerSpacer} />
         </View>
       </View>
 
@@ -182,11 +186,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   header: { backgroundColor: '#4CAF50', paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20 },
-  headerTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  homeButton: { padding: 8 },
-  homeIcon: { fontSize: 28 },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 5 },
-  headerSubtitle: { fontSize: 14, color: '#FFFFFF', opacity: 0.9 },
+  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  homeButton: { alignItems: 'center', padding: 8, minWidth: 60 },
+  homeIcon: { fontSize: 24 },
+  homeText: { fontSize: 10, color: '#FFFFFF', marginTop: 2 },
+  headerCenter: { flex: 1, alignItems: 'center' },
+  headerSpacer: { minWidth: 60 },
+  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 5, textAlign: 'center' },
+  headerSubtitle: { fontSize: 14, color: '#FFFFFF', opacity: 0.9, textAlign: 'center' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
   emptyIcon: { fontSize: 80, marginBottom: 20 },
