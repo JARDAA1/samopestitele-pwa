@@ -1,67 +1,79 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { router } from 'expo-router';
 
 export default function HomeScreen() {
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>🌱</Text>
-        <Text style={styles.title}>Samopěstitelé</Text>
-        <Text style={styles.subtitle}>Propojujeme pěstitele se zákazníky</Text>
+    <ImageBackground
+      source={require('../../assets/images/splash.png')}
+      style={styles.container}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay}>
+        <View style={styles.header}>
+          <Text style={styles.logo}>🌱</Text>
+          <Text style={styles.title}>Samopěstitelé</Text>
+          <Text style={styles.subtitle}>Propojujeme pěstitele se zákazníky</Text>
+        </View>
+
+        {/* Hlavní navigace */}
+
+        {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
+        <TouchableOpacity
+          style={styles.primaryButton}
+          onPress={() => router.push('/mapa')}
+        >
+          <Text style={styles.buttonIcon}>🗺️</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.buttonTitle}>Najdi farmáře/ku</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* TLAČÍTKO 2 - MOJI FARMÁŘI */}
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => router.push('/explore')}
+        >
+          <Text style={styles.buttonIcon}>📋</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.buttonTitle}>Moji farmáři/ky</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Oddělovač */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>Jste pěstitel?</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* TLAČÍTKO 3 - JSEM SAMOPĚSTITEL/KA */}
+        <TouchableOpacity
+          style={styles.farmerButton}
+          onPress={() => router.push('/jsem-farmar')}
+        >
+          <Text style={styles.buttonIcon}>🌾</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.buttonTitle}>Jsem samopěstitel/ka</Text>
+          </View>
+        </TouchableOpacity>
       </View>
-
-      {/* Hlavní navigace */}
-
-      {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
-      <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={() => router.push('/mapa')}
-      >
-        <Text style={styles.buttonIcon}>🗺️</Text>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.buttonTitle}>Najdi farmáře/ku</Text>
-        </View>
-      </TouchableOpacity>
-
-      {/* TLAČÍTKO 2 - MOJI FARMÁŘI */}
-      <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={() => router.push('/explore')}
-      >
-        <Text style={styles.buttonIcon}>📋</Text>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.buttonTitle}>Moji farmáři/ky</Text>
-        </View>
-      </TouchableOpacity>
-
-      {/* Oddělovač */}
-      <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>Jste pěstitel?</Text>
-        <View style={styles.dividerLine} />
-      </View>
-
-      {/* TLAČÍTKO 3 - JSEM SAMOPĚSTITEL/KA */}
-      <TouchableOpacity
-        style={styles.farmerButton}
-        onPress={() => router.push('/jsem-farmar')}
-      >
-        <Text style={styles.buttonIcon}>🌾</Text>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.buttonTitle}>Jsem samopěstitel/ka</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E8F5E9',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16
+  },
+  overlay: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: 'rgba(232, 245, 233, 0.85)',
   },
   header: {
     alignItems: 'center',
