@@ -17,7 +17,7 @@ export default function HomeScreen() {
         <View style={styles.heroOverlay} />
 
         {/* Tlačítka přes obrázek */}
-        <View style={[styles.buttonsOverlay, isWeb && styles.buttonsOverlayWeb]}>
+        <View style={isWeb ? styles.buttonsOverlayWeb : styles.buttonsOverlay}>
 
       {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
       <TouchableOpacity
@@ -84,11 +84,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   buttonsOverlayWeb: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'flex-start',
-    paddingHorizontal: 0,
     paddingLeft: 80,
     paddingRight: '55%',
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   primaryButton: {
     backgroundColor: '#4CAF50',
