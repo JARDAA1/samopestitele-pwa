@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   },
   buttonsOverlayWeb: {
     position: 'absolute',
-    left: 80,
+    left: '8%',
     bottom: '10%',
     right: undefined,
     width: 240,
