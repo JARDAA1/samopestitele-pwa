@@ -9,8 +9,8 @@ export default function HomeScreen() {
       {/* Hero obrázek jako pozadí - celá obrazovka */}
       <ImageBackground
         source={require('../../assets/images/hero-banner.jpg')}
-        style={[styles.heroBackground, !isWeb && styles.heroBackgroundMobile]}
-        resizeMode="cover"
+        style={styles.heroBackground}
+        resizeMode={isWeb ? "cover" : "contain"}
       >
         {/* Jemný overlay pro lepší čitelnost tlačítek */}
         <View style={styles.heroOverlay} />
@@ -118,9 +118,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-  },
-  heroBackgroundMobile: {
-    transform: [{ scale: 0.1 }],
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
