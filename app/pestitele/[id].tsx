@@ -42,88 +42,28 @@ export default function PestitelDetailScreen() {
 
   const loadData = async () => {
     try {
-      // Pro WEB a mock ID používáme mock data
-      if (Platform.OS === 'web' || String(id).startsWith('mock-')) {
-        console.log('WEB/MOCK: Používám mock data pro farmáře', id);
+      console.log('Načítám data farmáře ID:', id);
 
-        // Mock data podle ID
-        const mockPestitele: Record<string, any> = {
-          'mock-1': {
-            id: 1,
-            nazev_farmy: 'Farma U Nováků',
-            jmeno: 'Jan Novák',
-            mesto: 'Praha',
-            adresa: 'Pražská 123, Praha 5',
-            popis: 'Ekologická farma s čerstvými produkty. Pěstujeme zeleninu bez chemie, s láskou k přírodě.',
-            telefon: '+420 123 456 789',
-            gps_lat: 50.0755,
-            gps_lng: 14.4378
-          },
-          'mock-2': {
-            id: 2,
-            nazev_farmy: 'BIO Farma Svoboda',
-            jmeno: 'Marie Svobodová',
-            mesto: 'Brno',
-            adresa: 'Brněnská 456, Brno-venkov',
-            popis: 'BIO certifikované produkty. Vlastní chov krav, výroba mléka a mléčných výrobků.',
-            telefon: '+420 987 654 321',
-            gps_lat: 49.1951,
-            gps_lng: 16.6068
-          },
-          'mock-3': {
-            id: 3,
-            nazev_farmy: 'Farma Včelař',
-            jmeno: 'Petr Včelař',
-            mesto: 'Olomouc',
-            adresa: 'Olomoucká 789, Olomouc',
-            popis: 'Přírodní med a medové produkty. Včelařství od roku 1995, tradiční způsob chovu.',
-            telefon: '+420 111 222 333',
-            gps_lat: 49.5938,
-            gps_lng: 17.2509
-          }
-        };
-
-        const mockProdukty: Record<string, any[]> = {
-          'mock-1': [
-            { id: 1, nazev: 'Rajčata', popis: 'Čerstvá bio rajčata', cena: 45, jednotka: 'kg', dostupnost: true, foto_url: null },
-            { id: 2, nazev: 'Okurky', popis: 'Salátové okurky', cena: 35, jednotka: 'kg', dostupnost: true, foto_url: null },
-            { id: 3, nazev: 'Med', popis: 'Květový med', cena: 120, jednotka: 'kg', dostupnost: true, foto_url: null }
-          ],
-          'mock-2': [
-            { id: 4, nazev: 'Mléko', popis: 'Čerstvé kravské mléko', cena: 25, jednotka: 'l', dostupnost: true, foto_url: null },
-            { id: 5, nazev: 'Sýr', popis: 'Domácí tvrdý sýr', cena: 180, jednotka: 'kg', dostupnost: true, foto_url: null },
-            { id: 6, nazev: 'Jogurt', popis: 'Přírodní jogurt', cena: 15, jednotka: 'ks', dostupnost: true, foto_url: null }
-          ],
-          'mock-3': [
-            { id: 7, nazev: 'Med akátový', popis: 'Akátový med', cena: 150, jednotka: 'kg', dostupnost: true, foto_url: null },
-            { id: 8, nazev: 'Med lesní', popis: 'Lesní medovice', cena: 140, jednotka: 'kg', dostupnost: true, foto_url: null },
-            { id: 9, nazev: 'Propolis', popis: 'Včelí propolis', cena: 200, jednotka: '100g', dostupnost: true, foto_url: null }
-          ]
-        };
-
-        const mockPestitel = mockPestitele[String(id)];
-        const mockProds = mockProdukty[String(id)] || [];
-
-        if (!mockPestitel) {
-          throw new Error('Farmář nebyl nalezen');
-        }
-
-        setPestitel(mockPestitel);
-        setProdukty(mockProds);
-        setLoading(false);
-        return;
-      }
-
-      // Pro NATIVE platformy - reálná data ze Supabase
+      // Načteme reálná data ze Supabase
       const { data: pestitelData, error: pestitelError } = await supabase
         .from('pestitele')
         .select('id, nazev_farmy, jmeno, mesto, adresa, popis, telefon, gps_lat, gps_lng')
         .eq('id', id)
         .single();
 
-      if (pestitelError) throw pestitelError;
+      if (pestitelError) {
+        console.error('Chyba při načítání dat:', pestitelError);
+        throw pestitelError;
+      }
+
+      if (!pestitelData) {
+        throw new Error('Farmář nebyl nalezen');
+      }
+
+      console.log('Farmář načten:', pestitelData);
       setPestitel(pestitelData);
 
+      // Načteme produkty
       const { data: produktyData, error: produktyError } = await supabase
         .from('produkty')
         .select('id, nazev, popis, cena, jednotka, dostupnost, foto_url')
@@ -131,13 +71,16 @@ export default function PestitelDetailScreen() {
         .eq('dostupnost', true)
         .order('nazev', { ascending: true });
 
-      if (produktyError) throw produktyError;
-      setProdukty(produktyData || []);
-    } catch (error) {
-      console.error('Chyba při načítání dat:', error);
-      if (Platform.OS !== 'web') {
-        Alert.alert('Chyba', 'Nepodařilo se načíst data farmáře');
+      if (produktyError) {
+        console.error('Chyba při načítání produktů:', produktyError);
+        throw produktyError;
       }
+
+      console.log('Produkty načteny, počet:', produktyData?.length || 0);
+      setProdukty(produktyData || []);
+    } catch (error: any) {
+      console.error('Chyba při načítání dat:', error);
+      Alert.alert('Chyba', error.message || 'Nepodařilo se načíst data farmáře');
     } finally {
       setLoading(false);
     }
