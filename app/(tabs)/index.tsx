@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   heroBackgroundMobile: {
-    transform: [{ scale: 0.5 }],
+    transform: [{ scale: 0.1 }],
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
