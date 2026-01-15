@@ -86,9 +86,10 @@ const styles = StyleSheet.create({
   buttonsOverlayWeb: {
     position: 'absolute',
     left: 80,
-    top: '50%',
-    transform: [{ translateY: '-50%' }],
+    top: 0,
+    bottom: 0,
     width: 240,
+    justifyContent: 'center',
     alignItems: 'flex-start',
   },
   primaryButton: {
