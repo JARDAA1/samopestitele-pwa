@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   buttonsOverlayWeb: {
     position: 'absolute',
     left: '8%',
-    bottom: '10%',
+    bottom: '8%',
     right: undefined,
     width: 240,
     justifyContent: 'flex-start',
