@@ -264,6 +264,12 @@ export default function PestitelDetailScreen() {
       general: `geo:${lat},${lng}?q=${lat},${lng}(${label})`,
     };
 
+    // Web: vždy použijeme Google Maps (funguje ve všech prohlížečích)
+    if (Platform.OS === 'web') {
+      window.open(urls.google, '_blank');
+      return;
+    }
+
     // iOS: pokusíme se otevřít Apple Maps, pokud selže, použijeme Google Maps
     if (Platform.OS === 'ios') {
       Linking.canOpenURL(urls.apple).then((supported) => {
