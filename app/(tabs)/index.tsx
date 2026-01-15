@@ -7,25 +7,15 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Hero sekce s placeholder designem - nahraď hero-banner.jpg */}
-      <View style={[styles.heroBackground, isWeb && styles.heroBackgroundWeb]}>
-        {/* Placeholder gradientní pozadí */}
-        <View style={styles.heroPlaceholder}>
-          <View style={styles.placeholderLogoSection}>
-            <Text style={styles.placeholderLogo}>🥕🍎🥬</Text>
-            <Text style={styles.placeholderTitle}>Ze zahrádky</Text>
-          </View>
-          <View style={styles.placeholderFarmers}>
-            <View style={styles.placeholderFarmer}>
-              <Text style={styles.placeholderFarmerIcon}>👨‍🌾</Text>
-            </View>
-            <View style={styles.placeholderFarmer}>
-              <Text style={styles.placeholderFarmerIcon}>👩‍🌾</Text>
-            </View>
-          </View>
-        </View>
+      {/* Hero obrázek jako pozadí */}
+      <ImageBackground
+        source={require('../../assets/images/hero-banner.jpg')}
+        style={[styles.heroBackground, isWeb && styles.heroBackgroundWeb]}
+        resizeMode="cover"
+      >
+        {/* Jemný overlay pro lepší čitelnost tlačítek */}
         <View style={styles.heroOverlay} />
-      </View>
+      </ImageBackground>
 
       {/* Tlačítka přes obrázek */}
       <View style={styles.contentContainer}>
@@ -92,47 +82,7 @@ const styles = StyleSheet.create({
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-  },
-  heroPlaceholder: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: '#C8E6C9',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    paddingHorizontal: 20,
-  },
-  placeholderLogoSection: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  placeholderLogo: {
-    fontSize: 60,
-    marginBottom: 10,
-  },
-  placeholderTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-  },
-  placeholderFarmers: {
-    flexDirection: 'row',
-    gap: 20,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  placeholderFarmer: {
-    width: 120,
-    height: 160,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#4CAF50',
-  },
-  placeholderFarmerIcon: {
-    fontSize: 60,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   contentContainer: {
     flex: 1,
