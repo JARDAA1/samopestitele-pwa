@@ -7,18 +7,17 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Hero obrázek jako pozadí */}
+      {/* Hero obrázek jako pozadí - celá obrazovka */}
       <ImageBackground
         source={require('../../assets/images/hero-banner.jpg')}
-        style={[styles.heroBackground, isWeb && styles.heroBackgroundWeb]}
+        style={styles.heroBackground}
         resizeMode="cover"
       >
         {/* Jemný overlay pro lepší čitelnost tlačítek */}
         <View style={styles.heroOverlay} />
-      </ImageBackground>
 
-      {/* Tlačítka přes obrázek */}
-      <View style={styles.contentContainer}>
+        {/* Tlačítka přes obrázek - vlevo */}
+        <View style={styles.buttonsOverlay}>
 
       {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
       <TouchableOpacity
@@ -60,6 +59,7 @@ export default function HomeScreen() {
         </View>
       </TouchableOpacity>
       </View>
+      </ImageBackground>
     </View>
   );
 }
@@ -67,61 +67,54 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E8F5E9',
   },
   heroBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 400,
+    flex: 1,
     width: '100%',
-  },
-  heroBackgroundWeb: {
-    height: 500,
+    height: '100%',
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
-  contentContainer: {
+  buttonsOverlay: {
     flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-    paddingTop: 420,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    paddingLeft: 20,
+    paddingRight: '50%',
   },
   primaryButton: {
     backgroundColor: '#4CAF50',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     borderRadius: 14,
-    width: '90%',
-    maxWidth: 400,
+    width: '100%',
+    maxWidth: 280,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
   secondaryButton: {
     backgroundColor: '#FF9800',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     borderRadius: 14,
-    width: '90%',
-    maxWidth: 400,
+    width: '100%',
+    maxWidth: 280,
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
   buttonIcon: {
     fontSize: 26,
@@ -141,34 +134,37 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '90%',
-    maxWidth: 400,
-    marginVertical: 16,
+    width: '100%',
+    maxWidth: 280,
+    marginVertical: 12,
   },
   dividerLine: {
     flex: 1,
-    height: 1,
-    backgroundColor: '#999',
+    height: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
   dividerText: {
     marginHorizontal: 12,
-    fontSize: 10,
-    color: '#666',
-    fontWeight: '600',
+    fontSize: 11,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
   farmerButton: {
     backgroundColor: '#8B4513',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     borderRadius: 14,
-    width: '90%',
-    maxWidth: 400,
+    width: '100%',
+    maxWidth: 280,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
 });
