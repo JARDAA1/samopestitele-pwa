@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
   buttonsOverlayWeb: {
     justifyContent: 'center',
     alignItems: 'flex-start',
+    paddingHorizontal: 0,
     paddingLeft: 80,
     paddingRight: '55%',
   },
