@@ -1,0 +1,15 @@
+DŮLEŽITÉ: Nahraď placeholder obrázek
+
+Ulož svůj obrázek "Ze zahrádky" jako:
+📁 hero-banner.jpg
+
+Do této složky:
+/Users/jardaa/Desktop/samopestitele-app/assets/images/
+
+Doporučené rozměry:
+- Šířka: 1400px
+- Výška: 600-800px  
+- Formát: JPG
+- Kvalita: vysoká (80-90%)
+
+Po uložení obrázku spusť: npm run build

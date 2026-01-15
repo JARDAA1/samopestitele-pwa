@@ -1,47 +1,34 @@
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ImageBackground } from 'react-native';
 import { router } from 'expo-router';
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
-  const isWeb = width > 768; // Považujeme za web, pokud je šířka větší než 768px
+  const isWeb = width > 768;
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        {/* Hero sekce s designem */}
-        <View style={[styles.heroSection, isWeb && styles.heroSectionWeb]}>
-          {/* Levá část - Logo a text */}
-          <View style={[styles.heroLeft, isWeb && styles.heroLeftWeb]}>
-            {/* Logo placeholder - zde přidáš obrázek logo-vegetables.png */}
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoEmoji}>🥕🍎🥬</Text>
-              <View style={styles.logoCircle}>
-                <Text style={styles.logoIcon}>🌾</Text>
-              </View>
-            </View>
-            <Text style={styles.heroTitle}>Ze zahrádky</Text>
-            <Text style={styles.heroSubtitle}>Propojujeme pěstitele se zákazníky</Text>
+    <View style={styles.container}>
+      {/* Hero sekce s placeholder designem - nahraď hero-banner.jpg */}
+      <View style={[styles.heroBackground, isWeb && styles.heroBackgroundWeb]}>
+        {/* Placeholder gradientní pozadí */}
+        <View style={styles.heroPlaceholder}>
+          <View style={styles.placeholderLogoSection}>
+            <Text style={styles.placeholderLogo}>🥕🍎🥬</Text>
+            <Text style={styles.placeholderTitle}>Ze zahrádky</Text>
           </View>
-
-          {/* Pravá část - Fotky farmářů */}
-          <View style={[styles.heroRight, isWeb && styles.heroRightWeb]}>
-            {/* Farmer 1 placeholder - zde přidáš farmer-man.jpg */}
-            <View style={[styles.farmerCard, isWeb && styles.farmerCardWeb]}>
-              <View style={styles.farmerPlaceholder}>
-                <Text style={styles.farmerIcon}>👨‍🌾</Text>
-              </View>
+          <View style={styles.placeholderFarmers}>
+            <View style={styles.placeholderFarmer}>
+              <Text style={styles.placeholderFarmerIcon}>👨‍🌾</Text>
             </View>
-
-            {/* Farmer 2 placeholder - zde přidáš farmer-woman.jpg */}
-            <View style={[styles.farmerCard, isWeb && styles.farmerCardWeb]}>
-              <View style={styles.farmerPlaceholder}>
-                <Text style={styles.farmerIcon}>👩‍🌾</Text>
-              </View>
+            <View style={styles.placeholderFarmer}>
+              <Text style={styles.placeholderFarmerIcon}>👩‍🌾</Text>
             </View>
           </View>
         </View>
+        <View style={styles.heroOverlay} />
+      </View>
 
-      {/* Hlavní navigace */}
+      {/* Tlačítka přes obrázek */}
+      <View style={styles.contentContainer}>
 
       {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
       <TouchableOpacity
@@ -83,121 +70,77 @@ export default function HomeScreen() {
         </View>
       </TouchableOpacity>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    backgroundColor: '#E8F5E9',
-  },
   container: {
     flex: 1,
     backgroundColor: '#E8F5E9',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-    paddingTop: 60,
   },
-  heroSection: {
+  heroBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 400,
     width: '100%',
-    maxWidth: 1200,
-    marginBottom: 32,
-    alignItems: 'center',
   },
-  heroSectionWeb: {
+  heroBackgroundWeb: {
+    height: 500,
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  heroPlaceholder: {
+    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: '#C8E6C9',
     alignItems: 'center',
-    gap: 40,
+    justifyContent: 'space-around',
     paddingHorizontal: 20,
   },
-  heroLeft: {
+  placeholderLogoSection: {
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  heroLeftWeb: {
     flex: 1,
-    marginBottom: 0,
   },
-  logoContainer: {
-    position: 'relative',
-    width: 180,
-    height: 180,
-    marginBottom: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
+  placeholderLogo: {
+    fontSize: 60,
+    marginBottom: 10,
   },
-  logoEmoji: {
-    fontSize: 80,
-    textAlign: 'center',
-  },
-  logoCircle: {
-    position: 'absolute',
-    bottom: 0,
-    right: 10,
-    backgroundColor: '#4CAF50',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
-  },
-  logoIcon: {
-    fontSize: 30,
-  },
-  heroTitle: {
-    fontSize: 36,
+  placeholderTitle: {
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#2E7D32',
-    textAlign: 'center',
-    marginBottom: 5,
   },
-  heroSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  heroRight: {
-    flexDirection: 'row',
-    gap: 15,
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-  },
-  heroRightWeb: {
-    flex: 1,
+  placeholderFarmers: {
     flexDirection: 'row',
     gap: 20,
+    flex: 1,
+    justifyContent: 'center',
   },
-  farmerCard: {
-    width: 150,
-    height: 200,
+  placeholderFarmer: {
+    width: 120,
+    height: 160,
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-  },
-  farmerCardWeb: {
-    flex: 1,
-    width: 'auto',
-    height: 350,
-  },
-  farmerPlaceholder: {
-    flex: 1,
-    backgroundColor: '#C8E6C9',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#4CAF50',
   },
-  farmerIcon: {
-    fontSize: 80,
+  placeholderFarmerIcon: {
+    fontSize: 60,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+    paddingTop: 420,
   },
   primaryButton: {
     backgroundColor: '#4CAF50',
