@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ImageBackground, Platform } from 'react-native';
 import { router } from 'expo-router';
 
 export default function HomeScreen() {
@@ -17,9 +17,9 @@ export default function HomeScreen() {
         <View style={styles.heroOverlay} />
 
         {/* Tlačítka přes obrázek */}
-        <View style={isWeb ? styles.buttonsOverlayWeb : styles.buttonsOverlay}>
-
-      {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
+        {!isWeb && (
+          <View style={styles.buttonsOverlay}>
+            {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
       <TouchableOpacity
         style={styles.primaryButton}
         onPress={() => router.push('/mapa')}
@@ -58,7 +58,53 @@ export default function HomeScreen() {
           <Text style={styles.buttonTitle}>Jsem samopěstitel/ka</Text>
         </View>
       </TouchableOpacity>
-      </View>
+          </View>
+        )}
+
+        {/* Web verze s absolutním pozicováním */}
+        {isWeb && (
+          <View style={styles.buttonsOverlayWeb}>
+            {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => router.push('/mapa')}
+            >
+              <Text style={styles.buttonIcon}>🗺️</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.buttonTitle}>Najdi farmáře/ku</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* TLAČÍTKO 2 - MOJI FARMÁŘI */}
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => router.push('/explore')}
+            >
+              <Text style={styles.buttonIcon}>📋</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.buttonTitle}>Moji farmáři/ky</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Oddělovač */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>Jste pěstitel?</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* TLAČÍTKO 3 - JSEM SAMOPĚSTITEL/KA */}
+            <TouchableOpacity
+              style={styles.farmerButton}
+              onPress={() => router.push('/jsem-farmar')}
+            >
+              <Text style={styles.buttonIcon}>🌾</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.buttonTitle}>Jsem samopěstitel/ka</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
       </ImageBackground>
     </View>
   );
