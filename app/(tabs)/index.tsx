@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
-  const isWeb = width > 768;
+  const isWeb = Platform.OS === 'web' && width > 768;
 
   return (
     <View style={styles.container}>
@@ -134,9 +134,12 @@ const styles = StyleSheet.create({
     left: 80,
     top: 0,
     bottom: 0,
+    right: undefined,
     width: 240,
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'flex-start',
+    zIndex: 1,
   },
   primaryButton: {
     backgroundColor: '#4CAF50',
