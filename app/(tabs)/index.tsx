@@ -84,13 +84,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   buttonsOverlayWeb: {
-    flex: 1,
-    justifyContent: 'center',
+    position: 'absolute',
+    left: 80,
+    top: '50%',
+    transform: [{ translateY: '-50%' }],
+    width: 240,
     alignItems: 'flex-start',
-    paddingLeft: 80,
-    paddingRight: '55%',
-    paddingTop: 0,
-    paddingBottom: 0,
   },
   primaryButton: {
     backgroundColor: '#4CAF50',
