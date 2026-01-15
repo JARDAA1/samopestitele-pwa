@@ -1,14 +1,45 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 
 export default function HomeScreen() {
+  const { width } = useWindowDimensions();
+  const isWeb = width > 768; // Považujeme za web, pokud je šířka větší než 768px
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>🌱</Text>
-        <Text style={styles.title}>Samopěstitelé</Text>
-        <Text style={styles.subtitle}>Propojujeme pěstitele se zákazníky</Text>
-      </View>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        {/* Hero sekce s designem */}
+        <View style={[styles.heroSection, isWeb && styles.heroSectionWeb]}>
+          {/* Levá část - Logo a text */}
+          <View style={[styles.heroLeft, isWeb && styles.heroLeftWeb]}>
+            {/* Logo placeholder - zde přidáš obrázek logo-vegetables.png */}
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoEmoji}>🥕🍎🥬</Text>
+              <View style={styles.logoCircle}>
+                <Text style={styles.logoIcon}>🌾</Text>
+              </View>
+            </View>
+            <Text style={styles.heroTitle}>Ze zahrádky</Text>
+            <Text style={styles.heroSubtitle}>Propojujeme pěstitele se zákazníky</Text>
+          </View>
+
+          {/* Pravá část - Fotky farmářů */}
+          <View style={[styles.heroRight, isWeb && styles.heroRightWeb]}>
+            {/* Farmer 1 placeholder - zde přidáš farmer-man.jpg */}
+            <View style={[styles.farmerCard, isWeb && styles.farmerCardWeb]}>
+              <View style={styles.farmerPlaceholder}>
+                <Text style={styles.farmerIcon}>👨‍🌾</Text>
+              </View>
+            </View>
+
+            {/* Farmer 2 placeholder - zde přidáš farmer-woman.jpg */}
+            <View style={[styles.farmerCard, isWeb && styles.farmerCardWeb]}>
+              <View style={styles.farmerPlaceholder}>
+                <Text style={styles.farmerIcon}>👩‍🌾</Text>
+              </View>
+            </View>
+          </View>
+        </View>
 
       {/* Hlavní navigace */}
 
@@ -51,37 +82,122 @@ export default function HomeScreen() {
           <Text style={styles.buttonTitle}>Jsem samopěstitel/ka</Text>
         </View>
       </TouchableOpacity>
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    backgroundColor: '#E8F5E9',
+  },
   container: {
     flex: 1,
     backgroundColor: '#E8F5E9',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16
+    padding: 16,
+    paddingTop: 60,
   },
-  header: {
+  heroSection: {
+    width: '100%',
+    maxWidth: 1200,
+    marginBottom: 32,
     alignItems: 'center',
-    marginBottom: 24
   },
-  logo: {
-    fontSize: 35,
-    marginBottom: 6
+  heroSectionWeb: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 40,
+    paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: '900',
+  heroLeft: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  heroLeftWeb: {
+    flex: 1,
+    marginBottom: 0,
+  },
+  logoContainer: {
+    position: 'relative',
+    width: 180,
+    height: 180,
+    marginBottom: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoEmoji: {
+    fontSize: 80,
+    textAlign: 'center',
+  },
+  logoCircle: {
+    position: 'absolute',
+    bottom: 0,
+    right: 10,
+    backgroundColor: '#4CAF50',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+  },
+  logoIcon: {
+    fontSize: 30,
+  },
+  heroTitle: {
+    fontSize: 36,
+    fontWeight: 'bold',
     color: '#2E7D32',
     textAlign: 'center',
-    marginBottom: 4
+    marginBottom: 5,
   },
-  subtitle: {
-    fontSize: 10,
+  heroSubtitle: {
+    fontSize: 14,
     color: '#666',
-    textAlign: 'center'
+    textAlign: 'center',
+  },
+  heroRight: {
+    flexDirection: 'row',
+    gap: 15,
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+  heroRightWeb: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 20,
+  },
+  farmerCard: {
+    width: 150,
+    height: 200,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  farmerCardWeb: {
+    flex: 1,
+    width: 'auto',
+    height: 350,
+  },
+  farmerPlaceholder: {
+    flex: 1,
+    backgroundColor: '#C8E6C9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  farmerIcon: {
+    fontSize: 80,
   },
   primaryButton: {
     backgroundColor: '#4CAF50',

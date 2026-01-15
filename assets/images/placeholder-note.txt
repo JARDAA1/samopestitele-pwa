@@ -1,0 +1,11 @@
+Placeholder soubory pro hero sekci domovské stránky.
+
+Nahraď tyto soubory skutečnými obrázky:
+1. logo-vegetables.png - Logo se zeleninou a text "Ze zahrádky"
+2. farmer-man.jpg - Fotka muže farmáře
+3. farmer-woman.jpg - Fotka ženy farmářky
+
+Doporučené rozměry:
+- logo-vegetables.png: 400x400px (čtverec)
+- farmer-man.jpg: 800x1200px (portrait 2:3)
+- farmer-woman.jpg: 800x1200px (portrait 2:3)
