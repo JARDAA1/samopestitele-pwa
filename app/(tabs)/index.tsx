@@ -10,6 +10,7 @@ export default function HomeScreen() {
       <ImageBackground
         source={require('../../assets/images/hero-banner.jpg')}
         style={styles.heroBackground}
+        imageStyle={!isWeb ? { height: '60%' } : undefined}
         resizeMode={isWeb ? "cover" : "contain"}
       >
         {/* Jemný overlay pro lepší čitelnost tlačítek */}
