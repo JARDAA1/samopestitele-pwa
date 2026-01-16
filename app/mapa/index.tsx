@@ -538,10 +538,10 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   produktNazev: {
-    flex: 1,
     fontSize: 14,
     color: '#FFFFFF',
     fontWeight: '500',
+    marginRight: 12,
   },
   checkbox: {
     width: 22,
