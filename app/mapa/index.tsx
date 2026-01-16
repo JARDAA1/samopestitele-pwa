@@ -253,6 +253,42 @@ export default function MapaScreen() {
         />
       </View>
 
+      {/* Filtr produktů */}
+      <View style={styles.produktyFilterContainer}>
+        <TouchableOpacity
+          style={styles.produktyFilterHeader}
+          onPress={() => setShowProduktyFilter(!showProduktyFilter)}
+        >
+          <Text style={styles.produktyFilterLabel}>
+            Nebo vyber ze seznamu produktů {selectedProdukty.length > 0 && `(${selectedProdukty.length})`}
+          </Text>
+          <Text style={styles.produktyFilterIcon}>{showProduktyFilter ? '▲' : '▼'}</Text>
+        </TouchableOpacity>
+
+        {showProduktyFilter && (
+          <ScrollView style={styles.produktyList} nestedScrollEnabled>
+            {produkty.map((produkt) => (
+              <TouchableOpacity
+                key={produkt.id}
+                style={styles.produktItem}
+                onPress={() => toggleProdukt(produkt.id)}
+              >
+                <Text style={styles.produktEmoji}>{produkt.emoji}</Text>
+                <Text style={styles.produktNazev}>{produkt.nazev}</Text>
+                <View style={[
+                  styles.checkbox,
+                  selectedProdukty.includes(produkt.id) && styles.checkboxChecked
+                ]}>
+                  {selectedProdukty.includes(produkt.id) && (
+                    <Text style={styles.checkboxIcon}>✓</Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
+      </View>
+
       {/* Filtr vzdálenosti */}
       <View style={styles.distanceFilterContainer}>
         <Text style={styles.distanceFilterLabel}>Vzdálenost:</Text>
@@ -298,42 +334,6 @@ export default function MapaScreen() {
             </Text>
           </TouchableOpacity>
         </ScrollView>
-      </View>
-
-      {/* Filtr produktů */}
-      <View style={styles.produktyFilterContainer}>
-        <TouchableOpacity
-          style={styles.produktyFilterHeader}
-          onPress={() => setShowProduktyFilter(!showProduktyFilter)}
-        >
-          <Text style={styles.produktyFilterLabel}>
-            Produkty {selectedProdukty.length > 0 && `(${selectedProdukty.length})`}
-          </Text>
-          <Text style={styles.produktyFilterIcon}>{showProduktyFilter ? '▲' : '▼'}</Text>
-        </TouchableOpacity>
-
-        {showProduktyFilter && (
-          <ScrollView style={styles.produktyList} nestedScrollEnabled>
-            {produkty.map((produkt) => (
-              <TouchableOpacity
-                key={produkt.id}
-                style={styles.produktItem}
-                onPress={() => toggleProdukt(produkt.id)}
-              >
-                <Text style={styles.produktEmoji}>{produkt.emoji}</Text>
-                <Text style={styles.produktNazev}>{produkt.nazev}</Text>
-                <View style={[
-                  styles.checkbox,
-                  selectedProdukty.includes(produkt.id) && styles.checkboxChecked
-                ]}>
-                  {selectedProdukty.includes(produkt.id) && (
-                    <Text style={styles.checkboxIcon}>✓</Text>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
       </View>
 
       {/* Počet výsledků */}
