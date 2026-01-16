@@ -367,26 +367,17 @@ export default function MapaScreen() {
               style={styles.listItem}
               onPress={() => router.push(`/pestitele/${item.id}`)}
             >
-              <View style={styles.listItemLeft}>
-                <View style={styles.numberBadge}>
-                  <Text style={styles.numberBadgeText}>{index + 1}</Text>
-                </View>
-                <View style={styles.listItemInfo}>
-                  <Text style={styles.listItemName}>{item.nazev_farmy}</Text>
-                  <Text style={styles.listItemLocation}>
-                    📍 {item.mesto}
-                    {item.distance !== undefined && ` • ${item.distance.toFixed(1)} km`}
-                  </Text>
-                  {item.popis && (
-                    <Text style={styles.listItemDesc} numberOfLines={1}>
-                      {item.popis}
-                    </Text>
-                  )}
-                </View>
+              <View style={styles.listItemContent}>
+                <Text style={styles.listItemName}>{item.nazev_farmy}</Text>
+                <Text style={styles.listItemDetail}>
+                  {item.mesto}
+                  {item.distance !== undefined && ` • ${item.distance.toFixed(1)} km`}
+                </Text>
+                <Text style={styles.listItemDetail}>
+                  {item.telefon ? `📞 ${item.telefon}` : 'Kontakt neuveden'}
+                </Text>
               </View>
-              <View style={styles.listItemRight}>
-                <Text style={styles.listItemArrow}>›</Text>
-              </View>
+              <Text style={styles.listItemArrow}>›</Text>
             </TouchableOpacity>
           )}
         />
@@ -475,29 +466,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
-    minHeight: 72,
   },
-  listItemLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12 },
-  numberBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#E8F5E9',
-    justifyContent: 'center',
-    alignItems: 'center',
+  listItemContent: {
+    flex: 1,
     marginRight: 12,
   },
-  numberBadgeText: { fontSize: 14, fontWeight: 'bold', color: '#2E7D32' },
-  listItemInfo: { flex: 1 },
-  listItemName: { fontSize: 17, fontWeight: '600', color: '#2E7D32', marginBottom: 4 },
-  listItemLocation: { fontSize: 14, color: '#666', marginBottom: 2 },
-  listItemDesc: { fontSize: 13, color: '#999', marginTop: 4 },
-  listItemRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  listItemArrow: { fontSize: 28, color: '#CCC', fontWeight: '300' },
+  listItemName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2E7D32',
+    marginBottom: 4,
+  },
+  listItemDetail: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 2,
+  },
+  listItemArrow: {
+    fontSize: 24,
+    color: '#CCC',
+    fontWeight: '300',
+  },
   resultsInfo: {
     backgroundColor: '#E8F5E9',
     padding: 12,
