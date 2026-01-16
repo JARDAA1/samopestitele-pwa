@@ -123,6 +123,7 @@ export default function MapaScreen() {
       // Vytvoření mapy produktů podle pestitel_id
       const produktyMap = new Map<string, string[]>();
       if (produktyData) {
+        console.log('🔍 První 3 produkty z databáze:', produktyData.slice(0, 3));
         produktyData.forEach((p) => {
           const key = String(p.pestitel_id);
           if (!produktyMap.has(key)) {
@@ -130,6 +131,7 @@ export default function MapaScreen() {
           }
           produktyMap.get(key)?.push(p.nazev);
         });
+        console.log('🗺️ Mapa produktů podle pestitel_id:', Array.from(produktyMap.entries()));
       }
 
       // Přidání produktů k farmářům
@@ -142,6 +144,12 @@ export default function MapaScreen() {
       const countWithProducts = pestiteleWithProducts.filter(p => p.produkty.length > 0).length;
       console.log(`📊 Načteno ${pestiteleWithProducts.length} farmářů, ${countWithProducts} má přidané produkty`);
       console.log(`📦 Celkem produktů v databázi: ${produktyData?.length || 0}`);
+      console.log('👨‍🌾 Farmáři s jejich produkty:', pestiteleWithProducts.map(p => ({
+        id: p.id,
+        nazev: p.nazev_farmy,
+        pocet_produktu: p.produkty.length,
+        produkty: p.produkty
+      })));
 
       setPestitele(pestiteleWithProducts as any);
     } catch (error) {
