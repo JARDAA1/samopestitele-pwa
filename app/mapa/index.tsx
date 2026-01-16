@@ -273,8 +273,10 @@ export default function MapaScreen() {
                 style={styles.produktItem}
                 onPress={() => toggleProdukt(produkt.id)}
               >
-                <Text style={styles.produktEmoji}>{produkt.emoji}</Text>
-                <Text style={styles.produktNazev}>{produkt.nazev}</Text>
+                <View style={styles.produktTextContainer}>
+                  <Text style={styles.produktEmoji}>{produkt.emoji}</Text>
+                  <Text style={styles.produktNazev}>{produkt.nazev}</Text>
+                </View>
                 <View style={[
                   styles.checkbox,
                   selectedProdukty.includes(produkt.id) && styles.checkboxChecked
@@ -534,6 +536,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#FFB84D',
   },
+  produktTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
   produktEmoji: {
     fontSize: 20,
     marginRight: 10,
@@ -542,7 +550,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FFFFFF',
     fontWeight: '500',
-    marginRight: 12,
   },
   checkbox: {
     width: 22,
