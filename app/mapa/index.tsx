@@ -524,13 +524,14 @@ const styles = StyleSheet.create({
     maxHeight: 200,
     paddingHorizontal: 15,
     paddingBottom: 10,
+    backgroundColor: '#FF9800',
   },
   produktItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: '#FFB84D',
   },
   produktEmoji: {
     fontSize: 20,
@@ -539,22 +540,23 @@ const styles = StyleSheet.create({
   produktNazev: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
   checkbox: {
     width: 22,
     height: 22,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#4CAF50',
+    borderColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#FFFFFF',
   },
   checkboxIcon: {
-    color: '#FFFFFF',
+    color: '#FF9800',
     fontSize: 14,
     fontWeight: 'bold',
   },
