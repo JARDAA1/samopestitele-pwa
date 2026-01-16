@@ -166,7 +166,10 @@ export default function MapaScreen() {
       const matchesSearch =
         p.nazev_farmy.toLowerCase().includes(query) ||
         p.mesto.toLowerCase().includes(query) ||
-        (p.popis && p.popis.toLowerCase().includes(query));
+        (p.popis && p.popis.toLowerCase().includes(query)) ||
+        (p.produkty && p.produkty.some((produktNazev: string) =>
+          produktNazev.toLowerCase().includes(query)
+        ));
 
       // Filtr podle vzdálenosti
       const matchesDistance =
