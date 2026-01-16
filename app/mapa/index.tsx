@@ -510,15 +510,16 @@ const styles = StyleSheet.create({
   produktyFilterHeader: {
     paddingVertical: 12,
     paddingHorizontal: 15,
+    backgroundColor: '#FF9800',
   },
   produktyFilterLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#FFFFFF',
   },
   produktyFilterIcon: {
     fontSize: 16,
-    color: '#2E7D32',
+    color: '#FFFFFF',
   },
   produktyList: {
     maxHeight: 200,
