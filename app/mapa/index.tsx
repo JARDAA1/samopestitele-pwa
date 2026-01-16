@@ -138,6 +138,11 @@ export default function MapaScreen() {
         produkty: produktyMap.get(p.id) || [],
       }));
 
+      // Debug: Výpis počtu farmářů s produkty
+      const countWithProducts = pestiteleWithProducts.filter(p => p.produkty.length > 0).length;
+      console.log(`📊 Načteno ${pestiteleWithProducts.length} farmářů, ${countWithProducts} má přidané produkty`);
+      console.log(`📦 Celkem produktů v databázi: ${produktyData?.length || 0}`);
+
       setPestitele(pestiteleWithProducts as any);
     } catch (error) {
       console.error('Chyba:', error);
@@ -162,21 +167,24 @@ export default function MapaScreen() {
     })
     .filter((p: any) => {
       // Filtr podle textu
-      const query = searchQuery.toLowerCase();
-      const matchesSearch =
+      const query = searchQuery.toLowerCase().trim();
+
+      // Textové vyhledávání (pokud je něco napsáno)
+      const matchesSearch = !query || (
         p.nazev_farmy.toLowerCase().includes(query) ||
         p.mesto.toLowerCase().includes(query) ||
         (p.popis && p.popis.toLowerCase().includes(query)) ||
-        (p.produkty && p.produkty.some((produktNazev: string) =>
+        (p.produkty && p.produkty.length > 0 && p.produkty.some((produktNazev: string) =>
           produktNazev.toLowerCase().includes(query)
-        ));
+        ))
+      );
 
       // Filtr podle vzdálenosti
       const matchesDistance =
         selectedDistance === null || // neomezeně
         (p.distance !== undefined && p.distance <= selectedDistance);
 
-      // Filtr podle produktů
+      // Filtr podle produktů (checkboxy)
       let matchesProdukty = true;
       if (selectedProdukty.length > 0) {
         // Získat názvy vybraných produktů
