@@ -137,7 +137,7 @@ export default function MapaScreen() {
       // Přidání produktů k farmářům
       const pestiteleWithProducts = (pestiteleData || []).map((p) => ({
         ...p,
-        produkty: produktyMap.get(p.id) || [],
+        produkty: produktyMap.get(String(p.id)) || [],
       }));
 
       // Debug: Výpis počtu farmářů s produkty
