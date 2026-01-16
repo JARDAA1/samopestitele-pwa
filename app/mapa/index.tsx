@@ -231,23 +231,18 @@ export default function MapaScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Header s vyhledáváním */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.homeButton}
-          onPress={() => router.push('/')}
-        >
-          <Text style={styles.homeIcon}>🏠</Text>
-          <Text style={styles.homeText}>Domů</Text>
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>🗺️ Najdi farmáře/ku</Text>
+        <View style={styles.searchHeaderRow}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.push('/')}
+          >
+            <Text style={styles.backArrow}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.searchLabel}>Napiš co hledáš</Text>
         </View>
-        <View style={styles.headerSpacer} />
-      </View>
 
-      {/* Vyhledávání */}
-      <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
           placeholder="Hledat farmáře, město nebo produkt..."
@@ -405,34 +400,37 @@ const styles = StyleSheet.create({
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingTop: 60,
-    paddingBottom: 20,
+    paddingBottom: 15,
     paddingHorizontal: 20,
     backgroundColor: '#4CAF50',
-    gap: 10
   },
-  homeButton: { alignItems: 'center', padding: 8, minWidth: 60 },
-  homeIcon: { fontSize: 24 },
-  homeText: { fontSize: 10, color: '#FFFFFF', marginTop: 2 },
-  headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center' },
-  headerSpacer: { minWidth: 60 },
-  searchContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+  searchHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 12,
+  },
+  backArrow: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  searchLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   searchInput: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 12,
     fontSize: 15,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#FFFFFF',
   },
   distanceFilterContainer: {
     backgroundColor: '#FFFFFF',
