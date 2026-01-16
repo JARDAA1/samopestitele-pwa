@@ -260,9 +260,9 @@ export default function MapaScreen() {
           onPress={() => setShowProduktyFilter(!showProduktyFilter)}
         >
           <Text style={styles.produktyFilterLabel}>
-            Nebo vyber ze seznamu produktů {selectedProdukty.length > 0 && `(${selectedProdukty.length})`}
+            Nebo vyber ze seznamu produktů {selectedProdukty.length > 0 && `(${selectedProdukty.length}) `}
+            <Text style={styles.produktyFilterIcon}>{showProduktyFilter ? '▲' : '▼'}</Text>
           </Text>
-          <Text style={styles.produktyFilterIcon}>{showProduktyFilter ? '▲' : '▼'}</Text>
         </TouchableOpacity>
 
         {showProduktyFilter && (
@@ -515,9 +515,6 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E0E0E0',
   },
   produktyFilterHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 15,
   },
