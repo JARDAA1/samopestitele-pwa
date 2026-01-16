@@ -393,19 +393,19 @@ const styles = StyleSheet.create({
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   header: {
-    paddingTop: 60,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 12,
+    paddingHorizontal: 15,
     backgroundColor: '#4CAF50',
   },
   searchHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   backButton: {
-    padding: 8,
-    marginRight: 12,
+    padding: 4,
+    marginRight: 8,
   },
   backArrow: {
     fontSize: 28,
