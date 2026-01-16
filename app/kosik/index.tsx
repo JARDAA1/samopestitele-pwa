@@ -186,7 +186,7 @@ export default function KosikScreen() {
               <View style={styles.cartItemInfo}>
                 <Text style={styles.cartItemName}>{item.nazev}</Text>
                 <Text style={styles.cartItemPrice}>
-                  {item.cena.toFixed(0)} Kč/{item.jednotka}
+                  {item.cena ? item.cena.toFixed(0) : '0'} Kč/{item.jednotka}
                 </Text>
               </View>
 
