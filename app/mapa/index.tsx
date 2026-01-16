@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   header: {
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 12,
     paddingHorizontal: 15,
     backgroundColor: '#4CAF50',
