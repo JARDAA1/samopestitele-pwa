@@ -1,9 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { router } from 'expo-router';
-import { useState } from 'react';
 
 export default function JsemFarmarScreen() {
-  const [benefitsExpanded, setBenefitsExpanded] = useState(false);
 
   return (
     <View style={styles.container}>
@@ -43,61 +41,6 @@ export default function JsemFarmarScreen() {
         >
           <Text style={styles.loginButtonText}>🔑 Už mám účet - Přihlásit se</Text>
         </TouchableOpacity>
-
-        {/* Rozbalovací sekce s výhodami */}
-        <View style={styles.benefitsSection}>
-          <TouchableOpacity
-            style={styles.benefitsHeader}
-            onPress={() => setBenefitsExpanded(!benefitsExpanded)}
-          >
-            <View style={styles.benefitsHeaderContent}>
-              <Text style={styles.benefitsHeaderIcon}>🌾</Text>
-              <View style={styles.benefitsHeaderText}>
-                <Text style={styles.benefitsHeaderTitle}>
-                  {benefitsExpanded ? '▼' : '▶'} Proč se stát farmářem?
-                </Text>
-                <Text style={styles.benefitsHeaderSubtitle}>
-                  Zjistěte, co všechno získáte
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {benefitsExpanded && (
-            <View style={styles.benefitsContent}>
-              <Text style={styles.benefitsIntro}>
-                Zaregistrujte se jako farmář a nabízejte své produkty tisícům zákazníků ve vašem okolí.
-              </Text>
-
-              <Text style={styles.benefitsTitle}>Co získáte:</Text>
-
-              <View style={styles.benefitRow}>
-                <Text style={styles.benefitIcon}>✓</Text>
-                <Text style={styles.benefitText}>Vlastní online prodejnu s produkty</Text>
-              </View>
-
-              <View style={styles.benefitRow}>
-                <Text style={styles.benefitIcon}>✓</Text>
-                <Text style={styles.benefitText}>Zobrazení na mapě farmářů v okolí</Text>
-              </View>
-
-              <View style={styles.benefitRow}>
-                <Text style={styles.benefitIcon}>✓</Text>
-                <Text style={styles.benefitText}>Přímý kontakt se zákazníky</Text>
-              </View>
-
-              <View style={styles.benefitRow}>
-                <Text style={styles.benefitIcon}>✓</Text>
-                <Text style={styles.benefitText}>Správa nabídky, cen a fotek produktů</Text>
-              </View>
-
-              <View style={styles.benefitRow}>
-                <Text style={styles.benefitIcon}>✓</Text>
-                <Text style={styles.benefitText}>Jednoduché přihlášení přes SMS</Text>
-              </View>
-            </View>
-          )}
-        </View>
 
         <View style={styles.helpCard}>
           <Text style={styles.helpTitle}>Potřebujete pomoc?</Text>
@@ -171,78 +114,6 @@ const styles = StyleSheet.create({
   content: {
     padding: 15,
     paddingBottom: 30
-  },
-  benefitsSection: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    marginTop: 5,
-    marginBottom: 20,
-    overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4
-  },
-  benefitsHeader: {
-    padding: 15,
-    backgroundColor: '#E8F5E9'
-  },
-  benefitsHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  benefitsHeaderIcon: {
-    fontSize: 32,
-    marginRight: 12
-  },
-  benefitsHeaderText: {
-    flex: 1
-  },
-  benefitsHeaderTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    marginBottom: 3,
-    lineHeight: 20
-  },
-  benefitsHeaderSubtitle: {
-    fontSize: 12,
-    color: '#666',
-    lineHeight: 16
-  },
-  benefitsContent: {
-    padding: 15,
-    backgroundColor: '#FFFFFF'
-  },
-  benefitsIntro: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 20,
-    textAlign: 'center'
-  },
-  benefitsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    marginBottom: 15
-  },
-  benefitRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12
-  },
-  benefitIcon: {
-    fontSize: 20,
-    color: '#4CAF50',
-    marginRight: 12,
-    fontWeight: 'bold'
-  },
-  benefitText: {
-    fontSize: 15,
-    color: '#333',
-    flex: 1
   },
   registerButton: {
     backgroundColor: '#4CAF50',
