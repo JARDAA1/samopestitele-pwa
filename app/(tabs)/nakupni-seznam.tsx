@@ -98,7 +98,7 @@ export default function NakupniSeznamScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Můj nákupní seznam</Text>
+          <Text style={styles.headerTitle}>Můj seznam</Text>
         </View>
         <View style={styles.emptyContainer}>
           <Ionicons name="list-outline" size={80} color="#ccc" />
@@ -114,9 +114,9 @@ export default function NakupniSeznamScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Můj nákupní seznam</Text>
+        <Text style={styles.headerTitle}>Můj seznam</Text>
         <TouchableOpacity onPress={handleClearAll} style={styles.clearButton}>
-          <Text style={styles.clearButtonText}>Smazat vše</Text>
+          <Text style={styles.clearButtonText}>Smazat</Text>
         </TouchableOpacity>
       </View>
 
@@ -217,26 +217,28 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#4CAF50',
     paddingTop: 50,
-    paddingBottom: 15,
+    paddingBottom: 12,
     paddingHorizontal: 15,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
+    flex: 1,
   },
   clearButton: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 6,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 5,
+    borderRadius: 6,
+    marginLeft: 8,
   },
   clearButtonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   emptyContainer: {
