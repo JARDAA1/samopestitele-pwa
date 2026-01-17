@@ -60,6 +60,29 @@ export default function NakupniSeznamScreen() {
     Linking.openURL(`tel:${telefon}`);
   };
 
+  const handleSendSMS = (farmer: GroupedByFarmer) => {
+    if (!farmer.pestitelTelefon) {
+      Alert.alert('Chyba', 'Telefon není k dispozici');
+      return;
+    }
+
+    // Vytvoříme text SMS zprávy se seznamem produktů
+    let message = `Dobrý den,\nrád bych objednal:\n\n`;
+
+    farmer.produkty.forEach((produkt) => {
+      message += `${produkt.nazev} - ${produkt.mnozstvi} ${produkt.jednotka}\n`;
+    });
+
+    message += `\nCelkem: ${farmer.celkovaCena.toFixed(0)} Kč\n\nDěkuji`;
+
+    // Otevřeme SMS aplikaci s předvyplněným textem
+    const smsUrl = `sms:${farmer.pestitelTelefon}?body=${encodeURIComponent(message)}`;
+
+    Linking.openURL(smsUrl).catch(() => {
+      Alert.alert('Chyba', 'Nepodařilo se otevřít aplikaci pro SMS');
+    });
+  };
+
   const handleClearAll = () => {
     Alert.alert(
       'Smazat seznam',
@@ -110,13 +133,22 @@ export default function NakupniSeznamScreen() {
                 )}
               </View>
               {farmer.pestitelTelefon && (
-                <TouchableOpacity
-                  style={styles.callButton}
-                  onPress={() => handleCall(farmer.pestitelTelefon)}
-                >
-                  <Ionicons name="call" size={20} color="#fff" />
-                  <Text style={styles.callButtonText}>Zavolat</Text>
-                </TouchableOpacity>
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={styles.smsButton}
+                    onPress={() => handleSendSMS(farmer)}
+                  >
+                    <Ionicons name="chatbubble" size={20} color="#fff" />
+                    <Text style={styles.smsButtonText}>SMS</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.callButton}
+                    onPress={() => handleCall(farmer.pestitelTelefon)}
+                  >
+                    <Ionicons name="call" size={20} color="#fff" />
+                    <Text style={styles.callButtonText}>Zavolat</Text>
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
 
@@ -263,11 +295,29 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     marginBottom: 15,
   },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  smsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2196F3',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 5,
+  },
+  smsButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   callButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#4CAF50',
-    paddingHorizontal: 15,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 5,
