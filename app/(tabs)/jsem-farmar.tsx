@@ -119,57 +119,61 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#4CAF50',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20
+    paddingTop: 50,
+    paddingBottom: 15,
+    paddingHorizontal: 15
   },
   headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 10
+    gap: 8
   },
   homeButton: {
     alignItems: 'center',
-    padding: 8,
-    minWidth: 60
+    padding: 5,
+    minWidth: 50
   },
   homeIcon: {
-    fontSize: 24
+    fontSize: 20
   },
   homeText: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#FFFFFF',
     marginTop: 2
   },
   headerCenter: {
     flex: 1,
-    alignItems: 'center'
+    alignItems: 'center',
+    paddingHorizontal: 5
   },
   headerSpacer: {
-    minWidth: 60
+    minWidth: 50
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 5,
-    textAlign: 'center'
+    marginBottom: 3,
+    textAlign: 'center',
+    lineHeight: 26
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#FFFFFF',
     opacity: 0.9,
-    textAlign: 'center'
+    textAlign: 'center',
+    lineHeight: 16
   },
   content: {
-    padding: 20
+    padding: 15,
+    paddingBottom: 30
   },
   benefitsSection: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginTop: 25,
-    marginBottom: 25,
+    borderRadius: 10,
+    marginTop: 5,
+    marginBottom: 20,
     overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
@@ -178,7 +182,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4
   },
   benefitsHeader: {
-    padding: 20,
+    padding: 15,
     backgroundColor: '#E8F5E9'
   },
   benefitsHeaderContent: {
@@ -186,24 +190,26 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   benefitsHeaderIcon: {
-    fontSize: 40,
-    marginRight: 15
+    fontSize: 32,
+    marginRight: 12
   },
   benefitsHeaderText: {
     flex: 1
   },
   benefitsHeaderTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2E7D32',
-    marginBottom: 4
+    marginBottom: 3,
+    lineHeight: 20
   },
   benefitsHeaderSubtitle: {
-    fontSize: 13,
-    color: '#666'
+    fontSize: 12,
+    color: '#666',
+    lineHeight: 16
   },
   benefitsContent: {
-    padding: 20,
+    padding: 15,
     backgroundColor: '#FFFFFF'
   },
   benefitsIntro: {
@@ -237,10 +243,10 @@ const styles = StyleSheet.create({
   },
   registerButton: {
     backgroundColor: '#4CAF50',
-    paddingVertical: 18,
-    borderRadius: 12,
+    paddingVertical: 16,
+    borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -249,13 +255,13 @@ const styles = StyleSheet.create({
   },
   registerButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold'
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20
+    marginVertical: 15
   },
   dividerLine: {
     flex: 1,
@@ -270,16 +276,16 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 18,
-    borderRadius: 12,
+    paddingVertical: 16,
+    borderRadius: 10,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#4CAF50',
-    marginBottom: 30
+    marginBottom: 20
   },
   loginButtonText: {
     color: '#4CAF50',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600'
   },
   helpCard: {
