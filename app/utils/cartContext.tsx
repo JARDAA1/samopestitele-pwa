@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type CartItem = {
+type ShoppingListItem = {
   produkt_id: number;
   nazev: string;
   cena: number;
@@ -8,102 +8,90 @@ type CartItem = {
   mnozstvi: number;
   pestitelNazev: string;
   pestitelId: number;
+  pestitelTelefon?: string;
+  pestitelMesto?: string;
 };
 
-type CartContextType = {
-  cart: CartItem[];
-  addToCart: (item: Omit<CartItem, 'mnozstvi'>) => void;
-  removeFromCart: (produkt_id: number) => void;
+type ShoppingListContextType = {
+  shoppingList: ShoppingListItem[];
+  addToList: (item: Omit<ShoppingListItem, 'mnozstvi'>) => void;
+  removeFromList: (produkt_id: number) => void;
   updateQuantity: (produkt_id: number, mnozstvi: number) => void;
-  clearCart: () => void;
+  clearList: () => void;
   totalPrice: number;
   itemCount: number;
-  currentPestitelId: number | null;
 };
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+const ShoppingListContext = createContext<ShoppingListContextType | undefined>(undefined);
 
-export function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [currentPestitelId, setCurrentPestitelId] = useState<number | null>(null);
+export function ShoppingListProvider({ children }: { children: ReactNode }) {
+  const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>([]);
 
-  const addToCart = (item: Omit<CartItem, 'mnozstvi'>) => {
-    // Pokud je košík prázdný, nastavíme farmáře
-    if (cart.length === 0) {
-      setCurrentPestitelId(item.pestitelId);
-    }
-
-    // Zkontrolujeme, zda produkt již není v košíku
-    const existingItem = cart.find((i) => i.produkt_id === item.produkt_id);
+  const addToList = (item: Omit<ShoppingListItem, 'mnozstvi'>) => {
+    // Zkontrolujeme, zda produkt již není v seznamu
+    const existingItem = shoppingList.find((i) => i.produkt_id === item.produkt_id);
 
     if (existingItem) {
       // Zvýšíme množství
-      setCart(
-        cart.map((i) =>
+      setShoppingList(
+        shoppingList.map((i) =>
           i.produkt_id === item.produkt_id
             ? { ...i, mnozstvi: i.mnozstvi + 1 }
             : i
         )
       );
     } else {
-      // Přidáme nový produkt s množstvím 1
-      setCart([...cart, { ...item, mnozstvi: 1 }]);
+      // Přidáme nový produkt s množstvím 1 - MŮŽEME MÍT PRODUKTY OD RŮZNÝCH FARMÁŘŮ
+      setShoppingList([...shoppingList, { ...item, mnozstvi: 1 }]);
     }
   };
 
-  const removeFromCart = (produkt_id: number) => {
-    const newCart = cart.filter((item) => item.produkt_id !== produkt_id);
-    setCart(newCart);
-
-    // Pokud je košík prázdný, resetujeme farmáře
-    if (newCart.length === 0) {
-      setCurrentPestitelId(null);
-    }
+  const removeFromList = (produkt_id: number) => {
+    setShoppingList(shoppingList.filter((item) => item.produkt_id !== produkt_id));
   };
 
   const updateQuantity = (produkt_id: number, mnozstvi: number) => {
     if (mnozstvi <= 0) {
-      removeFromCart(produkt_id);
+      removeFromList(produkt_id);
       return;
     }
 
-    setCart(
-      cart.map((item) =>
+    setShoppingList(
+      shoppingList.map((item) =>
         item.produkt_id === produkt_id ? { ...item, mnozstvi } : item
       )
     );
   };
 
-  const clearCart = () => {
-    setCart([]);
-    setCurrentPestitelId(null);
+  const clearList = () => {
+    setShoppingList([]);
   };
 
-  const totalPrice = cart.reduce((sum, item) => sum + item.cena * item.mnozstvi, 0);
-  const itemCount = cart.reduce((count, item) => count + item.mnozstvi, 0);
+  const totalPrice = shoppingList.reduce((sum, item) => sum + item.cena * item.mnozstvi, 0);
+  const itemCount = shoppingList.reduce((count, item) => count + item.mnozstvi, 0);
 
   return (
-    <CartContext.Provider
+    <ShoppingListContext.Provider
       value={{
-        cart,
-        addToCart,
-        removeFromCart,
+        shoppingList,
+        addToList,
+        removeFromList,
         updateQuantity,
-        clearCart,
+        clearList,
         totalPrice,
         itemCount,
-        currentPestitelId,
       }}
     >
       {children}
-    </CartContext.Provider>
+    </ShoppingListContext.Provider>
   );
 }
 
-export function useCart() {
-  const context = useContext(CartContext);
+export function useShoppingList() {
+  const context = useContext(ShoppingListContext);
   if (!context) {
-    throw new Error('useCart must be used within CartProvider');
+    throw new Error('useShoppingList must be used within ShoppingListProvider');
   }
   return context;
 }
+

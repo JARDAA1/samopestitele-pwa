@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { useCart } from '../utils/cartContext';
+import { useShoppingList } from '../utils/cartContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Pestitel {
@@ -33,7 +33,7 @@ export default function PestitelDetailScreen() {
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
-  const { addToCart, cart, currentPestitelId, itemCount } = useCart();
+  const { addToList, shoppingList, itemCount } = useShoppingList();
 
   useEffect(() => {
     loadData();
@@ -174,48 +174,22 @@ export default function PestitelDetailScreen() {
     }
   };
 
-  const handleAddToCart = async (produkt: Produkt) => {
+  const handleAddToList = async (produkt: Produkt) => {
     if (!pestitel) return;
 
-    // Pokud už máme v košíku produkty od jiného farmáře, upozorníme uživatele
-    if (currentPestitelId && currentPestitelId !== pestitel.id) {
-      Alert.alert(
-        'Košík obsahuje produkty jiného farmáře',
-        'Předchozí farmář bude automaticky uložen do oblíbených. Chcete pokračovat?',
-        [
-          { text: 'Zrušit', style: 'cancel' },
-          {
-            text: 'Pokračovat',
-            onPress: async () => {
-              // Uložíme předchozího farmáře do oblíbených
-              await savePreviousFarmer(currentPestitelId);
-
-              // Košík se vyprázdní automaticky v CartContext
-              addToCart({
-                produkt_id: produkt.id,
-                nazev: produkt.nazev,
-                cena: produkt.cena,
-                jednotka: produkt.jednotka,
-                pestitelNazev: pestitel.nazev_farmy,
-                pestitelId: pestitel.id,
-              });
-            },
-          },
-        ]
-      );
-      return;
-    }
-
-    addToCart({
+    // Přidáme produkt do nákupního seznamu s kontaktními informacemi farmáře
+    addToList({
       produkt_id: produkt.id,
       nazev: produkt.nazev,
       cena: produkt.cena,
       jednotka: produkt.jednotka,
       pestitelNazev: pestitel.nazev_farmy,
       pestitelId: pestitel.id,
+      pestitelTelefon: pestitel.telefon,
+      pestitelMesto: pestitel.mesto,
     });
 
-    Alert.alert('Přidáno do košíku', `${produkt.nazev} byl přidán do košíku`);
+    Alert.alert('Přidáno do seznamu', `${produkt.nazev} byl přidán do nákupního seznamu`);
   };
 
   const savePreviousFarmer = async (farmerId: number) => {
@@ -243,8 +217,8 @@ export default function PestitelDetailScreen() {
     }
   };
 
-  const handleViewCart = () => {
-    router.push('/kosik');
+  const handleViewList = () => {
+    router.push('/nakupni-seznam');
   };
 
   const handleNavigate = () => {
@@ -317,10 +291,10 @@ export default function PestitelDetailScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{pestitel.nazev_farmy}</Text>
         {itemCount > 0 && (
-          <TouchableOpacity onPress={handleViewCart} style={styles.cartBadgeContainer}>
-            <Text style={styles.cartIcon}>🛒</Text>
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>{itemCount}</Text>
+          <TouchableOpacity onPress={handleViewList} style={styles.listBadgeContainer}>
+            <Text style={styles.listIcon}>📝</Text>
+            <View style={styles.listBadge}>
+              <Text style={styles.listBadgeText}>{itemCount}</Text>
             </View>
           </TouchableOpacity>
         )}
@@ -413,9 +387,9 @@ export default function PestitelDetailScreen() {
                     </Text>
                     <TouchableOpacity
                       style={styles.addButton}
-                      onPress={() => handleAddToCart(produkt)}
+                      onPress={() => handleAddToList(produkt)}
                     >
-                      <Text style={styles.addButtonText}>+ Do košíku</Text>
+                      <Text style={styles.addButtonText}>+ Do seznamu</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -425,12 +399,12 @@ export default function PestitelDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Plovoucí tlačítko košíku */}
+      {/* Plovoucí tlačítko nákupního seznamu */}
       {itemCount > 0 && (
-        <TouchableOpacity style={styles.floatingCartButton} onPress={handleViewCart}>
-          <Text style={styles.floatingCartIcon}>🛒</Text>
-          <Text style={styles.floatingCartText}>
-            Zobrazit košík ({itemCount})
+        <TouchableOpacity style={styles.floatingListButton} onPress={handleViewList}>
+          <Text style={styles.floatingListIcon}>📝</Text>
+          <Text style={styles.floatingListText}>
+            Můj seznam ({itemCount})
           </Text>
         </TouchableOpacity>
       )}
@@ -455,9 +429,9 @@ const styles = StyleSheet.create({
   headerBackButton: { marginRight: 15 },
   headerBackText: { fontSize: 16, color: '#FFFFFF', fontWeight: '600' },
   headerTitle: { flex: 1, fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
-  cartBadgeContainer: { position: 'relative' },
-  cartIcon: { fontSize: 28 },
-  cartBadge: {
+  listBadgeContainer: { position: 'relative' },
+  listIcon: { fontSize: 28 },
+  listBadge: {
     position: 'absolute',
     top: -5,
     right: -5,
@@ -468,7 +442,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  cartBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: 'bold' },
+  listBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: 'bold' },
 
   content: { flex: 1 },
 
@@ -609,7 +583,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
 
-  floatingCartButton: {
+  floatingListButton: {
     position: 'absolute',
     bottom: 20,
     left: 20,
@@ -626,8 +600,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
   },
-  floatingCartIcon: { fontSize: 24, marginRight: 10 },
-  floatingCartText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
+  floatingListIcon: { fontSize: 24, marginRight: 10 },
+  floatingListText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
 
   backButton: { backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
   backButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },

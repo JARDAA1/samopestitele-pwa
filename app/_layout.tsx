@@ -6,7 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
 import { useColorScheme } from '@/components/useColorScheme';
-import { CartProvider } from './utils/cartContext';
+import { ShoppingListProvider } from './utils/cartContext';
 import { FarmarAuthProvider } from './utils/farmarAuthContext';
 
 export {
@@ -52,7 +52,7 @@ function RootLayoutNav() {
   // Každý screen má vlastní custom header
   return (
     <FarmarAuthProvider>
-      <CartProvider>
+      <ShoppingListProvider>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
@@ -66,7 +66,7 @@ function RootLayoutNav() {
             <Stack.Screen name="muj-profil" />
           </Stack>
         </ThemeProvider>
-      </CartProvider>
+      </ShoppingListProvider>
     </FarmarAuthProvider>
   );
 }
