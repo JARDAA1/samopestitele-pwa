@@ -8,19 +8,17 @@ export default function JsemFarmarScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity
-            style={styles.homeButton}
-            onPress={() => router.push('/')}
-          >
-            <Text style={styles.homeIcon}>🏠</Text>
-            <Text style={styles.homeText}>Domů</Text>
-          </TouchableOpacity>
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>👨‍🌾 Jsem farmář/ka</Text>
-            <Text style={styles.headerSubtitle}>Staňte se součástí komunity</Text>
-          </View>
-          <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          style={styles.homeButton}
+          onPress={() => router.push('/')}
+        >
+          <Text style={styles.homeIcon}>←</Text>
+          <Text style={styles.homeText}>Zpět</Text>
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerEmoji}>👨‍🌾</Text>
+          <Text style={styles.headerTitle}>Staň se součástí komunity</Text>
+          <Text style={styles.headerSubtitle}>a nabídni své produkty</Text>
         </View>
       </View>
 
@@ -120,50 +118,55 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#4CAF50',
     paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 15
-  },
-  headerTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    position: 'relative'
   },
   homeButton: {
+    position: 'absolute',
+    top: 50,
+    left: 15,
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 5,
-    minWidth: 50
+    gap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 8,
+    zIndex: 10
   },
   homeIcon: {
-    fontSize: 20
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: 'bold'
   },
   homeText: {
-    fontSize: 9,
+    fontSize: 13,
     color: '#FFFFFF',
-    marginTop: 2
+    fontWeight: '600'
   },
-  headerCenter: {
-    flex: 1,
+  headerContent: {
     alignItems: 'center',
-    paddingHorizontal: 5
+    paddingTop: 5
   },
-  headerSpacer: {
-    minWidth: 50
+  headerEmoji: {
+    fontSize: 48,
+    marginBottom: 10
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 3,
     textAlign: 'center',
-    lineHeight: 26
+    lineHeight: 24,
+    marginBottom: 4
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#FFFFFF',
-    opacity: 0.9,
+    opacity: 0.95,
     textAlign: 'center',
-    lineHeight: 16
+    lineHeight: 18
   },
   content: {
     padding: 15,
