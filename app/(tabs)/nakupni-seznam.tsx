@@ -280,19 +280,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
+    flexWrap: 'wrap',
   },
   farmerInfo: {
     flex: 1,
+    minWidth: 0,
+    marginRight: 8,
   },
   farmerName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 4,
+    flexWrap: 'wrap',
   },
   farmerCity: {
     fontSize: 14,
     color: '#666',
+    flexWrap: 'wrap',
   },
   phoneNumber: {
     fontSize: 14,
@@ -343,15 +348,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
+    flexWrap: 'nowrap',
   },
   productInfo: {
     flex: 1,
+    minWidth: 0,
+    marginRight: 8,
   },
   productName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#333',
     marginBottom: 4,
+    flexWrap: 'wrap',
   },
   productPrice: {
     fontSize: 14,
