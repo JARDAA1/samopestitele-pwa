@@ -48,6 +48,11 @@ export default function NakupniSeznamScreen() {
       groups[item.pestitelId].celkovaCena += item.cena * item.mnozstvi;
     });
 
+    // Seřadíme produkty abecedně podle názvu u každého farmáře
+    Object.values(groups).forEach(group => {
+      group.produkty.sort((a, b) => a.nazev.localeCompare(b.nazev, 'cs'));
+    });
+
     return Object.values(groups);
   }, [shoppingList]);
 
