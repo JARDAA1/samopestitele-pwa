@@ -35,6 +35,28 @@ export default function PestitelDetailScreen() {
   const [isFavorite, setIsFavorite] = useState(false);
   const { addToList, shoppingList, itemCount } = useShoppingList();
 
+  // Pevné pořadí produktů
+  const productOrder: { [key: string]: number } = {
+    'Brambory': 1,
+    'Cibule': 2,
+    'Rajčata': 4,
+    'Paprika': 5,
+    'Okurky': 6,
+    'Česnek': 7,
+    'Saláty': 8,
+    'Cuketa': 9,
+    'Dýně': 10,
+    'Jablka': 11,
+    'Jahody': 12,
+    'Třešně': 13,
+    'Švestky': 14,
+    'Hrušky': 15,
+    'Maliny': 16,
+    'Borůvky': 17,
+    'Rybíz': 18,
+    'Angrešt': 19,
+  };
+
   useEffect(() => {
     loadData();
     checkIfFavorite();
@@ -68,16 +90,22 @@ export default function PestitelDetailScreen() {
         .from('produkty')
         .select('id, nazev, popis, cena, jednotka, dostupnost, foto_url')
         .eq('pestitel_id', id)
-        .eq('dostupnost', true)
-        .order('nazev', { ascending: true });
+        .eq('dostupnost', true);
 
       if (produktyError) {
         console.error('Chyba při načítání produktů:', produktyError);
         throw produktyError;
       }
 
-      console.log('Produkty načteny, počet:', produktyData?.length || 0);
-      setProdukty(produktyData || []);
+      // Seřadíme produkty podle pevného pořadí
+      const sortedProdukty = (produktyData || []).sort((a, b) => {
+        const orderA = productOrder[a.nazev] || 999;
+        const orderB = productOrder[b.nazev] || 999;
+        return orderA - orderB;
+      });
+
+      console.log('Produkty načteny, počet:', sortedProdukty.length);
+      setProdukty(sortedProdukty);
     } catch (error: any) {
       console.error('Chyba při načítání dat:', error);
       Alert.alert('Chyba', error.message || 'Nepodařilo se načíst data farmáře');
