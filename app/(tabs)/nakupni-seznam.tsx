@@ -164,6 +164,9 @@ export default function NakupniSeznamScreen() {
                     <Text style={styles.productPrice}>
                       {produkt.cena} Kč/{produkt.jednotka}
                     </Text>
+                    <Text style={styles.productTotal}>
+                      Celkem: {(produkt.cena * produkt.mnozstvi).toFixed(0)} Kč
+                    </Text>
                   </View>
 
                   <View style={styles.quantityControls}>
@@ -171,7 +174,7 @@ export default function NakupniSeznamScreen() {
                       onPress={() => updateQuantity(produkt.produkt_id, produkt.mnozstvi - 1)}
                       style={styles.quantityButton}
                     >
-                      <Ionicons name="remove" size={20} color="#4CAF50" />
+                      <Ionicons name="remove" size={20} color="#fff" />
                     </TouchableOpacity>
 
                     <Text style={styles.quantityText}>
@@ -182,7 +185,7 @@ export default function NakupniSeznamScreen() {
                       onPress={() => updateQuantity(produkt.produkt_id, produkt.mnozstvi + 1)}
                       style={styles.quantityButton}
                     >
-                      <Ionicons name="add" size={20} color="#4CAF50" />
+                      <Ionicons name="add" size={20} color="#fff" />
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -363,6 +366,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
+  productTotal: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#4CAF50',
+    marginTop: 4,
+  },
   quantityControls: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -373,7 +382,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -386,7 +395,12 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     marginLeft: 4,
-    padding: 5,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ffebee',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   farmerTotal: {
     marginTop: 10,
