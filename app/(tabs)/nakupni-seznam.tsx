@@ -360,11 +360,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 4,
-    flexWrap: 'wrap',
+    flexShrink: 1,
   },
   productPrice: {
     fontSize: 14,
     color: '#666',
+    flexShrink: 1,
   },
   quantityControls: {
     flexDirection: 'row',
