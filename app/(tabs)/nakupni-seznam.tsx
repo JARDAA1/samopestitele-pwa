@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   productInfo: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 12,
     minWidth: 120,
   },
   productName: {
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   quantityControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
     flexShrink: 0,
   },
   quantityButton: {
@@ -381,11 +381,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
-    minWidth: 60,
+    minWidth: 50,
     textAlign: 'center',
   },
   removeButton: {
-    marginLeft: 8,
+    marginLeft: 4,
     padding: 5,
   },
   farmerTotal: {
