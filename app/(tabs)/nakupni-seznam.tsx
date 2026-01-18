@@ -174,7 +174,7 @@ export default function NakupniSeznamScreen() {
                       onPress={() => updateQuantity(produkt.produkt_id, produkt.mnozstvi - 1)}
                       style={styles.quantityButton}
                     >
-                      <Ionicons name="remove" size={16} color="#fff" />
+                      <Ionicons name="remove" size={14} color="#fff" />
                     </TouchableOpacity>
 
                     <Text style={styles.quantityText}>
@@ -185,14 +185,14 @@ export default function NakupniSeznamScreen() {
                       onPress={() => updateQuantity(produkt.produkt_id, produkt.mnozstvi + 1)}
                       style={styles.quantityButton}
                     >
-                      <Ionicons name="add" size={16} color="#fff" />
+                      <Ionicons name="add" size={14} color="#fff" />
                     </TouchableOpacity>
 
                     <TouchableOpacity
                       onPress={() => removeFromList(produkt.produkt_id)}
                       style={styles.removeButton}
                     >
-                      <Ionicons name="trash-outline" size={16} color="#ff4444" />
+                      <Ionicons name="trash-outline" size={14} color="#ff4444" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -375,29 +375,29 @@ const styles = StyleSheet.create({
   quantityControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 2,
     flexShrink: 0,
   },
   quantityButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
   },
   quantityText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#333',
-    minWidth: 45,
+    minWidth: 40,
     textAlign: 'center',
   },
   removeButton: {
-    marginLeft: 4,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    marginLeft: 2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#ffebee',
     justifyContent: 'center',
     alignItems: 'center',
