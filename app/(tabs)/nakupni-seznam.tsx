@@ -351,6 +351,7 @@ const styles = StyleSheet.create({
   productInfo: {
     flex: 1,
     marginRight: 8,
+    minWidth: 120,
   },
   productName: {
     fontSize: 15,
@@ -366,6 +367,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flexShrink: 0,
   },
   quantityButton: {
     width: 32,
