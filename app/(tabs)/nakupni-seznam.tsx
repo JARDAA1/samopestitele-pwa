@@ -21,6 +21,28 @@ interface GroupedByFarmer {
 export default function NakupniSeznamScreen() {
   const { shoppingList, removeFromList, updateQuantity, clearList, itemCount } = useShoppingList();
 
+  // Pevné pořadí produktů
+  const productOrder: { [key: string]: number } = {
+    'Brambory': 1,
+    'Cibule': 2,
+    'Rajčata': 4,
+    'Paprika': 5,
+    'Okurky': 6,
+    'Česnek': 7,
+    'Saláty': 8,
+    'Cuketa': 9,
+    'Dýně': 10,
+    'Jablka': 11,
+    'Jahody': 12,
+    'Třešně': 13,
+    'Švestky': 14,
+    'Hrušky': 15,
+    'Maliny': 16,
+    'Borůvky': 17,
+    'Rybíz': 18,
+    'Angrešt': 19,
+  };
+
   // Seskupení produktů podle farmářů
   const groupedByFarmer = useMemo(() => {
     const groups: { [key: number]: GroupedByFarmer } = {};
@@ -48,9 +70,13 @@ export default function NakupniSeznamScreen() {
       groups[item.pestitelId].celkovaCena += item.cena * item.mnozstvi;
     });
 
-    // Seřadíme produkty abecedně podle názvu u každého farmáře
+    // Seřadíme produkty podle pevného pořadí u každého farmáře
     Object.values(groups).forEach(group => {
-      group.produkty.sort((a, b) => a.nazev.localeCompare(b.nazev, 'cs'));
+      group.produkty.sort((a, b) => {
+        const orderA = productOrder[a.nazev] || 999;
+        const orderB = productOrder[b.nazev] || 999;
+        return orderA - orderB;
+      });
     });
 
     return Object.values(groups);
