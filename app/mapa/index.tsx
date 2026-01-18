@@ -376,36 +376,42 @@ export default function MapaScreen() {
         </ScrollView>
       </View>
 
-      {/* Indikátor filtrování */}
-      {filtering && (
+      {/* Indikátor filtrování nebo výsledky */}
+      {filtering ? (
         <View style={styles.filteringIndicator}>
-          <ActivityIndicator size="small" color="#4CAF50" />
+          <ActivityIndicator size="large" color="#4CAF50" />
           <Text style={styles.filteringText}>Vyhledávám...</Text>
         </View>
-      )}
-
-      {/* Počet výsledků */}
-      {searchQuery.length > 0 && !filtering && (
-        <View style={styles.resultsInfo}>
-          <Text style={styles.resultsText}>
-            {filteredPestitele.length === 0
-              ? 'Žádní farmáři nenalezeni'
-              : `Nalezeno ${filteredPestitele.length} ${filteredPestitele.length === 1 ? 'farmář' : 'farmářů'}`
-            }
-          </Text>
-        </View>
+      ) : (
+        (selectedDistance !== null || selectedProdukty.length > 0 || searchQuery.length > 0) && (
+          <View style={styles.resultsInfo}>
+            <Text style={styles.resultsText}>
+              {filteredPestitele.length === 0
+                ? '❌ Nikoho jsem nenašel'
+                : `✓ Nalezeno ${filteredPestitele.length} ${filteredPestitele.length === 1 ? 'farmář' : filteredPestitele.length < 5 ? 'farmáři' : 'farmářů'}`
+              }
+            </Text>
+          </View>
+        )
       )}
 
       {/* Seznam farmářů */}
-      {filteredPestitele.length === 0 && searchQuery.length === 0 ? (
+      {filteredPestitele.length === 0 && !filtering ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>🌾</Text>
-          <Text style={styles.emptyTitle}>Zatím žádní farmáři</Text>
-          <Text style={styles.emptyText}>
-            Farmáři se budou zobrazovat zde, jakmile se zaregistrují
+          <Text style={styles.emptyTitle}>
+            {selectedDistance !== null || selectedProdukty.length > 0 || searchQuery.length > 0
+              ? 'Nikoho jsem nenašel'
+              : 'Vyberte vzdálenost nebo produkt'
+            }
           </Text>
+          {(selectedDistance === null && selectedProdukty.length === 0 && searchQuery.length === 0) && (
+            <Text style={styles.emptyText}>
+              Použijte filtr nahoře k vyhledání farmářů ve vaší blízkosti
+            </Text>
+          )}
         </View>
-      ) : (
+      ) : !filtering ? (
         <FlatList
           data={filteredPestitele}
           keyExtractor={(item) => item.id}
@@ -429,7 +435,7 @@ export default function MapaScreen() {
             </TouchableOpacity>
           )}
         />
-      )}
+      ) : null}
     </View>
   );
 }
@@ -616,18 +622,18 @@ const styles = StyleSheet.create({
   },
   filteringIndicator: {
     backgroundColor: '#E8F5E9',
-    paddingVertical: 12,
+    paddingVertical: 20,
     paddingHorizontal: 15,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
-    gap: 10,
+    gap: 15,
   },
   filteringText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#2E7D32',
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
 });
