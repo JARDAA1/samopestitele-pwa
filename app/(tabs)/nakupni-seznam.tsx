@@ -274,6 +274,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    width: '100%',
   },
   farmerHeader: {
     flexDirection: 'row',
@@ -284,7 +285,6 @@ const styles = StyleSheet.create({
   },
   farmerInfo: {
     flex: 1,
-    minWidth: 0,
     marginRight: 8,
   },
   farmerName: {
@@ -292,12 +292,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 4,
-    flexWrap: 'wrap',
   },
   farmerCity: {
     fontSize: 14,
     color: '#666',
-    flexWrap: 'wrap',
   },
   phoneNumber: {
     fontSize: 14,
@@ -352,7 +350,6 @@ const styles = StyleSheet.create({
   },
   productInfo: {
     flex: 1,
-    minWidth: 0,
     marginRight: 8,
   },
   productName: {
