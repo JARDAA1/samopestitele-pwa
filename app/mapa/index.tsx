@@ -123,15 +123,15 @@ export default function MapaScreen() {
         ? prev.filter(id => id !== produktId)
         : [...prev, produktId]
     );
-    // Simulace malého zpoždění pro lepší UX
-    setTimeout(() => setFiltering(false), 300);
+    // Delší zpoždění pro viditelný indikátor
+    setTimeout(() => setFiltering(false), 800);
   };
 
   const handleDistanceChange = (distance: number | null) => {
     setFiltering(true);
     setSelectedDistance(distance);
-    // Simulace malého zpoždění pro lepší UX
-    setTimeout(() => setFiltering(false), 300);
+    // Delší zpoždění pro viditelný indikátor
+    setTimeout(() => setFiltering(false), 800);
   };
 
   const loadPestitele = async () => {
