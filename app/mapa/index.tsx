@@ -38,6 +38,7 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 export default function MapaScreen() {
   const [pestitele, setPestitele] = useState<Pestitel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filtering, setFiltering] = useState(false); // Nový stav pro filtrování
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDistance, setSelectedDistance] = useState<number | null>(null); // null = neomezeně
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -116,11 +117,21 @@ export default function MapaScreen() {
   };
 
   const toggleProdukt = (produktId: number) => {
+    setFiltering(true);
     setSelectedProdukty(prev =>
       prev.includes(produktId)
         ? prev.filter(id => id !== produktId)
         : [...prev, produktId]
     );
+    // Simulace malého zpoždění pro lepší UX
+    setTimeout(() => setFiltering(false), 300);
+  };
+
+  const handleDistanceChange = (distance: number | null) => {
+    setFiltering(true);
+    setSelectedDistance(distance);
+    // Simulace malého zpoždění pro lepší UX
+    setTimeout(() => setFiltering(false), 300);
   };
 
   const loadPestitele = async () => {
@@ -324,7 +335,7 @@ export default function MapaScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.distanceButtonsScroll}>
           <TouchableOpacity
             style={[styles.distanceButton, selectedDistance === 5 && styles.distanceButtonActive]}
-            onPress={() => setSelectedDistance(5)}
+            onPress={() => handleDistanceChange(5)}
           >
             <Text style={[styles.distanceButtonText, selectedDistance === 5 && styles.distanceButtonTextActive]}>
               5 km
@@ -332,7 +343,7 @@ export default function MapaScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.distanceButton, selectedDistance === 10 && styles.distanceButtonActive]}
-            onPress={() => setSelectedDistance(10)}
+            onPress={() => handleDistanceChange(10)}
           >
             <Text style={[styles.distanceButtonText, selectedDistance === 10 && styles.distanceButtonTextActive]}>
               10 km
@@ -340,7 +351,7 @@ export default function MapaScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.distanceButton, selectedDistance === 20 && styles.distanceButtonActive]}
-            onPress={() => setSelectedDistance(20)}
+            onPress={() => handleDistanceChange(20)}
           >
             <Text style={[styles.distanceButtonText, selectedDistance === 20 && styles.distanceButtonTextActive]}>
               20 km
@@ -348,7 +359,7 @@ export default function MapaScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.distanceButton, selectedDistance === 30 && styles.distanceButtonActive]}
-            onPress={() => setSelectedDistance(30)}
+            onPress={() => handleDistanceChange(30)}
           >
             <Text style={[styles.distanceButtonText, selectedDistance === 30 && styles.distanceButtonTextActive]}>
               30 km
@@ -356,7 +367,7 @@ export default function MapaScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.distanceButton, selectedDistance === null && styles.distanceButtonActive]}
-            onPress={() => setSelectedDistance(null)}
+            onPress={() => handleDistanceChange(null)}
           >
             <Text style={[styles.distanceButtonText, selectedDistance === null && styles.distanceButtonTextActive]}>
               Neomezeně
@@ -365,8 +376,16 @@ export default function MapaScreen() {
         </ScrollView>
       </View>
 
+      {/* Indikátor filtrování */}
+      {filtering && (
+        <View style={styles.filteringIndicator}>
+          <ActivityIndicator size="small" color="#4CAF50" />
+          <Text style={styles.filteringText}>Vyhledávám...</Text>
+        </View>
+      )}
+
       {/* Počet výsledků */}
-      {searchQuery.length > 0 && (
+      {searchQuery.length > 0 && !filtering && (
         <View style={styles.resultsInfo}>
           <Text style={styles.resultsText}>
             {filteredPestitele.length === 0
@@ -594,5 +613,21 @@ const styles = StyleSheet.create({
     color: '#FF9800',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  filteringIndicator: {
+    backgroundColor: '#E8F5E9',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    gap: 10,
+  },
+  filteringText: {
+    fontSize: 14,
+    color: '#2E7D32',
+    fontWeight: '600',
   },
 });
