@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert, SafeAreaView } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -45,6 +45,28 @@ export default function MapaScreen() {
   const [selectedProdukty, setSelectedProdukty] = useState<number[]>([]); // IDs vybraných produktů
   const [showProduktyFilter, setShowProduktyFilter] = useState(false);
 
+  // Pevné pořadí produktů
+  const productOrder: { [key: string]: number } = {
+    'Brambory': 1,
+    'Cibule': 2,
+    'Rajčata': 4,
+    'Paprika': 5,
+    'Okurky': 6,
+    'Česnek': 7,
+    'Saláty': 8,
+    'Cuketa': 9,
+    'Dýně': 10,
+    'Jablka': 11,
+    'Jahody': 12,
+    'Třešně': 13,
+    'Švestky': 14,
+    'Hrušky': 15,
+    'Maliny': 16,
+    'Borůvky': 17,
+    'Rybíz': 18,
+    'Angrešt': 19,
+  };
+
   useEffect(() => {
     loadPestitele();
     getUserLocation();
@@ -73,16 +95,21 @@ export default function MapaScreen() {
     try {
       const { data, error } = await supabase
         .from('predefinovane_produkty')
-        .select('id, nazev, emoji, kategorie')
-        .order('kategorie', { ascending: true })
-        .order('nazev', { ascending: true });
+        .select('id, nazev, emoji, kategorie');
 
       if (error) {
         console.error('Chyba při načítání produktů:', error);
         return;
       }
 
-      setProdukty(data || []);
+      // Seřadíme produkty podle pevného pořadí
+      const sortedProdukty = (data || []).sort((a, b) => {
+        const orderA = productOrder[a.nazev] || 999;
+        const orderB = productOrder[b.nazev] || 999;
+        return orderA - orderB;
+      });
+
+      setProdukty(sortedProdukty);
     } catch (error) {
       console.error('Chyba:', error);
     }
