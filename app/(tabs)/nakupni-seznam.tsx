@@ -262,7 +262,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   listContent: {
-    padding: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 15,
   },
   farmerCard: {
     backgroundColor: '#fff',
@@ -346,7 +347,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
-    flexWrap: 'nowrap',
   },
   productInfo: {
     flex: 1,
@@ -357,12 +357,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 4,
-    flexShrink: 1,
   },
   productPrice: {
     fontSize: 14,
     color: '#666',
-    flexShrink: 1,
   },
   quantityControls: {
     flexDirection: 'row',
