@@ -25,7 +25,7 @@ export default function HomeScreen() {
       >
         <Text style={styles.buttonIcon}>🗺️</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.buttonTitle}>Najdi farmáře/ku</Text>
+          <Text style={styles.buttonTitle}>Najdi něco ze zahrádky</Text>
         </View>
       </TouchableOpacity>
 
@@ -70,7 +70,7 @@ export default function HomeScreen() {
             >
               <Text style={styles.buttonIcon}>🗺️</Text>
               <View style={{ flex: 1 }}>
-                <Text style={styles.buttonTitle}>Najdi farmáře/ku</Text>
+                <Text style={styles.buttonTitle}>Najdi něco ze zahrádky</Text>
               </View>
             </TouchableOpacity>
 
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     marginRight: 8
   },
   buttonTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
