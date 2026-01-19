@@ -409,7 +409,7 @@ export default function MapaScreen() {
 
         {/* Zadávání adresy */}
         <View style={styles.sectionContent}>
-          <Text style={styles.subsectionLabel}>Zadej svou adresu nebo použij GPS</Text>
+          <Text style={styles.subsectionLabel}>Nyní se používá tvá poloha, můžeš změnit výchozí bod.</Text>
           <View style={styles.addressInputRow}>
             <TextInput
               style={styles.addressInput}
