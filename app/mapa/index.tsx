@@ -531,7 +531,7 @@ export default function MapaScreen() {
 
         {/* Filtr vzdálenosti */}
         <View style={styles.sectionContent}>
-          <Text style={styles.subsectionLabel}>Maximální vzdálenost</Text>
+          <Text style={styles.subsectionLabel}>Maximální vzdálenost od výchozího místa</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.distanceButtonsScroll}>
           <TouchableOpacity
             style={[styles.distanceButton, selectedDistance === 5 && styles.distanceButtonActive]}
