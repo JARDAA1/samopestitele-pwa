@@ -36,7 +36,7 @@ export default function HomeScreen() {
       >
         <Text style={styles.buttonIcon}>📋</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.buttonTitle}>Moji farmáři/ky</Text>
+          <Text style={styles.buttonTitle}>Oblíbené</Text>
         </View>
       </TouchableOpacity>
 
@@ -81,7 +81,7 @@ export default function HomeScreen() {
             >
               <Text style={styles.buttonIcon}>📋</Text>
               <View style={{ flex: 1 }}>
-                <Text style={styles.buttonTitle}>Moji farmáři/ky</Text>
+                <Text style={styles.buttonTitle}>Oblíbené</Text>
               </View>
             </TouchableOpacity>
 
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   farmerButton: {
-    backgroundColor: '#8B4513',
+    backgroundColor: '#9C27B0',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
