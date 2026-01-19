@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert, SafeAreaView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert, SafeAreaView } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -601,12 +601,7 @@ export default function MapaScreen() {
         <View style={styles.emptyState}>
           {selectedDistance !== null || selectedProdukty.length > 0 || searchQuery.length > 0 ? (
             <>
-              <Image
-                source={require('../../assets/images/zajic_nic_nenasel.jpg')}
-                style={styles.emptyImage}
-                resizeMode="contain"
-              />
-              <Text style={styles.emptyTitle}>Nikoho jsem nenašel</Text>
+              <Text style={styles.emptyTitle}>Bohužel nikoho jsem nenašel</Text>
             </>
           ) : (
             <>
