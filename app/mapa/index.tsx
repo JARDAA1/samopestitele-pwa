@@ -46,6 +46,12 @@ export default function MapaScreen() {
   const [selectedProdukty, setSelectedProdukty] = useState<number[]>([]); // IDs vybraných produktů
   const [showProduktyFilter, setShowProduktyFilter] = useState(false);
 
+  // Nové stavy pro zadávání adresy
+  const [addressInput, setAddressInput] = useState('');
+  const [geocoding, setGeocoding] = useState(false);
+  const [locationSource, setLocationSource] = useState<'gps' | 'address' | null>(null); // Zdroj polohy
+  const [locationLabel, setLocationLabel] = useState<string>(''); // Popis aktuální polohy
+
   // Pevné pořadí produktů
   const productOrder: { [key: string]: number } = {
     'Brambory': 1,
@@ -87,9 +93,67 @@ export default function MapaScreen() {
         lat: location.coords.latitude,
         lng: location.coords.longitude,
       });
+      setLocationSource('gps');
+      setLocationLabel('Moje poloha (GPS)');
     } catch (error) {
       console.error('Chyba při získávání lokace:', error);
     }
+  };
+
+  const geocodeAddress = async (address: string) => {
+    if (!address.trim()) {
+      Alert.alert('Chyba', 'Zadejte prosím adresu');
+      return;
+    }
+
+    setGeocoding(true);
+    try {
+      // Použijeme OpenStreetMap Nominatim API pro geocoding
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=cz&limit=1`,
+        {
+          headers: {
+            'User-Agent': 'SamopestiteleMobileApp/1.0'
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const result = data[0];
+        setUserLocation({
+          lat: parseFloat(result.lat),
+          lng: parseFloat(result.lon),
+        });
+        setLocationSource('address');
+        setLocationLabel(result.display_name.split(',').slice(0, 2).join(','));
+
+        // Spustíme filtrování s novou lokací
+        setFiltering(true);
+        setTimeout(() => {
+          filterPestitele();
+        }, 100);
+      } else {
+        Alert.alert('Adresa nenalezena', 'Zkuste zadat adresu jinak nebo použít GPS lokaci');
+      }
+    } catch (error) {
+      console.error('Chyba při geocodingu:', error);
+      Alert.alert('Chyba', 'Nepodařilo se najít zadanou adresu');
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
+  const useMyLocation = async () => {
+    await getUserLocation();
+    setAddressInput('');
+
+    // Spustíme filtrování s GPS lokací
+    setFiltering(true);
+    setTimeout(() => {
+      filterPestitele();
+    }, 100);
   };
 
   const loadProdukty = async () => {
@@ -329,9 +393,49 @@ export default function MapaScreen() {
         )}
       </View>
 
+      {/* Zadávání adresy */}
+      <View style={styles.addressContainer}>
+        <Text style={styles.addressLabel}>Nebo zadej svou adresu:</Text>
+        <View style={styles.addressInputRow}>
+          <TextInput
+            style={styles.addressInput}
+            placeholder="např. Hlavní 123, Praha"
+            value={addressInput}
+            onChangeText={setAddressInput}
+            autoCorrect={false}
+            autoCapitalize="words"
+            onSubmitEditing={() => geocodeAddress(addressInput)}
+          />
+          <TouchableOpacity
+            style={[styles.geocodeButton, geocoding && styles.geocodeButtonDisabled]}
+            onPress={() => geocodeAddress(addressInput)}
+            disabled={geocoding}
+          >
+            {geocoding ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.geocodeButtonText}>Hledat</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          style={styles.useMyLocationButton}
+          onPress={useMyLocation}
+        >
+          <Text style={styles.useMyLocationText}>📍 Použít mou polohu (GPS)</Text>
+        </TouchableOpacity>
+        {locationLabel && (
+          <View style={styles.currentLocationBadge}>
+            <Text style={styles.currentLocationText}>
+              {locationSource === 'gps' ? '📍' : '📮'} {locationLabel}
+            </Text>
+          </View>
+        )}
+      </View>
+
       {/* Filtr vzdálenosti */}
       <View style={styles.distanceFilterContainer}>
-        <Text style={styles.distanceFilterLabel}>Vzdálenost od mé polohy:</Text>
+        <Text style={styles.distanceFilterLabel}>Vzdálenost od vybrané polohy:</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.distanceButtonsScroll}>
           <TouchableOpacity
             style={[styles.distanceButton, selectedDistance === 5 && styles.distanceButtonActive]}
@@ -635,5 +739,75 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#2E7D32',
     fontWeight: 'bold',
+  },
+  addressContainer: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  addressLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2E7D32',
+    marginBottom: 8,
+  },
+  addressInputRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  addressInput: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  geocodeButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 80,
+  },
+  geocodeButtonDisabled: {
+    backgroundColor: '#A5D6A7',
+  },
+  geocodeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  useMyLocationButton: {
+    backgroundColor: '#2196F3',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  useMyLocationText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  currentLocationBadge: {
+    backgroundColor: '#E8F5E9',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  currentLocationText: {
+    fontSize: 13,
+    color: '#2E7D32',
+    fontWeight: '500',
   },
 });
