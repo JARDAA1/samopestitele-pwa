@@ -343,6 +343,7 @@ export default function MapaScreen() {
         </TouchableOpacity>
       </View>
 
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
       {/* SEKCE 1: Co chci nakoupit */}
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
@@ -605,12 +606,10 @@ export default function MapaScreen() {
           )}
         </View>
       ) : !filtering ? (
-        <FlatList
-          data={filteredPestitele}
-          keyExtractor={(item) => item.id}
-          style={styles.listContainer}
-          renderItem={({ item, index }) => (
+        <>
+          {filteredPestitele.map((item, index) => (
             <TouchableOpacity
+              key={item.id}
               style={styles.listItem}
               onPress={() => router.push(`/pestitele/${item.id}`)}
             >
@@ -626,15 +625,18 @@ export default function MapaScreen() {
               </View>
               <Text style={styles.listItemArrow}>›</Text>
             </TouchableOpacity>
-          )}
-        />
+          ))}
+        </>
       ) : null}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
+  scrollContainer: { flex: 1 },
+  scrollContent: { paddingBottom: 20 },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   header: {
