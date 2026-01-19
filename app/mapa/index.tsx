@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
   listItemName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#9C27B0',
     marginBottom: 4,
   },
   listItemDetail: {
