@@ -409,41 +409,115 @@ export default function MapaScreen() {
 
         {/* Zadávání adresy */}
         <View style={styles.sectionContent}>
-          <Text style={styles.subsectionLabel}>Nyní se používá tvá poloha, můžeš změnit výchozí bod.</Text>
-          <View style={styles.addressInputRow}>
-            <TextInput
-              style={styles.addressInput}
-              placeholder="např. Hlavní 123, Praha"
-              value={addressInput}
-              onChangeText={setAddressInput}
-              autoCorrect={false}
-              autoCapitalize="words"
-              onSubmitEditing={() => geocodeAddress(addressInput)}
-            />
-            <TouchableOpacity
-              style={[styles.geocodeButton, geocoding && styles.geocodeButtonDisabled]}
-              onPress={() => geocodeAddress(addressInput)}
-              disabled={geocoding}
-            >
-              {geocoding ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.geocodeButtonText}>Hledat</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            style={styles.useMyLocationButton}
-            onPress={useMyLocation}
-          >
-            <Text style={styles.useMyLocationText}>📍 Použít mou polohu (GPS)</Text>
-          </TouchableOpacity>
-          {locationLabel && (
-            <View style={styles.currentLocationBadge}>
-              <Text style={styles.currentLocationText}>
-                {locationSource === 'gps' ? '📍' : '📮'} {locationLabel}
-              </Text>
-            </View>
+          {/* Když není nastavená žádná poloha - zobrazit obě možnosti */}
+          {!locationSource && (
+            <>
+              <Text style={styles.subsectionLabel}>Vyber způsob určení polohy</Text>
+              <TouchableOpacity
+                style={styles.useMyLocationButton}
+                onPress={useMyLocation}
+              >
+                <Text style={styles.useMyLocationText}>📍 Použít mou polohu (GPS)</Text>
+              </TouchableOpacity>
+              <Text style={styles.orDividerText}>nebo</Text>
+              <View style={styles.addressInputRow}>
+                <TextInput
+                  style={styles.addressInput}
+                  placeholder="např. Hlavní 123, Praha"
+                  value={addressInput}
+                  onChangeText={setAddressInput}
+                  autoCorrect={false}
+                  autoCapitalize="words"
+                  onSubmitEditing={() => geocodeAddress(addressInput)}
+                />
+                <TouchableOpacity
+                  style={[styles.geocodeButton, geocoding && styles.geocodeButtonDisabled]}
+                  onPress={() => geocodeAddress(addressInput)}
+                  disabled={geocoding}
+                >
+                  {geocoding ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.geocodeButtonText}>Hledat</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          {/* Když je nastavená GPS - zobrazit badge a možnost zadat adresu */}
+          {locationSource === 'gps' && (
+            <>
+              <View style={styles.currentLocationBadge}>
+                <Text style={styles.currentLocationText}>
+                  📍 {locationLabel}
+                </Text>
+              </View>
+              <Text style={styles.subsectionLabel}>Nebo zadej jinou adresu</Text>
+              <View style={styles.addressInputRow}>
+                <TextInput
+                  style={styles.addressInput}
+                  placeholder="např. Hlavní 123, Praha"
+                  value={addressInput}
+                  onChangeText={setAddressInput}
+                  autoCorrect={false}
+                  autoCapitalize="words"
+                  onSubmitEditing={() => geocodeAddress(addressInput)}
+                />
+                <TouchableOpacity
+                  style={[styles.geocodeButton, geocoding && styles.geocodeButtonDisabled]}
+                  onPress={() => geocodeAddress(addressInput)}
+                  disabled={geocoding}
+                >
+                  {geocoding ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.geocodeButtonText}>Hledat</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+
+          {/* Když je nastavená adresa - zobrazit badge a tlačítko pro návrat k GPS */}
+          {locationSource === 'address' && (
+            <>
+              <View style={styles.currentLocationBadge}>
+                <Text style={styles.currentLocationText}>
+                  📮 {locationLabel}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.useMyLocationButton}
+                onPress={useMyLocation}
+              >
+                <Text style={styles.useMyLocationText}>📍 Vrátit se k mé poloze (GPS)</Text>
+              </TouchableOpacity>
+              <Text style={styles.orDividerText}>nebo</Text>
+              <Text style={styles.subsectionLabel}>Zadej jinou adresu</Text>
+              <View style={styles.addressInputRow}>
+                <TextInput
+                  style={styles.addressInput}
+                  placeholder="např. Hlavní 123, Praha"
+                  value={addressInput}
+                  onChangeText={setAddressInput}
+                  autoCorrect={false}
+                  autoCapitalize="words"
+                  onSubmitEditing={() => geocodeAddress(addressInput)}
+                />
+                <TouchableOpacity
+                  style={[styles.geocodeButton, geocoding && styles.geocodeButtonDisabled]}
+                  onPress={() => geocodeAddress(addressInput)}
+                  disabled={geocoding}
+                >
+                  {geocoding ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.geocodeButtonText}>Hledat</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </>
           )}
         </View>
 
@@ -823,6 +897,13 @@ const styles = StyleSheet.create({
   currentLocationText: {
     fontSize: 13,
     color: '#2E7D32',
+    fontWeight: '500',
+  },
+  orDividerText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginVertical: 12,
     fontWeight: '500',
   },
 });
