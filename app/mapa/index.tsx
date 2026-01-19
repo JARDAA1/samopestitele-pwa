@@ -454,7 +454,7 @@ export default function MapaScreen() {
                   📍 {locationLabel}
                 </Text>
               </View>
-              <Text style={styles.subsectionLabel}>Nebo zadej jinou adresu</Text>
+              <Text style={styles.subsectionLabel}>Nebo zadej jiné výchozí místo</Text>
               <View style={styles.addressInputRow}>
                 <TextInput
                   style={styles.addressInput}
@@ -495,7 +495,7 @@ export default function MapaScreen() {
                 <Text style={styles.useMyLocationText}>📍 Vrátit se k mé poloze (GPS)</Text>
               </TouchableOpacity>
               <Text style={styles.orDividerText}>nebo</Text>
-              <Text style={styles.subsectionLabel}>Zadej jinou adresu</Text>
+              <Text style={styles.subsectionLabel}>Zadej jiné výchozí místo</Text>
               <View style={styles.addressInputRow}>
                 <TextInput
                   style={styles.addressInput}
