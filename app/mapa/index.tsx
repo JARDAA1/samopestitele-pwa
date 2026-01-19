@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert, SafeAreaView, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -599,17 +599,23 @@ export default function MapaScreen() {
       {/* Seznam farmářů */}
       {filteredPestitele.length === 0 && !filtering ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>🌾</Text>
-          <Text style={styles.emptyTitle}>
-            {selectedDistance !== null || selectedProdukty.length > 0 || searchQuery.length > 0
-              ? 'Nikoho jsem nenašel'
-              : 'Vyberte vzdálenost nebo produkt'
-            }
-          </Text>
-          {(selectedDistance === null && selectedProdukty.length === 0 && searchQuery.length === 0) && (
-            <Text style={styles.emptyText}>
-              Použijte filtr nahoře k vyhledání farmářů ve vaší blízkosti
-            </Text>
+          {selectedDistance !== null || selectedProdukty.length > 0 || searchQuery.length > 0 ? (
+            <>
+              <Image
+                source={require('../../assets/images/zajic_nic_nenasel.jpg')}
+                style={styles.emptyImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.emptyTitle}>Nikoho jsem nenašel</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.emptyIcon}>🌾</Text>
+              <Text style={styles.emptyTitle}>Vyberte vzdálenost nebo produkt</Text>
+              <Text style={styles.emptyText}>
+                Použijte filtr nahoře k vyhledání farmářů ve vaší blízkosti
+              </Text>
+            </>
           )}
         </View>
       ) : !filtering ? (
@@ -768,6 +774,7 @@ const styles = StyleSheet.create({
   resultsText: { fontSize: 14, color: '#2E7D32', fontWeight: '600', textAlign: 'center' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyIcon: { fontSize: 80, marginBottom: 20 },
+  emptyImage: { width: 200, height: 200, marginBottom: 20 },
   emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#2E7D32', marginBottom: 10 },
   emptyText: { fontSize: 16, color: '#666', textAlign: 'center', lineHeight: 24 },
   produktyFilterHeader: {
