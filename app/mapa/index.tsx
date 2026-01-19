@@ -331,7 +331,7 @@ export default function MapaScreen() {
 
       {/* Filtr vzdálenosti */}
       <View style={styles.distanceFilterContainer}>
-        <Text style={styles.distanceFilterLabel}>Vzdálenost:</Text>
+        <Text style={styles.distanceFilterLabel}>Vzdálenost od mé polohy:</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.distanceButtonsScroll}>
           <TouchableOpacity
             style={[styles.distanceButton, selectedDistance === 5 && styles.distanceButtonActive]}
