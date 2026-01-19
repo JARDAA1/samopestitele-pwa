@@ -22,6 +22,11 @@ interface PredefinovanyProdukt {
   kategorie: string;
 }
 
+// Funkce pro normalizaci textu - odstraní diakritiku
+function removeAccents(text: string): string {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
 // Haversine vzorec pro výpočet vzdálenosti mezi dvěma GPS body
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371; // Poloměr Země v km
@@ -40,7 +45,7 @@ export default function MapaScreen() {
   const [loading, setLoading] = useState(true);
   const [filtering, setFiltering] = useState(false); // Nový stav pro filtrování
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDistance, setSelectedDistance] = useState<number | null>(null); // null = neomezeně
+  const [selectedDistance, setSelectedDistance] = useState<number | null>(10); // Výchozí 10km
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [produkty, setProdukty] = useState<PredefinovanyProdukt[]>([]);
   const [selectedProdukty, setSelectedProdukty] = useState<number[]>([]); // IDs vybraných produktů
@@ -277,15 +282,16 @@ export default function MapaScreen() {
     })
     .filter((p: any) => {
       // Filtr podle textu
-      const query = searchQuery.toLowerCase().trim();
+      const query = searchQuery.trim();
+      const queryNormalized = removeAccents(query);
 
       // Textové vyhledávání (pokud je něco napsáno)
       const matchesSearch = !query || (
-        p.nazev_farmy.toLowerCase().includes(query) ||
-        p.mesto.toLowerCase().includes(query) ||
-        (p.popis && p.popis.toLowerCase().includes(query)) ||
+        removeAccents(p.nazev_farmy).includes(queryNormalized) ||
+        removeAccents(p.mesto).includes(queryNormalized) ||
+        (p.popis && removeAccents(p.popis).includes(queryNormalized)) ||
         (p.produkty && p.produkty.length > 0 && p.produkty.some((produktNazev: string) =>
-          produktNazev.toLowerCase().includes(query)
+          removeAccents(produktNazev).includes(queryNormalized)
         ))
       );
 
@@ -297,19 +303,20 @@ export default function MapaScreen() {
       // Filtr podle produktů (checkboxy)
       let matchesProdukty = true;
       if (selectedProdukty.length > 0) {
-        // Získat názvy vybraných produktů
+        // Získat názvy vybraných produktů (bez diakritiky)
         const selectedProduktNames = produkty
           .filter(prod => selectedProdukty.includes(prod.id))
-          .map(prod => prod.nazev.toLowerCase());
+          .map(prod => removeAccents(prod.nazev));
 
-        // Kontrola, zda farmář má alespoň jeden z vybraných produktů
+        // Kontrola, zda farmář má alespoň jeden z vybraných produktů (bez diakritiky)
         matchesProdukty = p.produkty && p.produkty.length > 0 &&
-          p.produkty.some((produktNazev: string) =>
-            selectedProduktNames.some(selectedName =>
-              produktNazev.toLowerCase().includes(selectedName) ||
-              selectedName.includes(produktNazev.toLowerCase())
-            )
-          );
+          p.produkty.some((produktNazev: string) => {
+            const normalizedProduktNazev = removeAccents(produktNazev);
+            return selectedProduktNames.some(selectedName =>
+              normalizedProduktNazev.includes(selectedName) ||
+              selectedName.includes(normalizedProduktNazev)
+            );
+          });
       }
 
       return matchesSearch && matchesDistance && matchesProdukty;
