@@ -331,19 +331,19 @@ export default function PestitelDetailScreen() {
       <ScrollView style={styles.content}>
         {/* Informace o farmáři */}
         <View style={styles.farmerInfo}>
-          <View style={styles.farmerIcon}>
-            <Text style={styles.farmerIconText}>🌾</Text>
-          </View>
           <View style={styles.farmerDetails}>
             <Text style={styles.farmerName}>{pestitel.nazev_farmy}</Text>
-            <Text style={styles.farmerOwner}>👤 {pestitel.jmeno}</Text>
-            <Text style={styles.farmerLocation}>📍 {pestitel.mesto}</Text>
-            {pestitel.adresa && (
-              <Text style={styles.farmerAddress}>{pestitel.adresa}</Text>
-            )}
-            {pestitel.telefon && (
-              <Text style={styles.farmerPhone}>📞 {pestitel.telefon}</Text>
-            )}
+            <View style={styles.farmerRow}>
+              <Text style={styles.farmerMeta}>👤 {pestitel.jmeno}</Text>
+              <Text style={styles.farmerMetaSeparator}>•</Text>
+              <Text style={styles.farmerMeta}>📍 {pestitel.mesto}</Text>
+              {pestitel.telefon && (
+                <>
+                  <Text style={styles.farmerMetaSeparator}>•</Text>
+                  <Text style={styles.farmerMeta}>📞 {pestitel.telefon}</Text>
+                </>
+              )}
+            </View>
           </View>
         </View>
 
@@ -476,27 +476,20 @@ const styles = StyleSheet.create({
 
   farmerInfo: {
     backgroundColor: '#FFFFFF',
-    padding: 20,
-    flexDirection: 'row',
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
-  farmerIcon: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#E8F5E9',
-    borderRadius: 40,
+  farmerDetails: { flex: 1 },
+  farmerName: { fontSize: 20, fontWeight: 'bold', color: '#2E7D32', marginBottom: 6 },
+  farmerRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 15,
+    gap: 6,
   },
-  farmerIconText: { fontSize: 40 },
-  farmerDetails: { flex: 1, justifyContent: 'center' },
-  farmerName: { fontSize: 20, fontWeight: 'bold', color: '#2E7D32', marginBottom: 4 },
-  farmerOwner: { fontSize: 15, color: '#666', marginBottom: 2 },
-  farmerLocation: { fontSize: 15, color: '#666', marginBottom: 2 },
-  farmerAddress: { fontSize: 14, color: '#888', marginTop: 4 },
-  farmerPhone: { fontSize: 14, color: '#4CAF50', fontWeight: '600', marginTop: 4 },
+  farmerMeta: { fontSize: 14, color: '#666' },
+  farmerMetaSeparator: { fontSize: 14, color: '#CCC', marginHorizontal: 4 },
 
   favoriteButton: {
     backgroundColor: '#FFFFFF',
