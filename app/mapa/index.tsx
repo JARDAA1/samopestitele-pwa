@@ -81,11 +81,12 @@ export default function MapaScreen() {
 
   useEffect(() => {
     loadPestitele();
-    getUserLocation();
     loadProdukty();
+    // Automaticky získat polohu a spustit filtrování při načtení
+    initializeLocationAndFilter();
   }, []);
 
-  const getUserLocation = async () => {
+  const initializeLocationAndFilter = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -100,8 +101,33 @@ export default function MapaScreen() {
       });
       setLocationSource('gps');
       setLocationLabel('Moje poloha (GPS)');
+
+      // Automaticky spustit filtrování s výchozí vzdáleností 10km
+      setFiltering(true);
+      setTimeout(() => {
+        setFiltering(false);
+      }, 800);
     } catch (error) {
       console.error('Chyba při získávání lokace:', error);
+    }
+  };
+
+  const getUserLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Povolení k lokaci zamítnuto');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      return {
+        lat: location.coords.latitude,
+        lng: location.coords.longitude,
+      };
+    } catch (error) {
+      console.error('Chyba při získávání lokace:', error);
+      return null;
     }
   };
 
@@ -151,14 +177,19 @@ export default function MapaScreen() {
   };
 
   const useMyLocation = async () => {
-    await getUserLocation();
+    const location = await getUserLocation();
+    if (location) {
+      setUserLocation(location);
+      setLocationSource('gps');
+      setLocationLabel('Moje poloha (GPS)');
+    }
     setAddressInput('');
 
     // Spustíme filtrování s GPS lokací
     setFiltering(true);
     setTimeout(() => {
-      filterPestitele();
-    }, 100);
+      setFiltering(false);
+    }, 800);
   };
 
   const loadProdukty = async () => {
