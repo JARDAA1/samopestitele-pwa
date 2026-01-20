@@ -411,7 +411,7 @@ export default function PestitelDetailScreen() {
                   )}
                   <View style={styles.productFooter}>
                     <Text style={styles.productPrice}>
-                      {produkt.cena ? produkt.cena.toFixed(0) : '0'} Kč/{produkt.jednotka}
+                      {produkt.cena ? produkt.cena.toFixed(0) : '0'} Kč / {produkt.jednotka}
                     </Text>
                     <TouchableOpacity
                       style={styles.addButton}
