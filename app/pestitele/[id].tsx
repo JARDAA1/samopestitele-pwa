@@ -317,7 +317,6 @@ export default function PestitelDetailScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
           <Text style={styles.headerBackText}>← Zpět</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{pestitel.nazev_farmy}</Text>
         {itemCount > 0 && (
           <TouchableOpacity onPress={handleViewList} style={styles.listBadgeContainer}>
             <Text style={styles.listIcon}>📝</Text>
@@ -449,14 +448,14 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingTop: 60,
     paddingHorizontal: 20,
-    paddingBottom: 15,
-    backgroundColor: '#4CAF50',
+    paddingBottom: 8,
+    backgroundColor: '#9C27B0',
   },
-  headerBackButton: { marginRight: 15 },
+  headerBackButton: {},
   headerBackText: { fontSize: 16, color: '#FFFFFF', fontWeight: '600' },
-  headerTitle: { flex: 1, fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
   listBadgeContainer: { position: 'relative' },
   listIcon: { fontSize: 28 },
   listBadge: {
