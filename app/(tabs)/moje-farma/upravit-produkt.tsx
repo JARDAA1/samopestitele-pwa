@@ -157,22 +157,54 @@ export default function UpravitProduktScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              console.log('🗑️ Attempting to delete product with ID:', produktId);
+
+              // Nejdřív zkusíme smazat související záznamy z jiných tabulek
+              // Smazat z nákupních seznamů
+              const { error: cartError } = await supabase
+                .from('nakupni_seznam')
+                .delete()
+                .eq('produkt_id', produktId);
+
+              if (cartError) {
+                console.error('⚠️ Chyba při mazání z nákupních seznamů:', cartError);
+              }
+
+              // Smazat z položek objednávek
+              const { error: orderItemsError } = await supabase
+                .from('objednavky_polozky')
+                .delete()
+                .eq('produkt_id', produktId);
+
+              if (orderItemsError) {
+                console.error('⚠️ Chyba při mazání z položek objednávek:', orderItemsError);
+              }
+
+              // Nyní smažeme samotný produkt
               const { error } = await supabase
                 .from('produkty')
                 .delete()
                 .eq('id', produktId);
 
               if (error) {
-                Alert.alert('Chyba', 'Nepodařilo se smazat produkt');
+                console.error('❌ Chyba při mazání produktu:', error);
+                Alert.alert(
+                  'Chyba při mazání',
+                  `Nepodařilo se smazat produkt.\n\nDetail: ${error.message}\nKód: ${error.code}`
+                );
                 return;
               }
 
+              console.log('✅ Produkt úspěšně smazán');
               Alert.alert('Úspěch', 'Produkt byl smazán', [
                 { text: 'OK', onPress: () => router.push('/moje-farma') }
               ]);
-            } catch (error) {
-              console.error('Chyba při mazání:', error);
-              Alert.alert('Chyba', 'Nepodařilo se smazat produkt');
+            } catch (error: any) {
+              console.error('❌ Chyba při mazání:', error);
+              Alert.alert(
+                'Chyba',
+                `Nepodařilo se smazat produkt.\n\nDetail: ${error?.message || 'Neznámá chyba'}`
+              );
             }
           }
         }
