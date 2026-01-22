@@ -13,11 +13,6 @@ export default function PrihlaseniScreen() {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.title}>Vyberte sekci</Text>
-        <Text style={styles.subtitle}>
-          Každá sekce má jiný způsob přihlášení podle úrovně zabezpečení
-        </Text>
-
         <View style={styles.sectionsContainer}>
           {/* PROFIL */}
           <TouchableOpacity
@@ -99,24 +94,9 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#2E7D32',
-    textAlign: 'center',
-    marginTop: 20,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 20,
-    paddingHorizontal: 20,
-  },
   sectionsContainer: {
     gap: 16,
+    marginTop: 20,
   },
   sectionCard: {
     backgroundColor: '#FFFFFF',
