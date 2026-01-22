@@ -468,6 +468,32 @@ export default function MapaScreen() {
             <Text style={styles.gpsButtonText}>Použít aktuální GPS polohu</Text>
           </TouchableOpacity>
 
+          {/* Jiný start než má poloha */}
+          <Text style={[styles.inputLabel, { marginTop: 20 }]}>Jiný start než má poloha</Text>
+          <View style={styles.addressInputRow}>
+            <TextInput
+              style={styles.addressInput}
+              placeholder="např. Hlavní 123, Praha"
+              placeholderTextColor="#999"
+              value={addressInput}
+              onChangeText={setAddressInput}
+              autoCorrect={false}
+              autoCapitalize="words"
+              onSubmitEditing={() => geocodeAddress(addressInput)}
+            />
+            <TouchableOpacity
+              style={[styles.geocodeButton, geocoding && styles.geocodeButtonDisabled]}
+              onPress={() => geocodeAddress(addressInput)}
+              disabled={geocoding}
+            >
+              {geocoding ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.geocodeButtonText}>Hledat</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
           {/* Maximální vzdálenost */}
           <Text style={styles.inputLabel}>Maximální vzdálenost</Text>
           <Text style={styles.distanceValue}>{selectedDistance || 15} km</Text>
@@ -791,31 +817,34 @@ const styles = StyleSheet.create({
   addressInputRow: {
     flexDirection: 'row',
     gap: 8,
+    alignItems: 'center',
   },
   addressInput: {
     flex: 1,
     backgroundColor: '#F5F5F5',
     borderRadius: 8,
-    padding: 10,
-    fontSize: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 15,
     borderWidth: 1,
     borderColor: '#E0E0E0',
+    color: '#333',
   },
   geocodeButton: {
     backgroundColor: '#4CAF50',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    minWidth: 80,
+    minWidth: 90,
   },
   geocodeButtonDisabled: {
     backgroundColor: '#A5D6A7',
   },
   geocodeButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   useMyLocationButton: {
