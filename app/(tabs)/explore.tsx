@@ -98,21 +98,16 @@ export default function PestiteleScreen() {
   if (oblibeni.length === 0) {
     return (
       <View style={styles.container}>
+        {/* Minimalistický header */}
         <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <TouchableOpacity
-              style={styles.homeButton}
-              onPress={() => router.push('/')}
-            >
-              <Text style={styles.homeIcon}>🏠</Text>
-              <Text style={styles.homeText}>Domů</Text>
-            </TouchableOpacity>
-            <View style={styles.headerCenter}>
-              <Text style={styles.headerTitle}>⭐ Moji farmáři</Text>
-              <Text style={styles.headerSubtitle}>Oblíbení a nákupy</Text>
-            </View>
-            <View style={styles.headerSpacer} />
-          </View>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.push('/')}
+          >
+            <Text style={styles.backArrow}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Moji farmáři</Text>
+          <View style={{ width: 36 }} />
         </View>
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>🌾</Text>
@@ -133,47 +128,50 @@ export default function PestiteleScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Minimalistický header */}
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity
-            style={styles.homeButton}
-            onPress={() => router.push('/')}
-          >
-            <Text style={styles.homeIcon}>🏠</Text>
-            <Text style={styles.homeText}>Domů</Text>
-          </TouchableOpacity>
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>⭐ Moji farmáři</Text>
-            <Text style={styles.headerSubtitle}>{oblibeni.length} {oblibeni.length === 1 ? 'farmář' : 'farmářů'}</Text>
-          </View>
-          <View style={styles.headerSpacer} />
-        </View>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.push('/')}
+        >
+          <Text style={styles.backArrow}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Moji farmáři</Text>
+        <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView style={styles.list}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+        {/* Info sekce */}
+        <View style={styles.infoSection}>
+          <Text style={styles.infoTitle}>
+            {oblibeni.length} {oblibeni.length === 1 ? 'oblíbený farmář' : oblibeni.length < 5 ? 'oblíbení farmáři' : 'oblíbených farmářů'}
+          </Text>
+        </View>
+
+        {/* Seznam farmářů */}
         {oblibeni.map((item) => {
           const pestitel = item.pestitele;
           return (
             <TouchableOpacity
               key={item.id}
-              style={styles.card}
+              style={styles.farmerCard}
               onPress={() => router.push(`/pestitele/${pestitel.id}`)}
             >
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardIcon}>🌾</Text>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle}>{pestitel.nazev_farmy}</Text>
-                  <Text style={styles.cardSubtitle}>📍 {pestitel.mesto}</Text>
-                  {pestitel.telefon && (
-                    <Text style={styles.cardPhone}>📞 {pestitel.telefon}</Text>
-                  )}
-                </View>
-              </View>
-              {pestitel.popis && (
-                <Text style={styles.cardDescription} numberOfLines={2}>
-                  {pestitel.popis}
+              <View style={styles.farmerAvatar}>
+                <Text style={styles.farmerAvatarText}>
+                  {pestitel.nazev_farmy.charAt(0).toUpperCase()}
                 </Text>
-              )}
+              </View>
+              <View style={styles.farmerInfo}>
+                <Text style={styles.farmerName}>{pestitel.nazev_farmy}</Text>
+                <View style={styles.farmerMeta}>
+                  <Text style={styles.farmerLocation}>📍 {pestitel.mesto}</Text>
+                </View>
+                {pestitel.telefon && (
+                  <Text style={styles.farmerPhone}>📞 {pestitel.telefon}</Text>
+                )}
+              </View>
+              <Text style={styles.farmerArrow}>›</Text>
             </TouchableOpacity>
           );
         })}
@@ -185,29 +183,120 @@ export default function PestiteleScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
-  header: { backgroundColor: '#4CAF50', paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20 },
-  headerTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  homeButton: { alignItems: 'center', padding: 8, minWidth: 60 },
-  homeIcon: { fontSize: 24 },
-  homeText: { fontSize: 10, color: '#FFFFFF', marginTop: 2 },
-  headerCenter: { flex: 1, alignItems: 'center' },
-  headerSpacer: { minWidth: 60 },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 5, textAlign: 'center' },
-  headerSubtitle: { fontSize: 14, color: '#FFFFFF', opacity: 0.9, textAlign: 'center' },
+  header: {
+    paddingTop: 10,
+    paddingBottom: 12,
+    paddingHorizontal: 15,
+    backgroundColor: '#4CAF50',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    padding: 4,
+  },
+  backArrow: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  headerTitle: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
-  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
+  emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyIcon: { fontSize: 80, marginBottom: 20 },
   emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#2E7D32', marginBottom: 10 },
-  emptyText: { fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 20 },
-  findButton: { backgroundColor: '#4CAF50', paddingVertical: 14, paddingHorizontal: 30, borderRadius: 10, marginTop: 10 },
-  findButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  list: { flex: 1, padding: 15 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, marginBottom: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  cardIcon: { fontSize: 40, marginRight: 12 },
-  cardInfo: { flex: 1 },
-  cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#2E7D32', marginBottom: 4 },
-  cardSubtitle: { fontSize: 14, color: '#666' },
-  cardPhone: { fontSize: 13, color: '#4CAF50', fontWeight: '600', marginTop: 2 },
-  cardDescription: { fontSize: 14, color: '#888', marginTop: 8, lineHeight: 20 },
+  emptyText: { fontSize: 16, color: '#666', textAlign: 'center', lineHeight: 24, marginBottom: 20 },
+  findButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  findButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  scrollContainer: { flex: 1 },
+  scrollContent: { paddingBottom: 20 },
+  infoSection: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 12,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  farmerCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 12,
+    marginVertical: 6,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  farmerAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  farmerAvatarText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  farmerInfo: {
+    flex: 1,
+  },
+  farmerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  farmerMeta: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  farmerLocation: {
+    fontSize: 13,
+    color: '#666',
+  },
+  farmerPhone: {
+    fontSize: 13,
+    color: '#4CAF50',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  farmerArrow: {
+    fontSize: 24,
+    color: '#CCC',
+  },
 });
