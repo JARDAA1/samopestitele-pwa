@@ -35,9 +35,11 @@ function MojeProdejnaScreenContent() {
   const [loading, setLoading] = useState(true);
   const [farmarData, setFarmarData] = useState<FarmarData | null>(null);
   const [produkty, setProdukty] = useState<Produkt[]>([]);
+  const [archivovaneProdukty, setArchivovaneProdukty] = useState<Produkt[]>([]);
   const [pocetObjednavek, setPocetObjednavek] = useState(0);
   const [farmaInfoExpanded, setFarmaInfoExpanded] = useState(false);
   const [expandedProduktId, setExpandedProduktId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'aktivni' | 'archivovane'>('aktivni');
 
   // Staré přihlašovací state proměnné - ODSTRANĚNO (nyní používáme /prihlaseni)
 
@@ -55,6 +57,7 @@ function MojeProdejnaScreenContent() {
       const reloadIfLoggedIn = async () => {
         if (isAuthenticated && farmar?.id) {
           await loadProdukty(farmar.id);
+          await loadArchivovaneProdukty(farmar.id);
         }
       };
       reloadIfLoggedIn();
@@ -67,6 +70,7 @@ function MojeProdejnaScreenContent() {
         setIsLoggedIn(true);
         await loadFarmarData(farmar.id);
         await loadProdukty(farmar.id);
+        await loadArchivovaneProdukty(farmar.id);
         await loadPocetObjednavek(farmar.id);
       }
     } catch (error) {
@@ -123,6 +127,28 @@ function MojeProdejnaScreenContent() {
     } catch (error) {
       console.error('Chyba při načítání produktů:', error);
       // Nezobrazujeme alert, protože je to při přihlášení
+    }
+  };
+
+  const loadArchivovaneProdukty = async (pestitelId: string) => {
+    try {
+      console.log('loadArchivovaneProdukty called with ID:', pestitelId);
+      const { data, error } = await supabase
+        .from('produkty')
+        .select('*')
+        .eq('pestitel_id', pestitelId)
+        .eq('archivovano', true) // Načti pouze archivované produkty
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Supabase error in loadArchivovaneProdukty:', error);
+        throw error;
+      }
+
+      console.log('Archived products loaded successfully, count:', data?.length || 0);
+      setArchivovaneProdukty(data || []);
+    } catch (error) {
+      console.error('Chyba při načítání archivovaných produktů:', error);
     }
   };
 
@@ -268,18 +294,42 @@ function MojeProdejnaScreenContent() {
 
         {/* Produkty */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🛒 Nabízené produkty ({produkty.length})</Text>
+          <View style={styles.tabsContainer}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'aktivni' && styles.activeTab]}
+              onPress={() => setActiveTab('aktivni')}
+            >
+              <Text style={[styles.tabText, activeTab === 'aktivni' && styles.activeTabText]}>
+                ✓ Aktivní ({produkty.length})
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'archivovane' && styles.activeTab]}
+              onPress={() => setActiveTab('archivovane')}
+            >
+              <Text style={[styles.tabText, activeTab === 'archivovane' && styles.activeTabText]}>
+                📦 Archivované ({archivovaneProdukty.length})
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-          {produkty.length === 0 ? (
+          {activeTab === 'aktivni' && produkty.length === 0 ? (
             <View style={styles.emptyProducts}>
               <Text style={styles.emptyProductsIcon}>📦</Text>
               <Text style={styles.emptyProductsText}>
-                Zatím nemáte žádné produkty{'\n'}
+                Zatím nemáte žádné aktivní produkty{'\n'}
                 Klikněte na "+ Přidat" a začněte prodávat
               </Text>
             </View>
+          ) : activeTab === 'archivovane' && archivovaneProdukty.length === 0 ? (
+            <View style={styles.emptyProducts}>
+              <Text style={styles.emptyProductsIcon}>📦</Text>
+              <Text style={styles.emptyProductsText}>
+                Zatím nemáte žádné archivované produkty
+              </Text>
+            </View>
           ) : (
-            produkty.map((produkt) => {
+            (activeTab === 'aktivni' ? produkty : archivovaneProdukty).map((produkt) => {
               const isExpanded = expandedProduktId === produkt.id;
               return (
                 <View key={produkt.id} style={styles.productCard}>
@@ -465,4 +515,9 @@ const styles = StyleSheet.create({
   testCode: { fontSize: 24, fontWeight: 'bold', color: '#FF6F00' },
   editIconButton: { padding: 8 },
   editIconText: { fontSize: 20 },
+  tabsContainer: { flexDirection: 'row', marginBottom: 15, borderRadius: 8, backgroundColor: '#F5F5F5', padding: 4 },
+  tab: { flex: 1, paddingVertical: 10, paddingHorizontal: 15, borderRadius: 6, alignItems: 'center' },
+  activeTab: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  tabText: { fontSize: 14, fontWeight: '600', color: '#666' },
+  activeTabText: { color: '#2E7D32' },
 });
