@@ -90,6 +90,30 @@ export default function UpravitProduktScreen() {
         return;
       }
 
+      // Kontrola duplicitních názvů (pokud se název změnil)
+      const { data: existingProducts, error: checkError } = await supabase
+        .from('produkty')
+        .select('id, nazev')
+        .eq('pestitel_id', Number(farmar.id))
+        .eq('nazev', nazev.trim())
+        .neq('id', produktId);
+
+      if (checkError) {
+        console.error('Chyba při kontrole duplicitních produktů:', checkError);
+        Alert.alert('Chyba', 'Nepodařilo se zkontrolovat existující produkty');
+        setSaving(false);
+        return;
+      }
+
+      if (existingProducts && existingProducts.length > 0) {
+        Alert.alert(
+          'Produkt již existuje',
+          `Produkt s názvem "${nazev.trim()}" již máte ve své nabídce. Zvolte jiný název.`
+        );
+        setSaving(false);
+        return;
+      }
+
       // Aktualizuj produkt v databázi
       const { error } = await supabase
         .from('produkty')

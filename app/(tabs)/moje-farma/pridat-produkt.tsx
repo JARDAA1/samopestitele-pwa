@@ -71,6 +71,29 @@ export default function PridatProduktScreen() {
         return;
       }
 
+      // Kontrola duplicitních názvů
+      const { data: existingProducts, error: checkError } = await supabase
+        .from('produkty')
+        .select('id, nazev')
+        .eq('pestitel_id', Number(farmar.id))
+        .eq('nazev', selectedProduct.nazev);
+
+      if (checkError) {
+        console.error('Chyba při kontrole duplicitních produktů:', checkError);
+        Alert.alert('Chyba', 'Nepodařilo se zkontrolovat existující produkty');
+        setLoading(false);
+        return;
+      }
+
+      if (existingProducts && existingProducts.length > 0) {
+        Alert.alert(
+          'Produkt již existuje',
+          `Produkt "${selectedProduct.nazev}" již máte ve své nabídce. Chcete přidat další s jiným názvem?`
+        );
+        setLoading(false);
+        return;
+      }
+
       // Vlož produkt do databáze
       const { data, error } = await supabase
         .from('produkty')
