@@ -28,6 +28,7 @@ export default function UpravitProduktScreen() {
   const [kategorie, setKategorie] = useState('Zelenina');
   const [dostupnost, setDostupnost] = useState(true);
   const [selectedEmoji, setSelectedEmoji] = useState<string>('📦');
+  const [archivovano, setArchivovano] = useState(false);
 
   useEffect(() => {
     if (produktId) {
@@ -60,6 +61,7 @@ export default function UpravitProduktScreen() {
       setKategorie(data.kategorie || 'Zelenina');
       setDostupnost(data.dostupnost);
       setSelectedEmoji(data.emoji || '📦');
+      setArchivovano(data.archivovano || false);
     } catch (error) {
       console.error('Chyba:', error);
       Alert.alert('Chyba', 'Nepodařilo se načíst produkt');
@@ -146,105 +148,59 @@ export default function UpravitProduktScreen() {
     }
   };
 
-  const handleSmazat = () => {
+  const handleArchivovat = () => {
+    const akce = archivovano ? 'obnovit z archivu' : 'dát do archivu';
+    const nadpis = archivovano ? 'Obnovit produkt?' : 'Dát do archivu?';
+    const zprava = archivovano
+      ? 'Opravdu chcete obnovit tento produkt z archivu? Produkt se znovu zobrazí ve vaší nabídce.'
+      : 'Opravdu chcete dát tento produkt do archivu? Produkt se skryje z nabídky, ale zůstane v historii objednávek.';
+
     Alert.alert(
-      'Smazat produkt?',
-      'Opravdu chcete smazat tento produkt? Tato akce je nevratná.',
+      nadpis,
+      zprava,
       [
         { text: 'Zrušit', style: 'cancel' },
         {
-          text: 'Smazat',
-          style: 'destructive',
+          text: archivovano ? 'Obnovit' : 'Archivovat',
+          style: archivovano ? 'default' : 'destructive',
           onPress: async () => {
             try {
-              console.log('🗑️ Attempting to delete product with ID:', produktId);
-              console.log('🗑️ Farmer ID:', farmar?.id);
+              console.log(`📦 Attempting to ${akce} product with ID:`, produktId);
+              console.log('👤 Farmer ID:', farmar?.id);
 
               // Zkontrolovat, jestli máme oprávnění
               if (!farmar?.id) {
-                Alert.alert('Chyba', 'Nejste přihlášeni. Nelze smazat produkt.');
+                Alert.alert('Chyba', `Nejste přihlášeni. Nelze ${akce} produkt.`);
                 return;
               }
 
-              // Nejdřív ověříme, že produkt patří tomuto farmáři
-              const { data: productCheck, error: checkError } = await supabase
+              // Aktualizuj archivační stav
+              const { error } = await supabase
                 .from('produkty')
-                .select('id, nazev, pestitel_id')
+                .update({ archivovano: !archivovano })
                 .eq('id', produktId)
-                .single();
-
-              if (checkError) {
-                console.error('❌ Chyba při kontrole produktu:', checkError);
-                Alert.alert('Chyba', `Nepodařilo se najít produkt.\n\n${checkError.message}`);
-                return;
-              }
-
-              console.log('📦 Product found:', productCheck);
-
-              if (productCheck.pestitel_id !== Number(farmar.id)) {
-                Alert.alert('Chyba', 'Tento produkt vám nepatří. Nelze ho smazat.');
-                return;
-              }
-
-              // Nejdřív zkusíme smazat související záznamy z jiných tabulek
-              console.log('🗑️ Deleting from nakupni_seznam...');
-              const { data: cartData, error: cartError } = await supabase
-                .from('nakupni_seznam')
-                .delete()
-                .eq('produkt_id', produktId)
-                .select();
-
-              if (cartError) {
-                console.error('⚠️ Chyba při mazání z nákupních seznamů:', cartError);
-                // Pokračujeme dál, i když toto selže
-              } else {
-                console.log(`✅ Deleted ${cartData?.length || 0} cart items`);
-              }
-
-              // Smazat z položek objednávek
-              console.log('🗑️ Deleting from objednavky_polozky...');
-              const { data: orderData, error: orderItemsError } = await supabase
-                .from('objednavky_polozky')
-                .delete()
-                .eq('produkt_id', produktId)
-                .select();
-
-              if (orderItemsError) {
-                console.error('⚠️ Chyba při mazání z položek objednávek:', orderItemsError);
-                // Pokračujeme dál, i když toto selže
-              } else {
-                console.log(`✅ Deleted ${orderData?.length || 0} order items`);
-              }
-
-              // Nyní smažeme samotný produkt
-              console.log('🗑️ Deleting product...');
-              const { data: deletedProduct, error } = await supabase
-                .from('produkty')
-                .delete()
-                .eq('id', produktId)
-                .eq('pestitel_id', Number(farmar.id))
-                .select();
+                .eq('pestitel_id', Number(farmar.id));
 
               if (error) {
-                console.error('❌ Chyba při mazání produktu:', error);
-                console.error('Error details:', JSON.stringify(error, null, 2));
+                console.error(`❌ Chyba při ${akce}:`, error);
                 Alert.alert(
-                  'Chyba při mazání',
-                  `Nepodařilo se smazat produkt.\n\nDetail: ${error.message}\nKód: ${error.code}\nHint: ${error.hint || 'žádný'}`
+                  'Chyba',
+                  `Nepodařilo se ${akce} produkt.\n\nDetail: ${error.message}`
                 );
                 return;
               }
 
-              console.log('✅ Produkt úspěšně smazán:', deletedProduct);
-              Alert.alert('Úspěch', 'Produkt byl smazán', [
-                { text: 'OK', onPress: () => router.push('/moje-farma') }
-              ]);
+              console.log(`✅ Produkt úspěšně ${archivovano ? 'obnoven' : 'archivován'}`);
+              Alert.alert(
+                'Úspěch',
+                archivovano ? 'Produkt byl obnoven z archivu' : 'Produkt byl přesunut do archivu',
+                [{ text: 'OK', onPress: () => router.push('/moje-farma') }]
+              );
             } catch (error: any) {
-              console.error('❌ Chyba při mazání:', error);
-              console.error('Error stack:', error?.stack);
+              console.error(`❌ Chyba při ${akce}:`, error);
               Alert.alert(
                 'Chyba',
-                `Nepodařilo se smazat produkt.\n\nDetail: ${error?.message || 'Neznámá chyba'}\n\nTyp: ${error?.name || 'unknown'}`
+                `Nepodařilo se ${akce} produkt.\n\nDetail: ${error?.message || 'Neznámá chyba'}`
               );
             }
           }
@@ -437,10 +393,12 @@ export default function UpravitProduktScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={handleSmazat}
+            style={archivovano ? styles.restoreButton : styles.deleteButton}
+            onPress={handleArchivovat}
           >
-            <Text style={styles.deleteButtonText}>🗑️ Smazat produkt</Text>
+            <Text style={archivovano ? styles.restoreButtonText : styles.deleteButtonText}>
+              {archivovano ? '📤 Obnovit z archivu' : '📦 Dej do archivu'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -671,6 +629,20 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: '#F44336',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  restoreButton: {
+    backgroundColor: '#E3F2FD',
+    paddingVertical: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 15,
+    borderWidth: 2,
+    borderColor: '#2196F3'
+  },
+  restoreButtonText: {
+    color: '#2196F3',
     fontSize: 16,
     fontWeight: 'bold'
   }

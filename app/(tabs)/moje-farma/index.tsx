@@ -110,6 +110,7 @@ function MojeProdejnaScreenContent() {
         .from('produkty')
         .select('*')
         .eq('pestitel_id', pestitelId)
+        .eq('archivovano', false) // Filtruj archivované produkty
         .order('created_at', { ascending: false });
 
       if (error) {

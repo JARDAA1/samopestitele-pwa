@@ -107,6 +107,7 @@ export default function PridatProduktScreen() {
           kategorie: selectedProduct.kategorie,
           dostupnost: dostupnost,
           emoji: selectedProduct.emoji,
+          archivovano: false, // Nové produkty nejsou archivované
         })
         .select()
         .single();

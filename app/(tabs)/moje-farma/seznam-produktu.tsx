@@ -41,6 +41,7 @@ export default function SeznamProduktScreen() {
         .from('produkty')
         .select('*')
         .eq('pestitel_id', farmar.id)
+        .eq('archivovano', false) // Filtruj archivované produkty
         .order('created_at', { ascending: false });
 
       // Pokud je filtr "skladem", zobraz jen dostupné produkty
