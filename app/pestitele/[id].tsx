@@ -402,23 +402,23 @@ export default function PestitelDetailScreen() {
                   />
                 )}
                 <View style={styles.productInfo}>
-                  <Text style={styles.productName}>{produkt.nazev}</Text>
+                  <View style={styles.productHeader}>
+                    <Text style={styles.productName}>{produkt.nazev}</Text>
+                    <Text style={styles.productPrice}>
+                      {produkt.cena ? produkt.cena.toFixed(0) : '0'} Kč/{produkt.jednotka}
+                    </Text>
+                  </View>
                   {produkt.popis && (
                     <Text style={styles.productDescription} numberOfLines={2}>
                       {produkt.popis}
                     </Text>
                   )}
-                  <View style={styles.productFooter}>
-                    <Text style={styles.productPrice}>
-                      {produkt.cena ? produkt.cena.toFixed(0) : '0'} Kč / {produkt.jednotka}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.addButton}
-                      onPress={() => handleAddToList(produkt)}
-                    >
-                      <Text style={styles.addButtonText}>+ Do seznamu</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => handleAddToList(produkt)}
+                  >
+                    <Text style={styles.addButtonText}>+ Do seznamu</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             ))
@@ -586,20 +586,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
   productInfo: { padding: 15 },
-  productName: { fontSize: 18, fontWeight: 'bold', color: '#2E7D32', marginBottom: 6 },
-  productDescription: { fontSize: 14, color: '#666', marginBottom: 10, lineHeight: 20 },
-  productFooter: {
+  productHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
+    marginBottom: 6,
   },
-  productPrice: { fontSize: 18, fontWeight: 'bold', color: '#FF9800' },
+  productName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    flex: 1,
+    marginRight: 12,
+  },
+  productDescription: { fontSize: 14, color: '#666', marginBottom: 12, lineHeight: 20 },
+  productPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FF9800',
+    flexShrink: 0,
+  },
   addButton: {
     backgroundColor: '#4CAF50',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
+    alignSelf: 'flex-start',
   },
   addButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
 
