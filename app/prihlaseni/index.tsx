@@ -19,64 +19,28 @@ export default function PrihlaseniScreen() {
         </Text>
 
         <View style={styles.sectionsContainer}>
-          {/* PROFIL - Nejvyšší bezpečnost */}
+          {/* PROFIL */}
           <TouchableOpacity
             style={[styles.sectionCard, styles.sectionCardPrimary]}
             onPress={() => router.push('/prihlaseni/profil')}
           >
-            <View style={styles.sectionIcon}>
-              <Text style={styles.sectionIconText}>👤</Text>
-            </View>
-            <View style={styles.sectionInfo}>
-              <Text style={styles.sectionTitle}>Profil</Text>
-              <Text style={styles.sectionDescription}>
-                Osobní údaje, nastavení, platby
-              </Text>
-              <View style={styles.securityBadge}>
-                <Text style={styles.securityText}>🔒🔒🔒 Email Magic Link</Text>
-              </View>
-            </View>
-            <Text style={styles.arrow}>→</Text>
+            <Text style={styles.sectionTitle}>Profil</Text>
           </TouchableOpacity>
 
-          {/* MOJE PRODEJNA - Střední bezpečnost */}
+          {/* MOJE PRODEJNA */}
           <TouchableOpacity
             style={[styles.sectionCard, styles.sectionCardSecondary]}
             onPress={() => router.push('/prihlaseni/prodejna')}
           >
-            <View style={styles.sectionIcon}>
-              <Text style={styles.sectionIconText}>🏪</Text>
-            </View>
-            <View style={styles.sectionInfo}>
-              <Text style={styles.sectionTitle}>Moje prodejna</Text>
-              <Text style={styles.sectionDescription}>
-                Produkty, objednávky, zákazníci
-              </Text>
-              <View style={styles.securityBadge}>
-                <Text style={styles.securityText}>🔒🔒 PIN kód</Text>
-              </View>
-            </View>
-            <Text style={styles.arrow}>→</Text>
+            <Text style={styles.sectionTitle}>Moje prodejna</Text>
           </TouchableOpacity>
 
-          {/* MOJE STÁNKY - Střední bezpečnost */}
+          {/* MOJE STÁNKY */}
           <TouchableOpacity
             style={[styles.sectionCard, styles.sectionCardTertiary]}
             onPress={() => router.push('/prihlaseni/stanky')}
           >
-            <View style={styles.sectionIcon}>
-              <Text style={styles.sectionIconText}>🎪</Text>
-            </View>
-            <View style={styles.sectionInfo}>
-              <Text style={styles.sectionTitle}>Moje stánky</Text>
-              <Text style={styles.sectionDescription}>
-                Správa stánků na trzích (dnes tady, zítra jinde)
-              </Text>
-              <View style={styles.securityBadge}>
-                <Text style={styles.securityText}>🔒🔒 PIN kód</Text>
-              </View>
-            </View>
-            <Text style={styles.arrow}>→</Text>
+            <Text style={styles.sectionTitle}>Moje stánky</Text>
           </TouchableOpacity>
         </View>
 
@@ -157,9 +121,9 @@ const styles = StyleSheet.create({
   sectionCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 20,
-    flexDirection: 'row',
+    padding: 24,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -176,50 +140,10 @@ const styles = StyleSheet.create({
   sectionCardTertiary: {
     borderLeftColor: '#FF9800',
   },
-  sectionIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#F5F5F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  sectionIconText: {
-    fontSize: 32,
-  },
-  sectionInfo: {
-    flex: 1,
-  },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#2E7D32',
-    marginBottom: 4,
-  },
-  sectionDescription: {
-    fontSize: 13,
-    color: '#666',
-    marginBottom: 8,
-    lineHeight: 18,
-  },
-  securityBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: '#E8F5E9',
-  },
-  securityText: {
-    fontSize: 11,
-    color: '#2E7D32',
-    fontWeight: '600',
-  },
-  arrow: {
-    fontSize: 24,
-    color: '#4CAF50',
-    fontWeight: '600',
-    marginLeft: 8,
   },
   divider: {
     flexDirection: 'row',
