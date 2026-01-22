@@ -45,7 +45,7 @@ export default function MapaScreen() {
   const [loading, setLoading] = useState(true);
   const [filtering, setFiltering] = useState(false); // Nový stav pro filtrování
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDistance, setSelectedDistance] = useState<number | null>(10); // Výchozí 10km
+  const [selectedDistance, setSelectedDistance] = useState<number | null>(15); // Výchozí 15km
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [produkty, setProdukty] = useState<PredefinovanyProdukt[]>([]);
   const [selectedProdukty, setSelectedProdukty] = useState<number[]>([]); // IDs vybraných produktů
@@ -102,7 +102,7 @@ export default function MapaScreen() {
       setLocationSource('gps');
       setLocationLabel('Moje poloha (GPS)');
 
-      // Automaticky spustit filtrování s výchozí vzdáleností 10km
+      // Automaticky spustit filtrování s výchozí vzdáleností 15km
       setFiltering(true);
       setTimeout(() => {
         setFiltering(false);
@@ -371,7 +371,7 @@ export default function MapaScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header s tlačítkem zpět */}
+      {/* Minimalistický header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -379,294 +379,198 @@ export default function MapaScreen() {
         >
           <Text style={styles.backArrow}>←</Text>
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>Hledat produkty</Text>
+        <View style={{ width: 36 }} />
       </View>
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-      {/* SEKCE 1: Co chci nakoupit */}
-      <View style={styles.sectionContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>🛒 Co chci nakoupit</Text>
-        </View>
 
-        {/* Textové vyhledávání */}
-        <View style={styles.sectionContent}>
-          <Text style={styles.subsectionLabel}>Napiš co hledáš</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Hledat farmáře, město nebo produkt..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-        </View>
+        {/* Co sháníte? - Nadpis + Vyhledávání */}
+        <View style={styles.searchSection}>
+          <Text style={styles.sectionMainTitle}>Co sháníte?</Text>
+          <Text style={styles.sectionSubtitle}>Najděte čerstvé zboží přímo od farmářů</Text>
 
-        {/* Filtr produktů */}
-        <View style={styles.sectionContent}>
+          <View style={styles.searchCard}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Brambory, med, vajíčka..."
+              placeholderTextColor="#999"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+          </View>
+
           <TouchableOpacity
-            style={styles.produktyFilterHeader}
+            style={styles.productListButton}
             onPress={() => setShowProduktyFilter(!showProduktyFilter)}
           >
-            <Text style={styles.produktyFilterLabel}>
-              Nebo vyber ze seznamu produktů {selectedProdukty.length > 0 && `(${selectedProdukty.length}) `}
-              <Text style={styles.produktyFilterIcon}>{showProduktyFilter ? '▲' : '▼'}</Text>
-            </Text>
+            <Text style={styles.productListButtonIcon}>☰</Text>
+            <Text style={styles.productListButtonText}>Vybrat ze seznamu produktů</Text>
           </TouchableOpacity>
 
           {showProduktyFilter && (
-            <ScrollView style={styles.produktyList} nestedScrollEnabled>
+            <View style={styles.chipGrid}>
               {produkty.map((produkt) => (
                 <TouchableOpacity
                   key={produkt.id}
-                  style={styles.produktItem}
+                  style={[
+                    styles.chip,
+                    selectedProdukty.includes(produkt.id) && styles.chipActive
+                  ]}
                   onPress={() => toggleProdukt(produkt.id)}
                 >
-                  <View style={styles.produktTextContainer}>
-                    <Text style={styles.produktEmoji}>{produkt.emoji}</Text>
-                    <Text style={styles.produktNazev}>{produkt.nazev}</Text>
-                  </View>
-                  <View style={[
-                    styles.checkbox,
-                    selectedProdukty.includes(produkt.id) && styles.checkboxChecked
+                  <Text style={styles.chipEmoji}>{produkt.emoji}</Text>
+                  <Text style={[
+                    styles.chipText,
+                    selectedProdukty.includes(produkt.id) && styles.chipTextActive
                   ]}>
-                    {selectedProdukty.includes(produkt.id) && (
-                      <Text style={styles.checkboxIcon}>✓</Text>
-                    )}
-                  </View>
+                    {produkt.nazev}
+                  </Text>
                 </TouchableOpacity>
               ))}
-            </ScrollView>
-          )}
-        </View>
-      </View>
-
-      {/* SEKCE 2: Kde to chci najít */}
-      <View style={styles.sectionContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>📍 Kde to chci najít</Text>
-        </View>
-
-        {/* Zadávání adresy */}
-        <View style={styles.sectionContent}>
-          {/* Když není nastavená žádná poloha - zobrazit obě možnosti */}
-          {!locationSource && (
-            <>
-              <Text style={styles.subsectionLabel}>Vyber způsob určení polohy</Text>
-              <TouchableOpacity
-                style={styles.useMyLocationButton}
-                onPress={useMyLocation}
-              >
-                <Text style={styles.useMyLocationText}>📍 Použít mou polohu (GPS)</Text>
-              </TouchableOpacity>
-              <Text style={styles.orDividerText}>nebo</Text>
-              <View style={styles.addressInputRow}>
-                <TextInput
-                  style={styles.addressInput}
-                  placeholder="např. Hlavní 123, Praha"
-                  value={addressInput}
-                  onChangeText={setAddressInput}
-                  autoCorrect={false}
-                  autoCapitalize="words"
-                  onSubmitEditing={() => geocodeAddress(addressInput)}
-                />
-                <TouchableOpacity
-                  style={[styles.geocodeButton, geocoding && styles.geocodeButtonDisabled]}
-                  onPress={() => geocodeAddress(addressInput)}
-                  disabled={geocoding}
-                >
-                  {geocoding ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.geocodeButtonText}>Hledat</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-
-          {/* Když je nastavená GPS - zobrazit badge a možnost zadat adresu */}
-          {locationSource === 'gps' && (
-            <>
-              <View style={styles.currentLocationBadge}>
-                <Text style={styles.currentLocationText}>
-                  📍 {locationLabel}
-                </Text>
-              </View>
-              <Text style={styles.subsectionLabel}>Nebo zadej jiné výchozí místo</Text>
-              <View style={styles.addressInputRow}>
-                <TextInput
-                  style={styles.addressInput}
-                  placeholder="např. Hlavní 123, Praha"
-                  value={addressInput}
-                  onChangeText={setAddressInput}
-                  autoCorrect={false}
-                  autoCapitalize="words"
-                  onSubmitEditing={() => geocodeAddress(addressInput)}
-                />
-                <TouchableOpacity
-                  style={[styles.geocodeButton, geocoding && styles.geocodeButtonDisabled]}
-                  onPress={() => geocodeAddress(addressInput)}
-                  disabled={geocoding}
-                >
-                  {geocoding ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.geocodeButtonText}>Hledat</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-
-          {/* Když je nastavená adresa - zobrazit badge a tlačítko pro návrat k GPS */}
-          {locationSource === 'address' && (
-            <>
-              <View style={styles.currentLocationBadge}>
-                <Text style={styles.currentLocationText}>
-                  📮 {locationLabel}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.useMyLocationButton}
-                onPress={useMyLocation}
-              >
-                <Text style={styles.useMyLocationText}>📍 Vrátit se k mé poloze (GPS)</Text>
-              </TouchableOpacity>
-              <Text style={styles.orDividerText}>nebo</Text>
-              <Text style={styles.subsectionLabel}>Zadej jiné výchozí místo</Text>
-              <View style={styles.addressInputRow}>
-                <TextInput
-                  style={styles.addressInput}
-                  placeholder="např. Hlavní 123, Praha"
-                  value={addressInput}
-                  onChangeText={setAddressInput}
-                  autoCorrect={false}
-                  autoCapitalize="words"
-                  onSubmitEditing={() => geocodeAddress(addressInput)}
-                />
-                <TouchableOpacity
-                  style={[styles.geocodeButton, geocoding && styles.geocodeButtonDisabled]}
-                  onPress={() => geocodeAddress(addressInput)}
-                  disabled={geocoding}
-                >
-                  {geocoding ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.geocodeButtonText}>Hledat</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </>
+            </View>
           )}
         </View>
 
-        {/* Filtr vzdálenosti */}
-        <View style={styles.sectionContent}>
-          <Text style={styles.subsectionLabel}>Maximální vzdálenost od výchozího místa</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.distanceButtonsScroll}>
-          <TouchableOpacity
-            style={[styles.distanceButton, selectedDistance === 5 && styles.distanceButtonActive]}
-            onPress={() => handleDistanceChange(5)}
-          >
-            <Text style={[styles.distanceButtonText, selectedDistance === 5 && styles.distanceButtonTextActive]}>
-              5 km
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.distanceButton, selectedDistance === 10 && styles.distanceButtonActive]}
-            onPress={() => handleDistanceChange(10)}
-          >
-            <Text style={[styles.distanceButtonText, selectedDistance === 10 && styles.distanceButtonTextActive]}>
-              10 km
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.distanceButton, selectedDistance === 20 && styles.distanceButtonActive]}
-            onPress={() => handleDistanceChange(20)}
-          >
-            <Text style={[styles.distanceButtonText, selectedDistance === 20 && styles.distanceButtonTextActive]}>
-              20 km
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.distanceButton, selectedDistance === 30 && styles.distanceButtonActive]}
-            onPress={() => handleDistanceChange(30)}
-          >
-            <Text style={[styles.distanceButtonText, selectedDistance === 30 && styles.distanceButtonTextActive]}>
-              30 km
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.distanceButton, selectedDistance === null && styles.distanceButtonActive]}
-            onPress={() => handleDistanceChange(null)}
-          >
-            <Text style={[styles.distanceButtonText, selectedDistance === null && styles.distanceButtonTextActive]}>
-              Neomezeně
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-        </View>
-      </View>
+        {/* Kde vyzvednout? */}
+        <View style={styles.locationSection}>
+          <View style={styles.sectionHeaderWithIcon}>
+            <Text style={styles.locationIcon}>📍</Text>
+            <Text style={styles.sectionMainTitle}>Kde vyzvednout?</Text>
+          </View>
+          <Text style={styles.sectionSubtitle}>Zvolte lokalitu a maximální dojezdovou vzdálenost</Text>
 
-      {/* Indikátor filtrování nebo výsledky */}
-      {filtering ? (
-        <View style={styles.filteringIndicator}>
-          <ActivityIndicator size="large" color="#4CAF50" />
-          <Text style={styles.filteringText}>Vyhledávám...</Text>
+          <View style={styles.filtersCard}>
+
+          {/* Vaše poloha */}
+          <Text style={styles.inputLabel}>Vaše poloha</Text>
+
+          <TouchableOpacity
+            style={styles.locationInputButton}
+            onPress={useMyLocation}
+          >
+            <Text style={styles.locationInputIcon}>✈️</Text>
+            <Text style={[
+              styles.locationInputText,
+              !locationSource && styles.locationInputPlaceholder
+            ]}>
+              {locationLabel || 'Brno-střed'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.gpsButton}
+            onPress={useMyLocation}
+          >
+            <Text style={styles.gpsButtonIcon}>🎯</Text>
+            <Text style={styles.gpsButtonText}>Použít aktuální GPS polohu</Text>
+          </TouchableOpacity>
+
+          {/* Maximální vzdálenost */}
+          <Text style={styles.inputLabel}>Maximální vzdálenost</Text>
+          <Text style={styles.distanceValue}>{selectedDistance || 15} km</Text>
+
+          <View style={styles.distanceButtonsRow}>
+            <TouchableOpacity
+              style={[styles.distanceButtonSmall, selectedDistance === 5 && styles.distanceButtonSmallActive]}
+              onPress={() => handleDistanceChange(5)}
+            >
+              <Text style={[styles.distanceButtonSmallText, selectedDistance === 5 && styles.distanceButtonSmallTextActive]}>
+                5 km
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.distanceButtonSmall, selectedDistance === 15 && styles.distanceButtonSmallActive]}
+              onPress={() => handleDistanceChange(15)}
+            >
+              <Text style={[styles.distanceButtonSmallText, selectedDistance === 15 && styles.distanceButtonSmallTextActive]}>
+                15 km
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.distanceButtonSmall, selectedDistance === 30 && styles.distanceButtonSmallActive]}
+              onPress={() => handleDistanceChange(30)}
+            >
+              <Text style={[styles.distanceButtonSmallText, selectedDistance === 30 && styles.distanceButtonSmallTextActive]}>
+                30 km
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.distanceButtonSmall, selectedDistance === null && styles.distanceButtonSmallActive]}
+              onPress={() => handleDistanceChange(null)}
+            >
+              <Text style={[styles.distanceButtonSmallText, selectedDistance === null && styles.distanceButtonSmallTextActive]}>
+                50+ km
+              </Text>
+            </TouchableOpacity>
+          </View>
+          </View>
         </View>
-      ) : (
-        (selectedDistance !== null || selectedProdukty.length > 0 || searchQuery.length > 0) && (
-          <View style={styles.resultsInfo}>
-            <Text style={styles.resultsText}>
-              {filteredPestitele.length === 0
-                ? '❌ Nikoho jsem nenašel'
-                : `✓ Nalezeno ${filteredPestitele.length} ${filteredPestitele.length === 1 ? 'farmář' : filteredPestitele.length < 5 ? 'farmáři' : 'farmářů'}`
-              }
+
+        {/* Výsledky - farmáři */}
+        {!filtering && (selectedDistance !== null || selectedProdukty.length > 0 || searchQuery.length > 0) && (
+          <View style={styles.resultsSection}>
+            <Text style={styles.resultsSectionTitle}>
+              Nalezeno {filteredPestitele.length} farmářů
             </Text>
           </View>
-        )
-      )}
+        )}
 
-      {/* Seznam farmářů */}
-      {filteredPestitele.length === 0 && !filtering ? (
-        <View style={styles.emptyState}>
-          {selectedDistance !== null || selectedProdukty.length > 0 || searchQuery.length > 0 ? (
-            <>
-              <Text style={styles.emptyTitle}>Bohužel nikoho jsem nenašel</Text>
-            </>
-          ) : (
-            <>
-              <Text style={styles.emptyIcon}>🌾</Text>
-              <Text style={styles.emptyTitle}>Vyberte vzdálenost nebo produkt</Text>
-              <Text style={styles.emptyText}>
-                Použijte filtr nahoře k vyhledání farmářů ve vaší blízkosti
+        {/* Seznam farmářů */}
+        {!filtering && filteredPestitele.length > 0 && (
+          <>
+            {filteredPestitele.slice(0, 3).map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.farmerCard}
+                onPress={() => router.push(`/pestitele/${item.id}`)}
+              >
+                <View style={styles.farmerAvatar}>
+                  <Text style={styles.farmerAvatarText}>
+                    {item.nazev_farmy.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.farmerInfo}>
+                  <Text style={styles.farmerName}>{item.nazev_farmy}</Text>
+                  <View style={styles.farmerMeta}>
+                    <Text style={styles.farmerDistance}>
+                      📍 {item.distance !== undefined ? `${item.distance.toFixed(1)} km` : item.mesto}
+                    </Text>
+                    <Text style={styles.farmerRating}>⭐ 4.9</Text>
+                  </View>
+                </View>
+                <Text style={styles.farmerArrow}>›</Text>
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity style={styles.showResultsButton}>
+              <Text style={styles.showResultsButtonText}>
+                Zobrazit výsledky
               </Text>
-            </>
-          )}
-        </View>
-      ) : !filtering ? (
-        <>
-          {filteredPestitele.map((item, index) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.listItem}
-              onPress={() => router.push(`/pestitele/${item.id}`)}
-            >
-              <View style={styles.listItemContent}>
-                <Text style={styles.listItemName}>{item.nazev_farmy}</Text>
-                <Text style={styles.listItemDetail}>
-                  {item.mesto}
-                  {item.distance !== undefined && ` • ${item.distance.toFixed(1)} km`}
-                </Text>
-                <Text style={styles.listItemDetail}>
-                  {item.telefon ? `📞 ${item.telefon}` : 'Kontakt neuveden'}
-                </Text>
-              </View>
-              <Text style={styles.listItemArrow}>›</Text>
             </TouchableOpacity>
-          ))}
-        </>
-      ) : null}
+          </>
+        )}
+
+        {/* Indikátor filtrování */}
+        {filtering && (
+          <View style={styles.filteringIndicator}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.filteringText}>Vyhledávám...</Text>
+          </View>
+        )}
+
+        {/* Empty state */}
+        {!filtering && filteredPestitele.length === 0 && (selectedDistance !== null || searchQuery.length > 0) && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>😕</Text>
+            <Text style={styles.emptyTitle}>Bohužel nikoho jsme nenašli</Text>
+            <Text style={styles.emptyText}>
+              Zkuste změnit vzdálenost nebo vyhledat jiný produkt
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -947,5 +851,364 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 12,
     fontWeight: '500',
+  },
+  headerTitle: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
+  searchCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 12,
+    marginTop: 12,
+    marginBottom: 8,
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  filtersCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 12,
+    marginVertical: 8,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  filterToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  filterToggleText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  filterToggleIcon: {
+    fontSize: 14,
+    color: '#666',
+  },
+  chipGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 12,
+    gap: 8,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    gap: 6,
+  },
+  chipActive: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  chipEmoji: {
+    fontSize: 16,
+  },
+  chipText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  chipTextActive: {
+    color: '#FFFFFF',
+  },
+  locationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    gap: 8,
+  },
+  locationButtonIcon: {
+    fontSize: 20,
+  },
+  locationButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  locationBadge: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    marginBottom: 12,
+  },
+  locationBadgeText: {
+    fontSize: 14,
+    color: '#2E7D32',
+    fontWeight: '600',
+    flex: 1,
+  },
+  locationBadgeChange: {
+    fontSize: 14,
+    color: '#4CAF50',
+    fontWeight: '600',
+  },
+  searchSection: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 12,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  locationSection: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 12,
+    marginVertical: 8,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sectionMainTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 16,
+  },
+  sectionHeaderWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  locationIcon: {
+    fontSize: 20,
+  },
+  productListButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF8E1',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFD54F',
+    marginTop: 12,
+    gap: 8,
+  },
+  productListButtonIcon: {
+    fontSize: 18,
+    color: '#F57F17',
+  },
+  productListButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#F57F17',
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+    marginTop: 12,
+  },
+  locationInputButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    gap: 10,
+  },
+  locationInputIcon: {
+    fontSize: 18,
+  },
+  locationInputText: {
+    fontSize: 15,
+    color: '#333',
+    fontWeight: '500',
+  },
+  locationInputPlaceholder: {
+    color: '#999',
+  },
+  gpsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E3F2FD',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#2196F3',
+    marginTop: 12,
+    gap: 8,
+  },
+  gpsButtonIcon: {
+    fontSize: 16,
+  },
+  gpsButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1976D2',
+  },
+  distanceValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    textAlign: 'right',
+    marginBottom: 8,
+  },
+  distanceButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  distanceButtonSmall: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    alignItems: 'center',
+  },
+  distanceButtonSmallActive: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  distanceButtonSmallText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666',
+  },
+  distanceButtonSmallTextActive: {
+    color: '#FFFFFF',
+  },
+  resultsSection: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 12,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  resultsSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  farmerCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 12,
+    marginVertical: 6,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  farmerAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  farmerAvatarText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  farmerInfo: {
+    flex: 1,
+  },
+  farmerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  farmerMeta: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  farmerDistance: {
+    fontSize: 13,
+    color: '#666',
+  },
+  farmerRating: {
+    fontSize: 13,
+    color: '#666',
+  },
+  farmerArrow: {
+    fontSize: 24,
+    color: '#CCC',
+  },
+  showResultsButton: {
+    backgroundColor: '#4CAF50',
+    marginHorizontal: 12,
+    marginVertical: 16,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  showResultsButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
 });
