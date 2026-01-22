@@ -95,12 +95,36 @@ export default function MapaScreen() {
       }
 
       const location = await Location.getCurrentPositionAsync({});
-      setUserLocation({
+      const userLoc = {
         lat: location.coords.latitude,
         lng: location.coords.longitude,
-      });
+      };
+      setUserLocation(userLoc);
       setLocationSource('gps');
-      setLocationLabel('Moje poloha (GPS)');
+
+      // Reverse geocoding - získat název místa z GPS souřadnic
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLoc.lat}&lon=${userLoc.lng}&accept-language=cs`,
+          {
+            headers: {
+              'User-Agent': 'SamopestiteleMobileApp/1.0'
+            }
+          }
+        );
+        const data = await response.json();
+        if (data && data.address) {
+          const city = data.address.city || data.address.town || data.address.village || data.address.municipality;
+          const district = data.address.suburb || data.address.district;
+          const label = district && city ? `${city}, ${district}` : city || 'Aktuální poloha';
+          setLocationLabel(label);
+        } else {
+          setLocationLabel('Aktuální poloha');
+        }
+      } catch (error) {
+        console.error('Chyba při reverse geocodingu:', error);
+        setLocationLabel('Aktuální poloha');
+      }
 
       // Automaticky spustit filtrování s výchozí vzdáleností 15km
       setFiltering(true);
@@ -181,7 +205,31 @@ export default function MapaScreen() {
     if (location) {
       setUserLocation(location);
       setLocationSource('gps');
-      setLocationLabel('Moje poloha (GPS)');
+
+      // Reverse geocoding - získat název místa z GPS souřadnic
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}&accept-language=cs`,
+          {
+            headers: {
+              'User-Agent': 'SamopestiteleMobileApp/1.0'
+            }
+          }
+        );
+        const data = await response.json();
+        if (data && data.address) {
+          // Vytvoříme hezký label z adresy
+          const city = data.address.city || data.address.town || data.address.village || data.address.municipality;
+          const district = data.address.suburb || data.address.district;
+          const label = district && city ? `${city}, ${district}` : city || 'Aktuální poloha';
+          setLocationLabel(label);
+        } else {
+          setLocationLabel('Aktuální poloha');
+        }
+      } catch (error) {
+        console.error('Chyba při reverse geocodingu:', error);
+        setLocationLabel('Aktuální poloha');
+      }
     }
     setAddressInput('');
 
@@ -444,8 +492,8 @@ export default function MapaScreen() {
 
           <View style={styles.filtersCard}>
 
-          {/* Vaše poloha */}
-          <Text style={styles.inputLabel}>Vaše poloha</Text>
+          {/* Výchozí místo */}
+          <Text style={styles.inputLabel}>Výchozí místo</Text>
 
           <TouchableOpacity
             style={styles.locationInputButton}
@@ -460,39 +508,39 @@ export default function MapaScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.gpsButton}
-            onPress={useMyLocation}
-          >
-            <Text style={styles.gpsButtonIcon}>🎯</Text>
-            <Text style={styles.gpsButtonText}>Použít aktuální GPS polohu</Text>
-          </TouchableOpacity>
+          {locationSource === 'address' && (
+            <TouchableOpacity
+              style={styles.gpsButton}
+              onPress={useMyLocation}
+            >
+              <Text style={styles.gpsButtonIcon}>🎯</Text>
+              <Text style={styles.gpsButtonText}>Použít aktuální GPS polohu</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Jiný start než má poloha */}
           <Text style={[styles.inputLabel, { marginTop: 20 }]}>Jiný start než má poloha</Text>
-          <View style={styles.addressInputRow}>
-            <TextInput
-              style={styles.addressInput}
-              placeholder="např. Hlavní 123, Praha"
-              placeholderTextColor="#999"
-              value={addressInput}
-              onChangeText={setAddressInput}
-              autoCorrect={false}
-              autoCapitalize="words"
-              onSubmitEditing={() => geocodeAddress(addressInput)}
-            />
-            <TouchableOpacity
-              style={[styles.geocodeButton, geocoding && styles.geocodeButtonDisabled]}
-              onPress={() => geocodeAddress(addressInput)}
-              disabled={geocoding}
-            >
-              {geocoding ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.geocodeButtonText}>Hledat</Text>
-              )}
-            </TouchableOpacity>
-          </View>
+          <TextInput
+            style={styles.addressInput}
+            placeholder="např. Hlavní 123, Praha"
+            placeholderTextColor="#999"
+            value={addressInput}
+            onChangeText={setAddressInput}
+            autoCorrect={false}
+            autoCapitalize="words"
+            onSubmitEditing={() => geocodeAddress(addressInput)}
+          />
+          <TouchableOpacity
+            style={[styles.geocodeButtonFull, geocoding && styles.geocodeButtonDisabled]}
+            onPress={() => geocodeAddress(addressInput)}
+            disabled={geocoding}
+          >
+            {geocoding ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.geocodeButtonText}>Hledat</Text>
+            )}
+          </TouchableOpacity>
 
           {/* Maximální vzdálenost */}
           <Text style={styles.inputLabel}>Maximální vzdálenost</Text>
@@ -820,7 +868,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addressInput: {
-    flex: 1,
     backgroundColor: '#F5F5F5',
     borderRadius: 8,
     paddingVertical: 12,
@@ -846,6 +893,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '600',
+  },
+  geocodeButtonFull: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
   },
   useMyLocationButton: {
     backgroundColor: '#2196F3',
