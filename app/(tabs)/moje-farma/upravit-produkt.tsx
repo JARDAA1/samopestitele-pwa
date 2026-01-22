@@ -158,52 +158,93 @@ export default function UpravitProduktScreen() {
           onPress: async () => {
             try {
               console.log('🗑️ Attempting to delete product with ID:', produktId);
+              console.log('🗑️ Farmer ID:', farmar?.id);
+
+              // Zkontrolovat, jestli máme oprávnění
+              if (!farmar?.id) {
+                Alert.alert('Chyba', 'Nejste přihlášeni. Nelze smazat produkt.');
+                return;
+              }
+
+              // Nejdřív ověříme, že produkt patří tomuto farmáři
+              const { data: productCheck, error: checkError } = await supabase
+                .from('produkty')
+                .select('id, nazev, pestitel_id')
+                .eq('id', produktId)
+                .single();
+
+              if (checkError) {
+                console.error('❌ Chyba při kontrole produktu:', checkError);
+                Alert.alert('Chyba', `Nepodařilo se najít produkt.\n\n${checkError.message}`);
+                return;
+              }
+
+              console.log('📦 Product found:', productCheck);
+
+              if (productCheck.pestitel_id !== Number(farmar.id)) {
+                Alert.alert('Chyba', 'Tento produkt vám nepatří. Nelze ho smazat.');
+                return;
+              }
 
               // Nejdřív zkusíme smazat související záznamy z jiných tabulek
-              // Smazat z nákupních seznamů
-              const { error: cartError } = await supabase
+              console.log('🗑️ Deleting from nakupni_seznam...');
+              const { data: cartData, error: cartError } = await supabase
                 .from('nakupni_seznam')
                 .delete()
-                .eq('produkt_id', produktId);
+                .eq('produkt_id', produktId)
+                .select();
 
               if (cartError) {
                 console.error('⚠️ Chyba při mazání z nákupních seznamů:', cartError);
+                // Pokračujeme dál, i když toto selže
+              } else {
+                console.log(`✅ Deleted ${cartData?.length || 0} cart items`);
               }
 
               // Smazat z položek objednávek
-              const { error: orderItemsError } = await supabase
+              console.log('🗑️ Deleting from objednavky_polozky...');
+              const { data: orderData, error: orderItemsError } = await supabase
                 .from('objednavky_polozky')
                 .delete()
-                .eq('produkt_id', produktId);
+                .eq('produkt_id', produktId)
+                .select();
 
               if (orderItemsError) {
                 console.error('⚠️ Chyba při mazání z položek objednávek:', orderItemsError);
+                // Pokračujeme dál, i když toto selže
+              } else {
+                console.log(`✅ Deleted ${orderData?.length || 0} order items`);
               }
 
               // Nyní smažeme samotný produkt
-              const { error } = await supabase
+              console.log('🗑️ Deleting product...');
+              const { data: deletedProduct, error } = await supabase
                 .from('produkty')
                 .delete()
-                .eq('id', produktId);
+                .eq('id', produktId)
+                .eq('pestitel_id', Number(farmar.id))
+                .select();
 
               if (error) {
                 console.error('❌ Chyba při mazání produktu:', error);
+                console.error('Error details:', JSON.stringify(error, null, 2));
                 Alert.alert(
                   'Chyba při mazání',
-                  `Nepodařilo se smazat produkt.\n\nDetail: ${error.message}\nKód: ${error.code}`
+                  `Nepodařilo se smazat produkt.\n\nDetail: ${error.message}\nKód: ${error.code}\nHint: ${error.hint || 'žádný'}`
                 );
                 return;
               }
 
-              console.log('✅ Produkt úspěšně smazán');
+              console.log('✅ Produkt úspěšně smazán:', deletedProduct);
               Alert.alert('Úspěch', 'Produkt byl smazán', [
                 { text: 'OK', onPress: () => router.push('/moje-farma') }
               ]);
             } catch (error: any) {
               console.error('❌ Chyba při mazání:', error);
+              console.error('Error stack:', error?.stack);
               Alert.alert(
                 'Chyba',
-                `Nepodařilo se smazat produkt.\n\nDetail: ${error?.message || 'Neznámá chyba'}`
+                `Nepodařilo se smazat produkt.\n\nDetail: ${error?.message || 'Neznámá chyba'}\n\nTyp: ${error?.name || 'unknown'}`
               );
             }
           }
