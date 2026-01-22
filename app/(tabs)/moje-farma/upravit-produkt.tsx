@@ -127,7 +127,8 @@ export default function UpravitProduktScreen() {
           jednotka: jednotka,
           kategorie: kategorie,
           dostupnost: dostupnost,
-          emoji: selectedEmoji
+          emoji: selectedEmoji,
+          archivovano: archivovano
         })
         .eq('id', produktId);
 
