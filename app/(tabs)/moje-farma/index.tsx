@@ -212,6 +212,7 @@ function MojeProdejnaScreenContent() {
   // PŘIHLÁŠENÝ FARMÁŘ - PRODEJNA
   return (
     <View style={styles.container}>
+      {/* Kompaktní header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity
@@ -219,46 +220,65 @@ function MojeProdejnaScreenContent() {
             onPress={() => router.push('/')}
           >
             <Text style={styles.homeIcon}>🏠</Text>
-            <Text style={styles.homeText}>Domů</Text>
           </TouchableOpacity>
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>🏪 {farmarData?.nazev_farmy}</Text>
-            <Text style={styles.headerSubtitle}>Správa prodejny</Text>
-          </View>
+          <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+            🏪 {farmarData?.nazev_farmy}
+          </Text>
           <TouchableOpacity
-            style={styles.addButtonHeader}
-            onPress={() => router.push('/moje-farma/pridat-produkt')}
+            style={styles.menuButton}
+            onPress={() => setFarmaInfoExpanded(!farmaInfoExpanded)}
           >
-            <Text style={styles.addButtonHeaderText}>+ Přidat</Text>
+            <Text style={styles.menuIcon}>⚙️</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView style={styles.content}>
-        {/* Informace o farmáři */}
-        <View style={styles.card}>
+        {/* Přehled - kompaktní karty nahoře */}
+        <View style={styles.statsRow}>
           <TouchableOpacity
-            style={styles.cardHeader}
-            onPress={() => setFarmaInfoExpanded(!farmaInfoExpanded)}
+            style={styles.statBoxCompact}
+            onPress={() => router.push('/moje-farma/seznam-produktu?filtr=vse')}
           >
-            <Text style={styles.cardTitle}>
-              {farmaInfoExpanded ? '▼' : '▶'} 👤 Informace o farmě
-            </Text>
-            {farmaInfoExpanded && (
+            <Text style={styles.statIcon}>📦</Text>
+            <Text style={styles.statNumberCompact}>{produkty.length}</Text>
+            <Text style={styles.statLabelCompact}>Produktů</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.statBoxCompact}
+            onPress={() => router.push('/moje-farma/seznam-produktu?filtr=skladem')}
+          >
+            <Text style={styles.statIcon}>✓</Text>
+            <Text style={styles.statNumberCompact}>{produkty.filter(p => p.dostupnost).length}</Text>
+            <Text style={styles.statLabelCompact}>Skladem</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.statBoxCompact}
+            onPress={() => router.push('/moje-farma/objednavky')}
+          >
+            <Text style={styles.statIcon}>📋</Text>
+            <Text style={styles.statNumberCompact}>{pocetObjednavek}</Text>
+            <Text style={styles.statLabelCompact}>Objednávek</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Informace o farmáři - sbalitelné */}
+        {farmaInfoExpanded && (
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>👤 Informace o farmě</Text>
               <TouchableOpacity
                 style={styles.editIconButton}
                 onPress={() => router.push('/moje-farma/upravit-farmu')}
               >
                 <Text style={styles.editIconText}>✏️</Text>
               </TouchableOpacity>
-            )}
-          </TouchableOpacity>
+            </View>
 
-          <Text style={styles.profileHintText}>
-            Zde můžete změnit PIN nebo svůj profil v sekci Můj profil
-          </Text>
+            <Text style={styles.profileHintText}>
+              Zde můžete změnit PIN nebo svůj profil v sekci Můj profil
+            </Text>
 
-          {farmaInfoExpanded && (
             <View style={styles.infoGrid}>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>Farmář:</Text>
@@ -289,8 +309,8 @@ function MojeProdejnaScreenContent() {
                 <Text style={styles.logoutButtonText}>🚪 Odhlásit se</Text>
               </TouchableOpacity>
             </View>
-          )}
-        </View>
+          </View>
+        )}
 
         {/* Produkty */}
         <View style={styles.card}>
@@ -300,7 +320,7 @@ function MojeProdejnaScreenContent() {
               onPress={() => setActiveTab('aktivni')}
             >
               <Text style={[styles.tabText, activeTab === 'aktivni' && styles.activeTabText]}>
-                ✓ Aktivní ({produkty.length})
+                Aktivní ({produkty.length})
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -308,7 +328,7 @@ function MojeProdejnaScreenContent() {
               onPress={() => setActiveTab('archivovane')}
             >
               <Text style={[styles.tabText, activeTab === 'archivovane' && styles.activeTabText]}>
-                📦 Archivované ({archivovaneProdukty.length})
+                Archiv ({archivovaneProdukty.length})
               </Text>
             </TouchableOpacity>
           </View>
@@ -392,35 +412,15 @@ function MojeProdejnaScreenContent() {
             })
           )}
         </View>
-
-        {/* Přehled */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>📊 Přehled</Text>
-          <View style={styles.statsGrid}>
-            <TouchableOpacity
-              style={styles.statBox}
-              onPress={() => router.push('/moje-farma/seznam-produktu?filtr=vse')}
-            >
-              <Text style={styles.statNumber}>{produkty.length}</Text>
-              <Text style={styles.statLabel}>Produktů</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.statBox}
-              onPress={() => router.push('/moje-farma/seznam-produktu?filtr=skladem')}
-            >
-              <Text style={styles.statNumber}>{produkty.filter(p => p.dostupnost).length}</Text>
-              <Text style={styles.statLabel}>Skladem</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.statBox}
-              onPress={() => router.push('/moje-farma/objednavky')}
-            >
-              <Text style={styles.statNumber}>{pocetObjednavek}</Text>
-              <Text style={styles.statLabel}>Objednávek</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </ScrollView>
+
+      {/* Floating Action Button pro přidání produktu */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push('/moje-farma/pridat-produkt')}
+      >
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -436,88 +436,78 @@ export default function MojeProdejnaScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
-  header: { backgroundColor: '#4CAF50', paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
-  homeButton: { alignItems: 'center', padding: 8, minWidth: 60 },
-  homeIcon: { fontSize: 24 },
-  homeText: { fontSize: 10, color: '#FFFFFF', marginTop: 2 },
-  headerCenter: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 5, textAlign: 'center' },
-  headerSubtitle: { fontSize: 14, color: '#FFFFFF', opacity: 0.9, textAlign: 'center' },
-  addButtonHeader: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
-  addButtonHeaderText: { color: '#4CAF50', fontSize: 16, fontWeight: 'bold' },
+  header: { backgroundColor: '#4CAF50', paddingTop: 50, paddingBottom: 12, paddingHorizontal: 16 },
+  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  homeButton: { padding: 8, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  homeIcon: { fontSize: 22 },
+  menuButton: { padding: 8, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  menuIcon: { fontSize: 22 },
+  headerTitle: { flex: 1, fontSize: 18, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center', paddingHorizontal: 8 },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
-  loginContent: { padding: 20, justifyContent: 'center', minHeight: '80%' },
-  loginCard: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 25, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
-  loginIcon: { fontSize: 60, textAlign: 'center', marginBottom: 15 },
-  loginTitle: { fontSize: 20, fontWeight: 'bold', color: '#2E7D32', textAlign: 'center', marginBottom: 25 },
-  label: { fontSize: 15, fontWeight: '600', color: '#333', marginBottom: 8, marginTop: 15 },
-  input: { backgroundColor: '#F5F5F5', borderRadius: 8, padding: 15, fontSize: 16, borderWidth: 1, borderColor: '#E0E0E0' },
-  loginButton: { backgroundColor: '#4CAF50', padding: 16, borderRadius: 10, alignItems: 'center', marginTop: 25 },
-  loginButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  buttonDisabled: { opacity: 0.5 },
-  divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#DDD' },
-  dividerText: { marginHorizontal: 15, fontSize: 12, color: '#999', fontWeight: '600' },
-  registerButton: { backgroundColor: '#F5F5F5', padding: 16, borderRadius: 10, alignItems: 'center', borderWidth: 2, borderColor: '#4CAF50' },
-  registerButtonText: { color: '#4CAF50', fontSize: 15, fontWeight: '600' },
   content: { flex: 1 },
-  card: { backgroundColor: '#FFFFFF', margin: 15, padding: 20, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  cardTitle: { fontSize: 20, fontWeight: 'bold', color: '#2E7D32' },
-  logoutLink: { color: '#FF5252', fontSize: 14, fontWeight: '600' },
-  logoutButton: { backgroundColor: '#FF5252', padding: 14, borderRadius: 8, alignItems: 'center', marginTop: 20 },
-  logoutButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
-  infoGrid: { gap: 12 },
-  profileHintText: { fontSize: 12, color: '#FF5252', marginBottom: 12, fontStyle: 'italic' },
-  infoItem: { marginBottom: 8 },
-  infoLabel: { fontSize: 13, color: '#666', marginBottom: 3 },
-  infoValue: { fontSize: 15, color: '#333', fontWeight: '500' },
-  addButton: { backgroundColor: '#4CAF50', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
-  addButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
-  emptyProducts: { alignItems: 'center', padding: 30 },
-  emptyProductsIcon: { fontSize: 50, marginBottom: 10 },
-  emptyProductsText: { fontSize: 14, color: '#999', textAlign: 'center', lineHeight: 20 },
-  productCard: { backgroundColor: '#F9F9F9', borderRadius: 8, marginBottom: 10, overflow: 'hidden' },
-  productRow: { flexDirection: 'row', alignItems: 'center', padding: 15, gap: 12 },
-  expandIcon: { fontSize: 14, color: '#666', width: 20 },
+  // Kompaktní statistiky nahoře
+  statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 15, paddingTop: 15 },
+  statBoxCompact: { flex: 1, backgroundColor: '#FFFFFF', padding: 12, borderRadius: 10, alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
+  statIcon: { fontSize: 24, marginBottom: 4 },
+  statNumberCompact: { fontSize: 20, fontWeight: 'bold', color: '#2E7D32', marginBottom: 2 },
+  statLabelCompact: { fontSize: 10, color: '#666', textAlign: 'center' },
+  // Karty
+  card: { backgroundColor: '#FFFFFF', marginHorizontal: 15, marginTop: 15, padding: 16, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#2E7D32' },
+  logoutButton: { backgroundColor: '#FF5252', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 15 },
+  logoutButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  infoGrid: { gap: 10 },
+  profileHintText: { fontSize: 11, color: '#FF5252', marginBottom: 10, fontStyle: 'italic', lineHeight: 16 },
+  infoItem: { marginBottom: 6 },
+  infoLabel: { fontSize: 12, color: '#666', marginBottom: 2 },
+  infoValue: { fontSize: 14, color: '#333', fontWeight: '500' },
+  emptyProducts: { alignItems: 'center', padding: 25 },
+  emptyProductsIcon: { fontSize: 40, marginBottom: 8 },
+  emptyProductsText: { fontSize: 13, color: '#999', textAlign: 'center', lineHeight: 18 },
+  productCard: { backgroundColor: '#F9F9F9', borderRadius: 8, marginBottom: 8, overflow: 'hidden' },
+  productRow: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10 },
+  expandIcon: { fontSize: 12, color: '#666', width: 18 },
   productRowContent: { flex: 1 },
-  productName: { fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 2 },
-  productPrice: { fontSize: 14, color: '#4CAF50', fontWeight: '600' },
-  statusDot: { width: 12, height: 12, borderRadius: 6 },
+  productName: { fontSize: 15, fontWeight: '600', color: '#333', marginBottom: 2 },
+  productPrice: { fontSize: 13, color: '#4CAF50', fontWeight: '600' },
+  statusDot: { width: 10, height: 10, borderRadius: 5 },
   statusDotAvailable: { backgroundColor: '#4CAF50' },
   statusDotUnavailable: { backgroundColor: '#FF5252' },
-  productDetails: { paddingHorizontal: 15, paddingBottom: 15, gap: 10, borderTopWidth: 1, borderTopColor: '#E0E0E0', paddingTop: 10 },
-  productImage: { width: '100%', height: 150, borderRadius: 8 },
-  productDesc: { fontSize: 13, color: '#666', lineHeight: 18 },
-  productStock: { fontSize: 13, color: '#666' },
-  productActions: { flexDirection: 'row', gap: 10, marginTop: 10 },
-  availabilityBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, flex: 1, alignItems: 'center' },
+  productDetails: { paddingHorizontal: 12, paddingBottom: 12, gap: 8, borderTopWidth: 1, borderTopColor: '#E0E0E0', paddingTop: 8 },
+  productImage: { width: '100%', height: 140, borderRadius: 8 },
+  productDesc: { fontSize: 12, color: '#666', lineHeight: 17 },
+  productStock: { fontSize: 12, color: '#666' },
+  productActions: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  availabilityBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, flex: 1, alignItems: 'center' },
   availableBadge: { backgroundColor: '#E8F5E9' },
   unavailableBadge: { backgroundColor: '#FFEBEE' },
-  availabilityText: { fontSize: 12, fontWeight: '600' },
-  editButton: { backgroundColor: '#4CAF50', paddingHorizontal: 16, paddingVertical: 6, borderRadius: 6, flex: 1, alignItems: 'center' },
-  editButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
-  statsGrid: { flexDirection: 'row', gap: 10 },
-  statBox: { flex: 1, backgroundColor: '#E8F5E9', padding: 15, borderRadius: 8, alignItems: 'center' },
-  statNumber: { fontSize: 28, fontWeight: 'bold', color: '#2E7D32', marginBottom: 5 },
-  statLabel: { fontSize: 12, color: '#666', textAlign: 'center' },
-  // Nové styly pro SMS autentizaci
-  infoTextSmall: { fontSize: 14, color: '#666', marginBottom: 20, lineHeight: 20 },
-  inputCode: { fontSize: 32, textAlign: 'center', letterSpacing: 10, fontWeight: 'bold' },
-  buttonRow: { flexDirection: 'row', gap: 10, marginTop: 25 },
-  backButton: { backgroundColor: '#F5F5F5', padding: 16, borderRadius: 10, alignItems: 'center', minWidth: 100 },
-  backButtonText: { color: '#666', fontSize: 16, fontWeight: '600' },
-  resendButton: { marginTop: 15, alignItems: 'center' },
-  resendText: { color: '#4CAF50', fontSize: 14, fontWeight: '600' },
-  testBox: { backgroundColor: '#FFF3CD', borderColor: '#FFA000', borderWidth: 2, padding: 15, borderRadius: 8, marginBottom: 20 },
-  testText: { fontSize: 12, fontWeight: 'bold', color: '#FF6F00', marginBottom: 5 },
-  testCode: { fontSize: 24, fontWeight: 'bold', color: '#FF6F00' },
-  editIconButton: { padding: 8 },
-  editIconText: { fontSize: 20 },
-  tabsContainer: { flexDirection: 'row', marginBottom: 15, borderRadius: 8, backgroundColor: '#F5F5F5', padding: 4 },
-  tab: { flex: 1, paddingVertical: 10, paddingHorizontal: 15, borderRadius: 6, alignItems: 'center' },
+  availabilityText: { fontSize: 11, fontWeight: '600' },
+  editButton: { backgroundColor: '#4CAF50', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 6, flex: 1, alignItems: 'center' },
+  editButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
+  editIconButton: { padding: 6 },
+  editIconText: { fontSize: 18 },
+  tabsContainer: { flexDirection: 'row', marginBottom: 12, borderRadius: 8, backgroundColor: '#F5F5F5', padding: 3 },
+  tab: { flex: 1, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6, alignItems: 'center' },
   activeTab: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#666' },
+  tabText: { fontSize: 13, fontWeight: '600', color: '#666' },
   activeTabText: { color: '#2E7D32' },
+  // Floating Action Button
+  fab: {
+    position: 'absolute',
+    bottom: 25,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6
+  },
+  fabText: { fontSize: 28, color: '#FFFFFF', fontWeight: '300' },
 });
