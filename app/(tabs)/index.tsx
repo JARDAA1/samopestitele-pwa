@@ -23,7 +23,7 @@ export default function HomeScreen() {
         style={styles.primaryButton}
         onPress={() => router.push('/mapa')}
       >
-        <Text style={styles.buttonIcon}>🗺️</Text>
+        <Text style={styles.buttonIcon}>🍎</Text>
         <View style={{ flex: 1 }}>
           <Text style={styles.buttonTitle}>Najdi něco ze zahrádky</Text>
         </View>
@@ -68,7 +68,7 @@ export default function HomeScreen() {
               style={styles.primaryButton}
               onPress={() => router.push('/mapa')}
             >
-              <Text style={styles.buttonIcon}>🗺️</Text>
+              <Text style={styles.buttonIcon}>🍎</Text>
               <View style={{ flex: 1 }}>
                 <Text style={styles.buttonTitle}>Najdi něco ze zahrádky</Text>
               </View>
