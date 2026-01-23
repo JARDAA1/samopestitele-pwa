@@ -61,66 +61,66 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#4CAF50',
     paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+    paddingBottom: 15,
+    paddingHorizontal: 16,
     position: 'relative'
   },
   homeButton: {
     position: 'absolute',
     top: 50,
-    left: 15,
+    left: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+    gap: 3,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 8,
+    borderRadius: 6,
     zIndex: 10
   },
   homeIcon: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#FFFFFF',
     fontWeight: 'bold'
   },
   homeText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#FFFFFF',
     fontWeight: '600'
   },
   headerContent: {
     alignItems: 'center',
-    paddingTop: 5
+    paddingTop: 0
   },
   headerEmoji: {
-    fontSize: 48,
-    marginBottom: 10
+    fontSize: 40,
+    marginBottom: 8
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 4
+    lineHeight: 22,
+    marginBottom: 3
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#FFFFFF',
     opacity: 0.95,
     textAlign: 'center',
-    lineHeight: 18
+    lineHeight: 16
   },
   content: {
-    padding: 15,
-    paddingBottom: 30
+    padding: 16,
+    paddingBottom: 25
   },
   registerButton: {
     backgroundColor: '#4CAF50',
-    paddingVertical: 16,
+    paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 12,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -129,13 +129,13 @@ const styles = StyleSheet.create({
   },
   registerButtonText: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: 'bold'
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 15
+    marginVertical: 12
   },
   dividerLine: {
     flex: 1,
@@ -143,41 +143,41 @@ const styles = StyleSheet.create({
     backgroundColor: '#DDD'
   },
   dividerText: {
-    marginHorizontal: 15,
-    fontSize: 12,
+    marginHorizontal: 12,
+    fontSize: 11,
     color: '#999',
     fontWeight: '600'
   },
   loginButton: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
+    paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#4CAF50',
-    marginBottom: 20
+    marginBottom: 16
   },
   loginButtonText: {
     color: '#4CAF50',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600'
   },
   helpCard: {
     backgroundColor: '#FFF9E6',
     borderRadius: 10,
-    padding: 15,
+    padding: 14,
     borderLeftWidth: 4,
     borderLeftColor: '#FFC107'
   },
   helpTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#F57C00',
-    marginBottom: 5
+    marginBottom: 4
   },
   helpText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#666',
-    lineHeight: 18
+    lineHeight: 17
   }
 });
