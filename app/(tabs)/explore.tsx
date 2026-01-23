@@ -86,6 +86,36 @@ export default function PestiteleScreen() {
     }
   };
 
+  const handleRemoveFavorite = async (oblibenyId: number, nazevFarmy: string) => {
+    try {
+      const zakaznikId = await AsyncStorage.getItem('zakaznik_id');
+
+      if (!zakaznikId) {
+        alert('Nepodařilo se identifikovat uživatele');
+        return;
+      }
+
+      const confirmed = window.confirm(`Opravdu chcete odebrat farmáře "${nazevFarmy}" z oblíbených?`);
+
+      if (!confirmed) return;
+
+      const { error } = await supabase
+        .from('oblibeni_farmari')
+        .delete()
+        .eq('id', oblibenyId)
+        .eq('zakaznik_telefon', zakaznikId);
+
+      if (error) throw error;
+
+      // Aktualizuj seznam
+      setOblibeni(oblibeni.filter(item => item.id !== oblibenyId));
+      alert(`✓ Farmář "${nazevFarmy}" byl odebrán z oblíbených`);
+    } catch (error) {
+      console.error('Chyba při odebírání z oblíbených:', error);
+      alert('Nepodařilo se odebrat farmáře z oblíbených');
+    }
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
@@ -152,27 +182,39 @@ export default function PestiteleScreen() {
         {oblibeni.map((item) => {
           const pestitel = item.pestitele;
           return (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.farmerCard}
-              onPress={() => router.push(`/pestitele/${pestitel.id}`)}
-            >
-              <View style={styles.farmerAvatar}>
-                <Text style={styles.farmerAvatarText}>
-                  {pestitel.nazev_farmy.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-              <View style={styles.farmerInfo}>
-                <Text style={styles.farmerName}>{pestitel.nazev_farmy}</Text>
-                <View style={styles.farmerMeta}>
-                  <Text style={styles.farmerLocation}>📍 {pestitel.mesto}</Text>
+            <View key={item.id} style={styles.farmerCardWrapper}>
+              <TouchableOpacity
+                style={styles.farmerCard}
+                onPress={() => router.push(`/pestitele/${pestitel.id}`)}
+              >
+                <View style={styles.farmerAvatar}>
+                  <Text style={styles.farmerAvatarText}>
+                    {pestitel.nazev_farmy.charAt(0).toUpperCase()}
+                  </Text>
                 </View>
-                {pestitel.telefon && (
-                  <Text style={styles.farmerPhone}>📞 {pestitel.telefon}</Text>
-                )}
-              </View>
-              <Text style={styles.farmerArrow}>›</Text>
-            </TouchableOpacity>
+                <View style={styles.farmerInfo}>
+                  <Text style={styles.farmerName}>{pestitel.nazev_farmy}</Text>
+                  <View style={styles.farmerMeta}>
+                    <Text style={styles.farmerLocation}>📍 {pestitel.mesto}</Text>
+                  </View>
+                  {pestitel.telefon && (
+                    <Text style={styles.farmerPhone}>📞 {pestitel.telefon}</Text>
+                  )}
+                </View>
+                <Text style={styles.farmerArrow}>›</Text>
+              </TouchableOpacity>
+
+              {/* Tlačítko pro odebrání z oblíbených */}
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleRemoveFavorite(item.id, pestitel.nazev_farmy);
+                }}
+              >
+                <Text style={styles.removeButtonText}>✗ Odebrat z oblíbených</Text>
+              </TouchableOpacity>
+            </View>
           );
         })}
       </ScrollView>
@@ -244,11 +286,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
   },
-  farmerCard: {
-    backgroundColor: '#FFFFFF',
+  farmerCardWrapper: {
     marginHorizontal: 12,
     marginVertical: 6,
-    borderRadius: 12,
+  },
+  farmerCard: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -298,5 +343,21 @@ const styles = StyleSheet.create({
   farmerArrow: {
     fontSize: 24,
     color: '#CCC',
+  },
+  removeButton: {
+    backgroundColor: '#FFEBEE',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#FFCDD2',
+    alignItems: 'center',
+    marginTop: -2,
+  },
+  removeButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#D32F2F',
   },
 });
