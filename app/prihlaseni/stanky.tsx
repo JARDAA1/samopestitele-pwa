@@ -10,12 +10,12 @@ export default function StankyLoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const handlePinLogin = async () => {
-    if (pin.length !== 6) {
-      alert('PIN musí mít přesně 6 číslic');
+    if (pin.length !== 8) {
+      alert('PIN musí mít přesně 8 číslic');
       return;
     }
 
-    const forbiddenPins = ['123456', '654321'];
+    const forbiddenPins = ['12345678', '87654321', '00000000', '11111111', '22222222', '33333333', '44444444', '55555555', '66666666', '77777777', '88888888', '99999999'];
     if (forbiddenPins.includes(pin)) {
       alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
       return;
@@ -61,21 +61,21 @@ export default function StankyLoginScreen() {
           </Text>
 
           <View style={styles.securityInfo}>
-            <Text style={styles.securityTitle}>🔒🔒 Střední bezpečnost</Text>
+            <Text style={styles.securityTitle}>🔒 Jednoduchý přístup</Text>
             <Text style={styles.securityText}>
               PIN kód • Správa stánků • Fotografie a lokace
             </Text>
           </View>
 
-          <Text style={styles.label}>Zadejte svůj 6místný PIN</Text>
+          <Text style={styles.label}>PIN kód (8 číslic)</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••••"
+            placeholder="••••••••"
             value={pin}
             onChangeText={setPin}
             secureTextEntry
             keyboardType="numeric"
-            maxLength={6}
+            maxLength={8}
             autoFocus
             onSubmitEditing={handlePinLogin}
           />

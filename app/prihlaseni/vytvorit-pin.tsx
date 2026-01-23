@@ -12,11 +12,11 @@ export default function VytvoritPinScreen() {
 
   const handleVytvoritPin = async () => {
     // Validace délky
-    if (pin.length !== 6) {
+    if (pin.length !== 8) {
       if (Platform.OS === 'web') {
-        alert('PIN musí mít přesně 6 číslic');
+        alert('PIN musí mít přesně 8 číslic');
       } else {
-        Alert.alert('Chyba', 'PIN musí mít přesně 6 číslic');
+        Alert.alert('Chyba', 'PIN musí mít přesně 8 číslic');
       }
       return;
     }
@@ -32,22 +32,22 @@ export default function VytvoritPinScreen() {
     }
 
     // Validace zakázaných PINů
-    const forbiddenPins = ['123456', '654321'];
+    const forbiddenPins = ['12345678', '87654321', '00000000', '11111111', '22222222', '33333333', '44444444', '55555555', '66666666', '77777777', '88888888', '99999999'];
     if (forbiddenPins.includes(pin)) {
       if (Platform.OS === 'web') {
-        alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN (ne 123456 nebo 654321).');
+        alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
       } else {
-        Alert.alert('Chyba', 'Tento PIN je příliš jednoduchý. Zvolte si jiný PIN (ne 123456 nebo 654321).');
+        Alert.alert('Chyba', 'Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
       }
       return;
     }
 
-    // Validace opakujících se číslic (111111, 222222, atd.)
+    // Validace opakujících se číslic (již zahrnuto v forbiddenPins výše)
     if (/^(.)\1+$/.test(pin)) {
       if (Platform.OS === 'web') {
-        alert('PIN nesmí obsahovat pouze stejné číslice (např. 111111).');
+        alert('PIN nesmí obsahovat pouze stejné číslice.');
       } else {
-        Alert.alert('Chyba', 'PIN nesmí obsahovat pouze stejné číslice (např. 111111).');
+        Alert.alert('Chyba', 'PIN nesmí obsahovat pouze stejné číslice.');
       }
       return;
     }
@@ -68,11 +68,11 @@ export default function VytvoritPinScreen() {
 
     if (result.success) {
       if (Platform.OS === 'web') {
-        alert('PIN byl úspěšně vytvořen! Nyní se můžete přihlašovat do Prodejny pomocí 6místného PINu.');
+        alert('PIN byl úspěšně vytvořen! Nyní se můžete přihlašovat do Prodejny pomocí 8místného PINu.');
       } else {
         Alert.alert(
           'Hotovo!',
-          'PIN byl úspěšně vytvořen! Nyní se můžete přihlašovat do Prodejny pomocí 6místného PINu.',
+          'PIN byl úspěšně vytvořen! Nyní se můžete přihlašovat do Prodejny pomocí 8místného PINu.',
           [{ text: 'OK', onPress: () => router.replace('/muj-profil') }]
         );
       }
@@ -141,14 +141,14 @@ export default function VytvoritPinScreen() {
             </Text>
           </View>
 
-          <Text style={styles.label}>Zadejte PIN (6 číslic)</Text>
+          <Text style={styles.label}>Zadejte PIN (8 číslic)</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••••"
+            placeholder="••••••••"
             value={pin}
             onChangeText={setPin}
             keyboardType="number-pad"
-            maxLength={6}
+            maxLength={8}
             secureTextEntry
             autoFocus
           />
@@ -156,11 +156,11 @@ export default function VytvoritPinScreen() {
           <Text style={styles.label}>Potvrďte PIN</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••••"
+            placeholder="••••••••"
             value={pinPotvrzeni}
             onChangeText={setPinPotvrzeni}
             keyboardType="number-pad"
-            maxLength={6}
+            maxLength={8}
             secureTextEntry
             onSubmitEditing={handleVytvoritPin}
           />
@@ -178,10 +178,10 @@ export default function VytvoritPinScreen() {
           <View style={styles.helpBox}>
             <Text style={styles.helpTitle}>💡 K čemu slouží PIN?</Text>
             <Text style={styles.helpText}>
-              • Rychlé přihlášení do Prodejny pomocí 6místného PINu{'\n'}
+              • Rychlé přihlášení do Prodejny pomocí 8místného PINu{'\n'}
               • Session platná 30 dní{'\n'}
               • Umožňuje spravovat produkty, objednávky a zákazníky{'\n'}
-              • PIN nesmí být 123456, 654321 nebo opakující se číslice (111111)
+              • PIN nesmí být jednoduché postupnosti nebo opakující se číslice
             </Text>
           </View>
 

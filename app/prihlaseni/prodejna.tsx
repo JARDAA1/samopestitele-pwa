@@ -13,17 +13,17 @@ export default function ProdejnaLoginScreen() {
 
   const handlePinLogin = async () => {
     // Validace délky PINu
-    if (pin.length !== 6) {
+    if (pin.length !== 8) {
       if (Platform.OS === 'web') {
-        alert('PIN musí mít přesně 6 číslic');
+        alert('PIN musí mít přesně 8 číslic');
       } else {
-        Alert.alert('Chyba', 'PIN musí mít přesně 6 číslic');
+        Alert.alert('Chyba', 'PIN musí mít přesně 8 číslic');
       }
       return;
     }
 
     // Validace zakázaných PINů
-    const forbiddenPins = ['123456', '654321'];
+    const forbiddenPins = ['12345678', '87654321', '00000000', '11111111', '22222222', '33333333', '44444444', '55555555', '66666666', '77777777', '88888888', '99999999'];
     if (forbiddenPins.includes(pin)) {
       if (Platform.OS === 'web') {
         alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
@@ -33,7 +33,7 @@ export default function ProdejnaLoginScreen() {
       return;
     }
 
-    // Validace opakujících se číslic (111111, 222222, atd.)
+    // Validace opakujících se číslic (již zahrnuto v forbiddenPins výše)
     if (/^(.)\1+$/.test(pin)) {
       if (Platform.OS === 'web') {
         alert('PIN nesmí obsahovat pouze stejné číslice.');
@@ -91,7 +91,7 @@ export default function ProdejnaLoginScreen() {
           </Text>
 
           <View style={styles.securityInfo}>
-            <Text style={styles.securityTitle}>🔒 Střední bezpečnost</Text>
+            <Text style={styles.securityTitle}>🔒 Jednoduchý přístup</Text>
             <Text style={styles.securityText}>
               PIN kód • Správa stánků • Fotografie a lokace
             </Text>
@@ -108,14 +108,14 @@ export default function ProdejnaLoginScreen() {
             </View>
           )}
 
-          <Text style={styles.label}>PIN kód (6 číslic)</Text>
+          <Text style={styles.label}>PIN kód (8 číslic)</Text>
           <TextInput
             style={[styles.input, styles.pinInput]}
-            placeholder="••••••"
+            placeholder="••••••••"
             value={pin}
             onChangeText={setPin}
             keyboardType="number-pad"
-            maxLength={6}
+            maxLength={8}
             secureTextEntry
             autoFocus
             onSubmitEditing={handlePinLogin}

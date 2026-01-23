@@ -13,11 +13,11 @@ export default function ZmenitPinScreen() {
 
   const handleZmenitPin = async () => {
     // Validace starého PINu
-    if (starycPin.length !== 6) {
+    if (starycPin.length !== 8) {
       if (Platform.OS === 'web') {
-        alert('Starý PIN musí mít přesně 6 číslic');
+        alert('Starý PIN musí mít přesně 8 číslic');
       } else {
-        Alert.alert('Chyba', 'Starý PIN musí mít přesně 6 číslic');
+        Alert.alert('Chyba', 'Starý PIN musí mít přesně 8 číslic');
       }
       return;
     }
@@ -33,11 +33,11 @@ export default function ZmenitPinScreen() {
     }
 
     // Validace délky nového PINu
-    if (novyPin.length !== 6) {
+    if (novyPin.length !== 8) {
       if (Platform.OS === 'web') {
-        alert('Nový PIN musí mít přesně 6 číslic');
+        alert('Nový PIN musí mít přesně 8 číslic');
       } else {
-        Alert.alert('Chyba', 'Nový PIN musí mít přesně 6 číslic');
+        Alert.alert('Chyba', 'Nový PIN musí mít přesně 8 číslic');
       }
       return;
     }
@@ -53,22 +53,22 @@ export default function ZmenitPinScreen() {
     }
 
     // Validace zakázaných PINů
-    const forbiddenPins = ['123456', '654321'];
+    const forbiddenPins = ['12345678', '87654321', '00000000', '11111111', '22222222', '33333333', '44444444', '55555555', '66666666', '77777777', '88888888', '99999999'];
     if (forbiddenPins.includes(novyPin)) {
       if (Platform.OS === 'web') {
-        alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN (ne 123456 nebo 654321).');
+        alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
       } else {
-        Alert.alert('Chyba', 'Tento PIN je příliš jednoduchý. Zvolte si jiný PIN (ne 123456 nebo 654321).');
+        Alert.alert('Chyba', 'Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
       }
       return;
     }
 
-    // Validace opakujících se číslic (111111, 222222, atd.)
+    // Validace opakujících se číslic (již zahrnuto v forbiddenPins výše)
     if (/^(.)\1+$/.test(novyPin)) {
       if (Platform.OS === 'web') {
-        alert('PIN nesmí obsahovat pouze stejné číslice (např. 111111).');
+        alert('PIN nesmí obsahovat pouze stejné číslice.');
       } else {
-        Alert.alert('Chyba', 'PIN nesmí obsahovat pouze stejné číslice (např. 111111).');
+        Alert.alert('Chyba', 'PIN nesmí obsahovat pouze stejné číslice.');
       }
       return;
     }
@@ -138,7 +138,7 @@ export default function ZmenitPinScreen() {
 
           <Text style={styles.title}>Změna PIN kódu</Text>
           <Text style={styles.subtitle}>
-            Změňte svůj 6místný PIN kód pro přihlášení do Prodejny
+            Změňte svůj 8místný PIN kód pro přihlášení do Prodejny
           </Text>
 
           <View style={styles.infoBox}>
@@ -151,37 +151,37 @@ export default function ZmenitPinScreen() {
             </Text>
           </View>
 
-          <Text style={styles.label}>Starý PIN (6 číslic)</Text>
+          <Text style={styles.label}>Starý PIN (8 číslic)</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••••"
+            placeholder="••••••••"
             value={starycPin}
             onChangeText={setStarycPin}
             keyboardType="number-pad"
-            maxLength={6}
+            maxLength={8}
             secureTextEntry
             autoFocus
           />
 
-          <Text style={styles.label}>Nový PIN (6 číslic)</Text>
+          <Text style={styles.label}>Nový PIN (8 číslic)</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••••"
+            placeholder="••••••••"
             value={novyPin}
             onChangeText={setNovyPin}
             keyboardType="number-pad"
-            maxLength={6}
+            maxLength={8}
             secureTextEntry
           />
 
           <Text style={styles.label}>Potvrďte nový PIN</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••••"
+            placeholder="••••••••"
             value={novyPinPotvrzeni}
             onChangeText={setNovyPinPotvrzeni}
             keyboardType="number-pad"
-            maxLength={6}
+            maxLength={8}
             secureTextEntry
             onSubmitEditing={handleZmenitPin}
           />
@@ -199,9 +199,9 @@ export default function ZmenitPinScreen() {
           <View style={styles.helpBox}>
             <Text style={styles.helpTitle}>💡 Pravidla pro PIN</Text>
             <Text style={styles.helpText}>
-              • Přesně 6 číslic{'\n'}
-              • Nesmí být 123456 nebo 654321{'\n'}
-              • Nesmí obsahovat pouze stejné číslice (111111){'\n'}
+              • Přesně 8 číslic{'\n'}
+              • Nesmí být jednoduché postupnosti{'\n'}
+              • Nesmí obsahovat pouze stejné číslice{'\n'}
               • Slouží k rychlému přihlášení do Prodejny
             </Text>
           </View>
