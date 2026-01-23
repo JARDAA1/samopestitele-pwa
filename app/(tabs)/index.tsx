@@ -1,8 +1,78 @@
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ImageBackground, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ImageBackground, Platform, Animated } from 'react-native';
 import { router } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const isWeb = Platform.OS === 'web';
+  const [showBee, setShowBee] = useState(false);
+  const beePosition = useRef(new Animated.ValueXY({ x: -50, y: -50 })).current;
+  const beeOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    checkAndShowBee();
+  }, []);
+
+  const checkAndShowBee = async () => {
+    try {
+      const lastBeeDate = await AsyncStorage.getItem('lastBeeVisit');
+      const today = new Date().toDateString();
+
+      if (lastBeeDate !== today) {
+        await AsyncStorage.setItem('lastBeeVisit', today);
+        setShowBee(true);
+        animateBee();
+      }
+    } catch (error) {
+      console.error('Chyba při kontrole včelky:', error);
+    }
+  };
+
+  const animateBee = () => {
+    // Křivolaká cesta - začíná mimo obrazovku vlevo nahoře
+    Animated.sequence([
+      // Fade in
+      Animated.timing(beeOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      // Bod 1: Vlevo dole -> nahoru doprava
+      Animated.timing(beePosition, {
+        toValue: { x: 80, y: 150 },
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      // Bod 2: Nahoru doleva (křivka)
+      Animated.timing(beePosition, {
+        toValue: { x: 40, y: 100 },
+        duration: 700,
+        useNativeDriver: true,
+      }),
+      // Bod 3: Doprava nahoru (další křivka)
+      Animated.timing(beePosition, {
+        toValue: { x: 100, y: 70 },
+        duration: 700,
+        useNativeDriver: true,
+      }),
+      // Bod 4: Finální pozice - levý horní roh
+      Animated.timing(beePosition, {
+        toValue: { x: 20, y: 60 },
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      // Čekání 10 sekund
+      Animated.delay(10000),
+      // Fade out
+      Animated.timing(beeOpacity, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowBee(false);
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -14,6 +84,24 @@ export default function HomeScreen() {
       >
         {/* Jemný overlay pro lepší čitelnost tlačítek */}
         <View style={styles.heroOverlay} />
+
+        {/* Animovaná včelka - jednou denně */}
+        {showBee && (
+          <Animated.View
+            style={[
+              styles.bee,
+              {
+                transform: [
+                  { translateX: beePosition.x },
+                  { translateY: beePosition.y },
+                ],
+                opacity: beeOpacity,
+              },
+            ]}
+          >
+            <Text style={styles.beeEmoji}>🐝</Text>
+          </Animated.View>
+        )}
 
         {/* Tlačítka přes obrázek */}
         {!isWeb && (
@@ -220,5 +308,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 6,
     elevation: 8,
+  },
+  bee: {
+    position: 'absolute',
+    zIndex: 999,
+  },
+  beeEmoji: {
+    fontSize: 32,
   },
 });
