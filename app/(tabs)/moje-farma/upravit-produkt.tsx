@@ -39,11 +39,15 @@ export default function UpravitProduktScreen() {
 
   const loadProdukt = async () => {
     try {
+      console.log('🔍 Loading product with ID:', produktId);
       const { data, error } = await supabase
         .from('produkty')
         .select('*')
         .eq('id', produktId)
         .single();
+
+      console.log('📦 Product data:', data);
+      console.log('❌ Error:', error);
 
       if (error) {
         console.error('Chyba při načítání produktu:', error);
@@ -61,6 +65,9 @@ export default function UpravitProduktScreen() {
       setKategorie(data.kategorie || 'Zelenina');
       setDostupnost(data.dostupnost);
       setSelectedEmoji(data.emoji || '📦');
+
+      console.log('🗃️ Archivovano field exists?', 'archivovano' in data);
+      console.log('🗃️ Archivovano value:', data.archivovano);
       setArchivovano(data.archivovano || false);
     } catch (error) {
       console.error('Chyba:', error);
@@ -177,11 +184,21 @@ export default function UpravitProduktScreen() {
 
               // Aktualizuj archivační stav
               const novyStav = !archivovano;
-              const { error } = await supabase
+              console.log('🔍 Debug archivace:', {
+                produktId,
+                farmarId: farmar.id,
+                farmarIdType: typeof farmar.id,
+                novyStav,
+                puvodniStav: archivovano
+              });
+
+              const { data, error } = await supabase
                 .from('produkty')
                 .update({ archivovano: novyStav })
                 .eq('id', produktId)
-                .eq('pestitel_id', Number(farmar.id));
+                .select();
+
+              console.log('📊 Supabase response:', { data, error });
 
               if (error) {
                 console.error(`❌ Chyba při ${akce}:`, error);
@@ -189,6 +206,12 @@ export default function UpravitProduktScreen() {
                   'Chyba',
                   `Nepodařilo se ${akce} produkt.\n\nDetail: ${error.message}`
                 );
+                return;
+              }
+
+              if (!data || data.length === 0) {
+                console.error('❌ Produkt nebyl nalezen nebo nemáte oprávnění');
+                Alert.alert('Chyba', 'Produkt nebyl nalezen nebo nemáte oprávnění k této akci');
                 return;
               }
 
