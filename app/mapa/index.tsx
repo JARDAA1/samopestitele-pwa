@@ -50,6 +50,8 @@ export default function MapaScreen() {
   const [produkty, setProdukty] = useState<PredefinovanyProdukt[]>([]);
   const [selectedProdukty, setSelectedProdukty] = useState<number[]>([]); // IDs vybraných produktů
   const [showProduktyFilter, setShowProduktyFilter] = useState(false);
+  const [matchFilter, setMatchFilter] = useState<'all' | 'complete' | 'partial'>('all'); // Nový filtr
+  const [expandedFarmers, setExpandedFarmers] = useState<{[key: string]: boolean}>({}); // Sledování expanded stavu pro každého farmáře
 
   // Nové stavy pro zadávání adresy
   const [addressInput, setAddressInput] = useState('');
@@ -184,11 +186,8 @@ export default function MapaScreen() {
         setLocationSource('address');
         setLocationLabel(result.display_name.split(',').slice(0, 2).join(','));
 
-        // Spustíme filtrování s novou lokací
-        setFiltering(true);
-        setTimeout(() => {
-          filterPestitele();
-        }, 100);
+        // Filtrování se provede automaticky díky reaktivitě filteredPestitele
+        setFiltering(false);
       } else {
         Alert.alert('Adresa nenalezena', 'Zkuste zadat adresu jinak nebo použít GPS lokaci');
       }
@@ -345,6 +344,7 @@ export default function MapaScreen() {
     }
   };
 
+  // Nová logika s match score a partial matching
   const filteredPestitele = pestitele
     .map((p: any) => {
       // Výpočet vzdálenosti pokud máme GPS data
@@ -359,12 +359,47 @@ export default function MapaScreen() {
       }
       return p;
     })
+    .map((p: any) => {
+      // Výpočet match score pro vybrané produkty
+      let matchScore = 0;
+      let matchedProducts: string[] = [];
+      let missingProducts: string[] = [];
+
+      if (selectedProdukty.length > 0) {
+        const selectedProduktNames = produkty
+          .filter(prod => selectedProdukty.includes(prod.id))
+          .map(prod => ({ id: prod.id, nazev: prod.nazev, nazevNorm: removeAccents(prod.nazev) }));
+
+        selectedProduktNames.forEach(selectedProd => {
+          const hasProduct = p.produkty && p.produkty.some((produktNazev: string) => {
+            const normalizedProduktNazev = removeAccents(produktNazev);
+            return normalizedProduktNazev.includes(selectedProd.nazevNorm) ||
+                   selectedProd.nazevNorm.includes(normalizedProduktNazev);
+          });
+
+          if (hasProduct) {
+            matchedProducts.push(selectedProd.nazev);
+            matchScore++;
+          } else {
+            missingProducts.push(selectedProd.nazev);
+          }
+        });
+      }
+
+      return {
+        ...p,
+        matchScore,
+        matchedProducts,
+        missingProducts,
+        matchPercentage: selectedProdukty.length > 0 ? (matchScore / selectedProdukty.length) * 100 : 100,
+        hasCompleteMatch: selectedProdukty.length > 0 && matchScore === selectedProdukty.length
+      };
+    })
     .filter((p: any) => {
       // Filtr podle textu
       const query = searchQuery.trim();
       const queryNormalized = removeAccents(query);
 
-      // Textové vyhledávání (pokud je něco napsáno)
       const matchesSearch = !query || (
         removeAccents(p.nazev_farmy).includes(queryNormalized) ||
         removeAccents(p.mesto).includes(queryNormalized) ||
@@ -376,36 +411,43 @@ export default function MapaScreen() {
 
       // Filtr podle vzdálenosti
       const matchesDistance =
-        selectedDistance === null || // neomezeně
+        selectedDistance === null ||
         (p.distance !== undefined && p.distance <= selectedDistance);
 
-      // Filtr podle produktů (checkboxy)
-      let matchesProdukty = true;
-      if (selectedProdukty.length > 0) {
-        // Získat názvy vybraných produktů (bez diakritiky)
-        const selectedProduktNames = produkty
-          .filter(prod => selectedProdukty.includes(prod.id))
-          .map(prod => removeAccents(prod.nazev));
-
-        // Kontrola, zda farmář má alespoň jeden z vybraných produktů (bez diakritiky)
-        matchesProdukty = p.produkty && p.produkty.length > 0 &&
-          p.produkty.some((produktNazev: string) => {
-            const normalizedProduktNazev = removeAccents(produktNazev);
-            return selectedProduktNames.some(selectedName =>
-              normalizedProduktNazev.includes(selectedName) ||
-              selectedName.includes(normalizedProduktNazev)
-            );
-          });
-      }
+      // Filtr podle produktů - zobrazit všechny, kteří mají alespoň 1 produkt
+      const matchesProdukty = selectedProdukty.length === 0 || p.matchScore > 0;
 
       return matchesSearch && matchesDistance && matchesProdukty;
     })
     .sort((a: any, b: any) => {
-      // Seřazení podle vzdálenosti (pokud je k dispozici)
+      // Řazení: 1) kompletní match nahoře, 2) podle match score, 3) podle vzdálenosti
+      if (selectedProdukty.length > 0) {
+        // Kompletní match first
+        if (a.hasCompleteMatch && !b.hasCompleteMatch) return -1;
+        if (!a.hasCompleteMatch && b.hasCompleteMatch) return 1;
+
+        // Pak podle match score
+        if (a.matchScore !== b.matchScore) {
+          return b.matchScore - a.matchScore;
+        }
+      }
+
+      // Nakonec podle vzdálenosti
       if (a.distance !== undefined && b.distance !== undefined) {
         return a.distance - b.distance;
       }
       return 0;
+    })
+    .filter((p: any) => {
+      // Aplikovat matchFilter pouze pokud byly vybrány produkty
+      if (selectedProdukty.length === 0) return true;
+
+      if (matchFilter === 'complete') {
+        return p.hasCompleteMatch;
+      } else if (matchFilter === 'partial') {
+        return !p.hasCompleteMatch && p.matchScore > 0;
+      }
+      return true; // 'all'
     });
 
   if (loading) {
@@ -589,35 +631,120 @@ export default function MapaScreen() {
             <Text style={styles.resultsSectionTitle}>
               Nalezeno {filteredPestitele.length} farmářů
             </Text>
+
+            {/* Match filter - zobrazit jen pokud byly vybrány produkty */}
+            {selectedProdukty.length > 0 && (
+              <View style={styles.matchFilterContainer}>
+                <TouchableOpacity
+                  style={[styles.matchFilterBtn, matchFilter === 'all' && styles.matchFilterBtnActive]}
+                  onPress={() => setMatchFilter('all')}>
+                  <Text style={[styles.matchFilterText, matchFilter === 'all' && styles.matchFilterTextActive]}>
+                    Všichni ({filteredPestitele.length})
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.matchFilterBtn, matchFilter === 'complete' && styles.matchFilterBtnActive]}
+                  onPress={() => setMatchFilter('complete')}>
+                  <Text style={[styles.matchFilterText, matchFilter === 'complete' && styles.matchFilterTextActive]}>
+                    Má vše ({filteredPestitele.filter(p => p.hasCompleteMatch).length})
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.matchFilterBtn, matchFilter === 'partial' && styles.matchFilterBtnActive]}
+                  onPress={() => setMatchFilter('partial')}>
+                  <Text style={[styles.matchFilterText, matchFilter === 'partial' && styles.matchFilterTextActive]}>
+                    Částečná ({filteredPestitele.filter(p => !p.hasCompleteMatch && p.matchScore > 0).length})
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
 
         {/* Seznam farmářů */}
         {!filtering && filteredPestitele.length > 0 && (
           <>
-            {filteredPestitele.slice(0, 3).map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.farmerCard}
-                onPress={() => router.push(`/pestitele/${item.id}`)}
-              >
-                <View style={styles.farmerAvatar}>
-                  <Text style={styles.farmerAvatarText}>
-                    {item.nazev_farmy.charAt(0).toUpperCase()}
-                  </Text>
+            {filteredPestitele.slice(0, 3).map((item) => {
+              const hasSelectedProducts = selectedProdukty.length > 0;
+              const isExpanded = expandedFarmers[item.id] || false;
+
+              return (
+                <View key={item.id} style={styles.farmerCardWrapper}>
+                  <TouchableOpacity
+                    style={styles.farmerCard}
+                    onPress={() => router.push(`/pestitele/${item.id}`)}
+                  >
+                    <View style={styles.farmerAvatar}>
+                      <Text style={styles.farmerAvatarText}>
+                        {item.nazev_farmy.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={styles.farmerInfo}>
+                      <Text style={styles.farmerName}>{item.nazev_farmy}</Text>
+                      <View style={styles.farmerMeta}>
+                        <Text style={styles.farmerDistance}>
+                          📍 {item.distance !== undefined ? `${item.distance.toFixed(1)} km` : item.mesto}
+                        </Text>
+                        <Text style={styles.farmerRating}>⭐ 4.9</Text>
+                      </View>
+
+                      {/* Match indicator - zobrazit jen pokud byly vybrány produkty */}
+                      {hasSelectedProducts && (
+                        <View style={styles.matchIndicator}>
+                          {item.hasCompleteMatch ? (
+                            <View style={styles.matchBadgeComplete}>
+                              <Text style={styles.matchBadgeText}>✓ Má vše</Text>
+                            </View>
+                          ) : (
+                            <View style={styles.matchBadgePartial}>
+                              <Text style={styles.matchBadgeTextPartial}>
+                                {item.matchScore}/{selectedProdukty.length} produktů
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.farmerArrow}>›</Text>
+                  </TouchableOpacity>
+
+                  {/* Expandable sekce pro chybějící produkty */}
+                  {hasSelectedProducts && !item.hasCompleteMatch && item.missingProducts.length > 0 && (
+                    <>
+                      <TouchableOpacity
+                        style={styles.expandButton}
+                        onPress={() => setExpandedFarmers({
+                          ...expandedFarmers,
+                          [item.id]: !isExpanded
+                        })}
+                      >
+                        <Text style={styles.expandButtonText}>
+                          {isExpanded ? '▼' : '▶'} {isExpanded ? 'Skrýt' : 'Zobrazit'} chybějící produkty
+                        </Text>
+                      </TouchableOpacity>
+
+                      {isExpanded && (
+                        <View style={styles.expandedSection}>
+                          <Text style={styles.expandedTitle}>Má tyto produkty:</Text>
+                          {item.matchedProducts.map((prod: string, idx: number) => (
+                            <Text key={idx} style={styles.productItemMatched}>
+                              ✓ {prod}
+                            </Text>
+                          ))}
+
+                          <Text style={styles.expandedTitle}>Chybí:</Text>
+                          {item.missingProducts.map((prod: string, idx: number) => (
+                            <Text key={idx} style={styles.productItemMissing}>
+                              ✗ {prod}
+                            </Text>
+                          ))}
+                        </View>
+                      )}
+                    </>
+                  )}
                 </View>
-                <View style={styles.farmerInfo}>
-                  <Text style={styles.farmerName}>{item.nazev_farmy}</Text>
-                  <View style={styles.farmerMeta}>
-                    <Text style={styles.farmerDistance}>
-                      📍 {item.distance !== undefined ? `${item.distance.toFixed(1)} km` : item.mesto}
-                    </Text>
-                    <Text style={styles.farmerRating}>⭐ 4.9</Text>
-                  </View>
-                </View>
-                <Text style={styles.farmerArrow}>›</Text>
-              </TouchableOpacity>
-            ))}
+              );
+            })}
 
             <TouchableOpacity style={styles.showResultsButton}>
               <Text style={styles.showResultsButtonText}>
@@ -1294,5 +1421,113 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  matchFilterContainer: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 10,
+    paddingHorizontal: 4,
+  },
+  matchFilterBtn: {
+    flex: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    alignItems: 'center',
+  },
+  matchFilterBtnActive: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  matchFilterText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#666',
+  },
+  matchFilterTextActive: {
+    color: '#FFFFFF',
+  },
+  farmerCardWrapper: {
+    marginBottom: 12,
+  },
+  matchIndicator: {
+    marginTop: 6,
+  },
+  matchBadgeComplete: {
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  matchBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#2E7D32',
+  },
+  matchBadgePartial: {
+    backgroundColor: '#FFF3E0',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#FF9800',
+  },
+  matchBadgeTextPartial: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#E65100',
+  },
+  expandButton: {
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginHorizontal: 12,
+    marginTop: -4,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  expandButtonText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
+  },
+  expandedSection: {
+    backgroundColor: '#FAFAFA',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginHorizontal: 12,
+    marginTop: -4,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  expandedTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 6,
+    marginBottom: 3,
+  },
+  productItemMatched: {
+    fontSize: 12,
+    color: '#2E7D32',
+    marginLeft: 6,
+    marginVertical: 1,
+  },
+  productItemMissing: {
+    fontSize: 12,
+    color: '#999',
+    marginLeft: 6,
+    marginVertical: 1,
   },
 });
