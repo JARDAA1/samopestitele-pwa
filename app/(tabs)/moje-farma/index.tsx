@@ -219,10 +219,10 @@ function MojeProdejnaScreenContent() {
             style={styles.homeButton}
             onPress={() => router.push('/')}
           >
-            <Text style={styles.homeIcon}>🏠</Text>
+            <Text style={styles.homeIcon}>←</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
-            🏪 {farmarData?.nazev_farmy}
+            {farmarData?.nazev_farmy}
           </Text>
           <TouchableOpacity
             style={styles.menuButton}

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import md5 from 'md5';
+import bcrypt from 'bcryptjs';
 
 interface Farmar {
   id: string;
@@ -15,7 +16,7 @@ interface FarmarAuthContextType {
   farmar: Farmar | null;
   isAuthenticated: boolean;
   authLevel: 'none' | 'pin' | 'sms' | 'magic_link'; // Úroveň autentizace
-  loginWithPin: (telefon: string, pin: string) => Promise<boolean>;
+  loginWithPin: (telefon: string, pin: string) => Promise<{ success: boolean; error?: string; remainingAttempts?: number }>;
   loginWithSMS: (telefon: string, kod: string) => Promise<boolean>;
   sendMagicLink: (email: string) => Promise<{ success: boolean; error?: string }>;
   checkMagicLinkSession: () => Promise<boolean>;
@@ -31,9 +32,166 @@ interface FarmarAuthContextType {
   verifyPhone: (telefon: string, kod: string) => Promise<boolean>;
   sendSMSCode: (telefon: string) => Promise<boolean>;
   checkPinSession: () => Promise<boolean>;
+  checkAndUpdateActivity: () => Promise<boolean>;
 }
 
 const FarmarAuthContext = createContext<FarmarAuthContextType | undefined>(undefined);
+
+// ============================================================
+// BEZPEČNOSTNÍ KONSTANTY
+// ============================================================
+const MAX_LOGIN_ATTEMPTS = 5; // Max počet neúspěšných pokusů
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minut v ms
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minut v ms
+const BCRYPT_SALT_ROUNDS = 10; // Náročnost hashování
+
+// ============================================================
+// BEZPEČNOSTNÍ HELPER FUNKCE
+// ============================================================
+
+/**
+ * Zahashuje PIN pomocí bcrypt
+ */
+async function hashPin(pin: string): Promise<string> {
+  try {
+    const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
+    const hash = await bcrypt.hash(pin, salt);
+    return hash;
+  } catch (error) {
+    console.error('Chyba při hashování PINu:', error);
+    throw error;
+  }
+}
+
+/**
+ * Porovná PIN s hashem
+ */
+async function comparePin(pin: string, hash: string): Promise<boolean> {
+  try {
+    return await bcrypt.compare(pin, hash);
+  } catch (error) {
+    console.error('Chyba při porovnání PINu:', error);
+    return false;
+  }
+}
+
+/**
+ * Kontrola rate limiting - vrátí true pokud je účet uzamčen
+ */
+async function checkRateLimiting(identifier: string = 'default'): Promise<{ isLocked: boolean; remainingTime?: number }> {
+  try {
+    const attemptsKey = `login_attempts_${identifier}`;
+    const lockoutKey = `lockout_until_${identifier}`;
+
+    // Zkontrolovat lockout
+    const lockoutUntil = await AsyncStorage.getItem(lockoutKey);
+    if (lockoutUntil) {
+      const lockTime = parseInt(lockoutUntil, 10);
+      const now = Date.now();
+
+      if (now < lockTime) {
+        // Účet je stále uzamčen
+        return {
+          isLocked: true,
+          remainingTime: Math.ceil((lockTime - now) / 1000 / 60), // minuty
+        };
+      } else {
+        // Lockout vypršel, resetovat pokusy
+        await AsyncStorage.removeItem(lockoutKey);
+        await AsyncStorage.removeItem(attemptsKey);
+      }
+    }
+
+    return { isLocked: false };
+  } catch (error) {
+    console.error('Chyba při kontrole rate limiting:', error);
+    return { isLocked: false };
+  }
+}
+
+/**
+ * Zaznamenat neúspěšný pokus o přihlášení
+ */
+async function recordFailedAttempt(identifier: string = 'default'): Promise<{ remainingAttempts: number; isLocked: boolean }> {
+  try {
+    const attemptsKey = `login_attempts_${identifier}`;
+    const lockoutKey = `lockout_until_${identifier}`;
+
+    const attemptsStr = await AsyncStorage.getItem(attemptsKey);
+    const attempts = attemptsStr ? parseInt(attemptsStr, 10) : 0;
+    const newAttempts = attempts + 1;
+
+    if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+      // Uzamknout účet
+      const lockUntil = Date.now() + LOCKOUT_DURATION;
+      await AsyncStorage.setItem(lockoutKey, lockUntil.toString());
+      await AsyncStorage.removeItem(attemptsKey);
+
+      return {
+        remainingAttempts: 0,
+        isLocked: true,
+      };
+    } else {
+      // Uložit počet pokusů
+      await AsyncStorage.setItem(attemptsKey, newAttempts.toString());
+
+      return {
+        remainingAttempts: MAX_LOGIN_ATTEMPTS - newAttempts,
+        isLocked: false,
+      };
+    }
+  } catch (error) {
+    console.error('Chyba při záznamu neúspěšného pokusu:', error);
+    return { remainingAttempts: MAX_LOGIN_ATTEMPTS, isLocked: false };
+  }
+}
+
+/**
+ * Resetovat neúspěšné pokusy po úspěšném přihlášení
+ */
+async function resetFailedAttempts(identifier: string = 'default'): Promise<void> {
+  try {
+    const attemptsKey = `login_attempts_${identifier}`;
+    const lockoutKey = `lockout_until_${identifier}`;
+
+    await AsyncStorage.removeItem(attemptsKey);
+    await AsyncStorage.removeItem(lockoutKey);
+  } catch (error) {
+    console.error('Chyba při resetování pokusů:', error);
+  }
+}
+
+/**
+ * Kontrola session timeout - vrátí true pokud session vypršela
+ */
+async function checkSessionTimeout(): Promise<boolean> {
+  try {
+    const lastActivityStr = await AsyncStorage.getItem('last_activity');
+    if (!lastActivityStr) {
+      return false; // Žádná aktivita zaznamenána
+    }
+
+    const lastActivity = parseInt(lastActivityStr, 10);
+    const now = Date.now();
+    const timeSinceLastActivity = now - lastActivity;
+
+    return timeSinceLastActivity > SESSION_TIMEOUT;
+  } catch (error) {
+    console.error('Chyba při kontrole session timeout:', error);
+    return false;
+  }
+}
+
+/**
+ * Aktualizovat čas poslední aktivity
+ */
+async function updateLastActivity(): Promise<void> {
+  try {
+    await AsyncStorage.setItem('last_activity', Date.now().toString());
+  } catch (error) {
+    console.error('Chyba při aktualizaci poslední aktivity:', error);
+  }
+}
 
 export function FarmarAuthProvider({ children }: { children: React.ReactNode }) {
   const [farmar, setFarmar] = useState<Farmar | null>(null);
@@ -50,8 +208,21 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
       const storedAuthLevel = await AsyncStorage.getItem('auth_level');
 
       if (storedFarmar && storedAuthLevel) {
-        setFarmar(JSON.parse(storedFarmar));
-        setAuthLevel((storedAuthLevel as any) || 'pin');
+        // Zkontrolovat session timeout
+        const isExpired = await checkSessionTimeout();
+
+        if (isExpired) {
+          console.log('⏰ Session vypršela kvůli neaktivitě (30 minut)');
+          // Vymazat session
+          await AsyncStorage.removeItem('farmar_session');
+          await AsyncStorage.removeItem('auth_level');
+          await AsyncStorage.removeItem('last_activity');
+        } else {
+          setFarmar(JSON.parse(storedFarmar));
+          setAuthLevel((storedAuthLevel as any) || 'pin');
+          // Aktualizovat čas aktivity
+          await updateLastActivity();
+        }
       }
     } catch (error) {
       console.error('Error checking session:', error);
@@ -111,7 +282,10 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         return { success: false, error: 'Tento telefon je již registrován' };
       }
 
-      // 2. Vytvořit nového farmáře
+      // 2. Zahashovat PIN
+      const pinHash = await hashPin(data.pin);
+
+      // 3. Vytvořit nového farmáře
       const { data: newFarmar, error: insertError } = await supabase
         .from('pestitele')
         .insert({
@@ -119,7 +293,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
           nazev_farmy: data.nazev_farmy,
           jmeno: data.jmeno,
           email: data.email,
-          pin_hash: data.pin, // TODO: Zahashovat na produkci!
+          pin_hash: pinHash, // Zahashovaný PIN
           phone_verified: false,
         })
         .select()
@@ -129,8 +303,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         return { success: false, error: insertError.message };
       }
 
-      // 3. Uložit PIN lokálně
-      await AsyncStorage.setItem('farmar_pin', data.pin);
+      // 4. Uložit data lokálně (PIN NEukládáme, pouze hash v databázi)
       await AsyncStorage.setItem('farmar_data', JSON.stringify(newFarmar));
 
       return { success: true };
@@ -140,44 +313,111 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
-  const loginWithPin = async (telefon: string, pin: string): Promise<boolean> => {
+  const loginWithPin = async (telefon: string, pin: string): Promise<{ success: boolean; error?: string; remainingAttempts?: number }> => {
     try {
-      console.log('🔐 loginWithPin called:', { pin });
+      console.log('🔐 loginWithPin called');
 
-      // Pro WEB i NATIVE - kontrola proti Supabase databázi
-      const { supabase } = require('../../lib/supabase');
-
-      console.log('🔑 Checking database for PIN:', pin);
-
-      // Hledáme farmáře podle PINu (heslo_hash sloupec)
-      const { data: farmarData, error } = await supabase
-        .from('pestitele')
-        .select('*')
-        .eq('heslo_hash', pin)
-        .maybeSingle();
-
-      console.log('📊 Database result:', { farmarData, error });
-
-      if (error || !farmarData) {
-        console.log('❌ No farmer found for PIN:', pin);
-        return false;
+      // 1. RATE LIMITING - Zkontrolovat, jestli není účet uzamčen
+      const rateLimitCheck = await checkRateLimiting('pin_login');
+      if (rateLimitCheck.isLocked) {
+        console.log('🔒 Účet je uzamčen kvůli příliš mnoha pokusům');
+        return {
+          success: false,
+          error: `Příliš mnoho pokusů. Zkuste to znovu za ${rateLimitCheck.remainingTime} minut.`,
+        };
       }
 
+      // 2. Pro WEB i NATIVE - kontrola proti Supabase databázi
+      const { supabase } = require('../../lib/supabase');
+
+      console.log('🔑 Vyhledávám všechny farmáře...');
+
+      // Načteme VŠECHNY farmáře s PINem (nemůžeme filtrovat podle hashe)
+      const { data: allFarmers, error } = await supabase
+        .from('pestitele')
+        .select('*')
+        .not('heslo_hash', 'is', null);
+
+      console.log('📊 Počet farmářů s PINem:', allFarmers?.length || 0);
+
+      if (error || !allFarmers || allFarmers.length === 0) {
+        console.log('❌ Žádný farmář s PINem nenalezen');
+        // Zaznamenat neúspěšný pokus
+        const result = await recordFailedAttempt('pin_login');
+        return {
+          success: false,
+          error: 'Nesprávný PIN',
+          remainingAttempts: result.remainingAttempts,
+        };
+      }
+
+      // 3. HASHOVÁNÍ - Porovnat PIN s každým hashem
+      let matchedFarmar = null;
+      for (const farmer of allFarmers) {
+        const pinHash = farmer.heslo_hash;
+
+        // Pokud je to starý plain text PIN (pro zpětnou kompatibilitu)
+        if (pinHash === pin) {
+          console.log('⚠️ Nalezen plain text PIN - měl by být zahashován!');
+          matchedFarmar = farmer;
+          break;
+        }
+
+        // Pokud je to hash, porovnáme s bcrypt
+        if (pinHash.startsWith('$2a$') || pinHash.startsWith('$2b$')) {
+          const isMatch = await comparePin(pin, pinHash);
+          if (isMatch) {
+            console.log('✅ PIN hash match!');
+            matchedFarmar = farmer;
+            break;
+          }
+        }
+      }
+
+      if (!matchedFarmar) {
+        console.log('❌ PIN nesouhlasí');
+        // Zaznamenat neúspěšný pokus
+        const result = await recordFailedAttempt('pin_login');
+
+        if (result.isLocked) {
+          return {
+            success: false,
+            error: `Příliš mnoho pokusů. Účet je uzamčen na 15 minut.`,
+          };
+        }
+
+        return {
+          success: false,
+          error: 'Nesprávný PIN',
+          remainingAttempts: result.remainingAttempts,
+        };
+      }
+
+      // 4. Úspěšné přihlášení
       console.log('✅ PIN match! Logging in...');
 
-      setFarmar(farmarData);
+      // Resetovat neúspěšné pokusy
+      await resetFailedAttempts('pin_login');
+
+      // Nastavit session
+      setFarmar(matchedFarmar);
       setAuthLevel('pin');
 
-      await AsyncStorage.setItem('farmar_session', JSON.stringify(farmarData));
+      await AsyncStorage.setItem('farmar_session', JSON.stringify(matchedFarmar));
       await AsyncStorage.setItem('auth_level', 'pin');
-      await AsyncStorage.setItem('farmar_data', JSON.stringify(farmarData));
-      await AsyncStorage.setItem('farmar_pin', pin);
+      await AsyncStorage.setItem('farmar_data', JSON.stringify(matchedFarmar));
+
+      // SESSION TIMEOUT - Uložit čas aktivity
+      await updateLastActivity();
 
       console.log('✅ Login successful!');
-      return true;
+      return { success: true };
     } catch (error) {
       console.error('❌ PIN login error:', error);
-      return false;
+      return {
+        success: false,
+        error: 'Chyba při přihlašování',
+      };
     }
   };
 
@@ -448,10 +688,13 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
 
       const { supabase } = require('../../lib/supabase');
 
-      // Uložíme PIN do sloupce heslo_hash (v produkci by to měl být hash!)
+      // Zahashovat PIN pomocí bcrypt
+      const pinHash = await hashPin(pin);
+
+      // Uložíme zahashovaný PIN do sloupce heslo_hash
       const { error } = await supabase
         .from('pestitele')
-        .update({ heslo_hash: pin })
+        .update({ heslo_hash: pinHash })
         .eq('id', farmar.id);
 
       if (error) {
@@ -512,6 +755,34 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
+  /**
+   * Kontrola aktivity session a automatické odhlášení při timeoutu
+   * Volat při každé významné akci uživatele
+   */
+  const checkAndUpdateActivity = async (): Promise<boolean> => {
+    try {
+      if (!farmar || authLevel === 'none') {
+        return true; // Není přihlášen, není co kontrolovat
+      }
+
+      // Zkontrolovat session timeout
+      const isExpired = await checkSessionTimeout();
+
+      if (isExpired) {
+        console.log('⏰ Session vypršela, automatické odhlášení');
+        await logout();
+        return false; // Session vypršela
+      }
+
+      // Aktualizovat čas poslední aktivity
+      await updateLastActivity();
+      return true; // Session je platná
+    } catch (error) {
+      console.error('Chyba při kontrole aktivity:', error);
+      return true; // V případě chyby neodhlašujeme
+    }
+  };
+
   const logout = async () => {
     try {
       console.log('🚪 ========== LOGOUT STARTED ==========');
@@ -550,6 +821,8 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
       console.log('  ✓ Removed farmar_pin');
       await AsyncStorage.removeItem('farmar_data');
       console.log('  ✓ Removed farmar_data');
+      await AsyncStorage.removeItem('last_activity');
+      console.log('  ✓ Removed last_activity');
       console.log('✅ AsyncStorage keys removed');
 
       // Resetujeme state
@@ -580,6 +853,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     verifyPhone,
     sendSMSCode,
     checkPinSession,
+    checkAndUpdateActivity,
   };
 
   return (

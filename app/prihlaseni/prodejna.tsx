@@ -9,6 +9,7 @@ export default function ProdejnaLoginScreen() {
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [showMagicLinkOption, setShowMagicLinkOption] = useState(false);
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
 
   const handlePinLogin = async () => {
     // Validace délky PINu
@@ -43,16 +44,22 @@ export default function ProdejnaLoginScreen() {
     }
 
     setLoading(true);
-    const success = await loginWithPin('', pin); // Telefon už nepotřebujeme
+    const result = await loginWithPin('', pin); // Telefon už nepotřebujeme
     setLoading(false);
 
-    if (success) {
+    if (result.success) {
+      setRemainingAttempts(null);
       router.replace('/(tabs)/moje-farma');
     } else {
+      // Zobrazit zbývající pokusy, pokud jsou dostupné
+      if (result.remainingAttempts !== undefined) {
+        setRemainingAttempts(result.remainingAttempts);
+      }
+
       if (Platform.OS === 'web') {
-        alert('Nesprávný PIN');
+        alert(result.error || 'Nesprávný PIN');
       } else {
-        Alert.alert('Chyba', 'Nesprávný PIN');
+        Alert.alert('Chyba', result.error || 'Nesprávný PIN');
       }
       setShowMagicLinkOption(true);
     }
@@ -80,15 +87,26 @@ export default function ProdejnaLoginScreen() {
 
           <Text style={styles.title}>Přihlášení PIN kódem</Text>
           <Text style={styles.subtitle}>
-            Zadejte svůj 6místný PIN kód pro rychlý přístup
+            Spravujte své stánky na trzích - flexibilně, dnes tady, zítra jinde
           </Text>
 
           <View style={styles.securityInfo}>
-            <Text style={styles.securityTitle}>🔒 Jednoduchý přístup</Text>
+            <Text style={styles.securityTitle}>🔒 Střední bezpečnost</Text>
             <Text style={styles.securityText}>
-              Pouze PIN kód • Session 30 dní • Okamžité přihlášení
+              PIN kód • Správa stánků • Fotografie a lokace
             </Text>
           </View>
+
+          {remainingAttempts !== null && remainingAttempts < 5 && (
+            <View style={styles.warningBox}>
+              <Text style={styles.warningText}>
+                ⚠️ Zbývající pokusy: {remainingAttempts}
+              </Text>
+              <Text style={styles.warningSubtext}>
+                Poté bude účet uzamčen na 15 minut
+              </Text>
+            </View>
+          )}
 
           <Text style={styles.label}>PIN kód (6 číslic)</Text>
           <TextInput
@@ -337,5 +355,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     lineHeight: 16,
+  },
+  warningBox: {
+    backgroundColor: '#FFEBEE',
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#F44336',
+  },
+  warningText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#C62828',
+    marginBottom: 4,
+  },
+  warningSubtext: {
+    fontSize: 11,
+    color: '#666',
+    lineHeight: 14,
   },
 });
