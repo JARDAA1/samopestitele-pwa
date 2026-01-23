@@ -176,9 +176,10 @@ export default function UpravitProduktScreen() {
               }
 
               // Aktualizuj archivační stav
+              const novyStav = !archivovano;
               const { error } = await supabase
                 .from('produkty')
-                .update({ archivovano: !archivovano })
+                .update({ archivovano: novyStav })
                 .eq('id', produktId)
                 .eq('pestitel_id', Number(farmar.id));
 
@@ -190,6 +191,9 @@ export default function UpravitProduktScreen() {
                 );
                 return;
               }
+
+              // Aktualizuj lokální state
+              setArchivovano(novyStav);
 
               console.log(`✅ Produkt úspěšně ${archivovano ? 'obnoven' : 'archivován'}`);
               Alert.alert(
@@ -620,16 +624,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   deleteButton: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: '#F5F5F5',
     paddingVertical: 16,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 15,
     borderWidth: 2,
-    borderColor: '#F44336'
+    borderColor: '#9E9E9E'
   },
   deleteButtonText: {
-    color: '#F44336',
+    color: '#757575',
     fontSize: 16,
     fontWeight: 'bold'
   },

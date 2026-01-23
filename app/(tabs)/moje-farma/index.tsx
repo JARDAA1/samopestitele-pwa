@@ -351,8 +351,9 @@ function MojeProdejnaScreenContent() {
           ) : (
             (activeTab === 'aktivni' ? produkty : archivovaneProdukty).map((produkt) => {
               const isExpanded = expandedProduktId === produkt.id;
+              const isArchived = activeTab === 'archivovane';
               return (
-                <View key={produkt.id} style={styles.productCard}>
+                <View key={produkt.id} style={[styles.productCard, isArchived && styles.productCardArchived]}>
                   {/* Hlavní řádek produktu - klikatelný */}
                   <TouchableOpacity
                     style={styles.productRow}
@@ -360,15 +361,15 @@ function MojeProdejnaScreenContent() {
                   >
                     <Text style={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</Text>
                     <View style={styles.productRowContent}>
-                      <Text style={styles.productName}>{produkt.nazev}</Text>
-                      <Text style={styles.productPrice}>
+                      <Text style={[styles.productName, isArchived && styles.productNameArchived]}>{produkt.nazev}</Text>
+                      <Text style={[styles.productPrice, isArchived && styles.productPriceArchived]}>
                         {produkt.cena} Kč / {produkt.jednotka}
                       </Text>
                     </View>
                     <View
                       style={[
                         styles.statusDot,
-                        produkt.dostupnost ? styles.statusDotAvailable : styles.statusDotUnavailable
+                        isArchived ? styles.statusDotArchived : (produkt.dostupnost ? styles.statusDotAvailable : styles.statusDotUnavailable)
                       ]}
                     />
                   </TouchableOpacity>
@@ -391,18 +392,18 @@ function MojeProdejnaScreenContent() {
                         <View
                           style={[
                             styles.availabilityBadge,
-                            produkt.dostupnost ? styles.availableBadge : styles.unavailableBadge
+                            isArchived ? styles.archivedBadge : (produkt.dostupnost ? styles.availableBadge : styles.unavailableBadge)
                           ]}
                         >
                           <Text style={styles.availabilityText}>
-                            {produkt.dostupnost ? '✓ Skladem' : '✗ Vyprodáno'}
+                            {isArchived ? '📦 Archivováno' : (produkt.dostupnost ? '✓ Skladem' : '✗ Vyprodáno')}
                           </Text>
                         </View>
                         <TouchableOpacity
-                          style={styles.editButton}
+                          style={[styles.editButton, isArchived && styles.editButtonArchived]}
                           onPress={() => router.push(`/moje-farma/upravit-produkt?id=${produkt.id}`)}
                         >
-                          <Text style={styles.editButtonText}>✏️ Upravit</Text>
+                          <Text style={[styles.editButtonText, isArchived && styles.editButtonTextArchived]}>✏️ Upravit</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -466,14 +467,18 @@ const styles = StyleSheet.create({
   emptyProductsIcon: { fontSize: 40, marginBottom: 8 },
   emptyProductsText: { fontSize: 13, color: '#999', textAlign: 'center', lineHeight: 18 },
   productCard: { backgroundColor: '#F9F9F9', borderRadius: 8, marginBottom: 8, overflow: 'hidden' },
+  productCardArchived: { backgroundColor: '#EEEEEE', opacity: 0.8 },
   productRow: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10 },
   expandIcon: { fontSize: 12, color: '#666', width: 18 },
   productRowContent: { flex: 1 },
   productName: { fontSize: 15, fontWeight: '600', color: '#333', marginBottom: 2 },
+  productNameArchived: { color: '#757575' },
   productPrice: { fontSize: 13, color: '#4CAF50', fontWeight: '600' },
+  productPriceArchived: { color: '#9E9E9E' },
   statusDot: { width: 10, height: 10, borderRadius: 5 },
   statusDotAvailable: { backgroundColor: '#4CAF50' },
   statusDotUnavailable: { backgroundColor: '#FF5252' },
+  statusDotArchived: { backgroundColor: '#9E9E9E' },
   productDetails: { paddingHorizontal: 12, paddingBottom: 12, gap: 8, borderTopWidth: 1, borderTopColor: '#E0E0E0', paddingTop: 8 },
   productImage: { width: '100%', height: 140, borderRadius: 8 },
   productDesc: { fontSize: 12, color: '#666', lineHeight: 17 },
@@ -482,9 +487,12 @@ const styles = StyleSheet.create({
   availabilityBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, flex: 1, alignItems: 'center' },
   availableBadge: { backgroundColor: '#E8F5E9' },
   unavailableBadge: { backgroundColor: '#FFEBEE' },
+  archivedBadge: { backgroundColor: '#F5F5F5' },
   availabilityText: { fontSize: 11, fontWeight: '600' },
   editButton: { backgroundColor: '#4CAF50', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 6, flex: 1, alignItems: 'center' },
+  editButtonArchived: { backgroundColor: '#9E9E9E' },
   editButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
+  editButtonTextArchived: { color: '#FFFFFF' },
   editIconButton: { padding: 6 },
   editIconText: { fontSize: 18 },
   tabsContainer: { flexDirection: 'row', marginBottom: 12, borderRadius: 8, backgroundColor: '#F5F5F5', padding: 3 },
