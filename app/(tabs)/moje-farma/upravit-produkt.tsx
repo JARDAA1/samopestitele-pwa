@@ -13,6 +13,45 @@ const PRODUCT_ICONS = [
   '🍞', '🥖', '🥨', '🥐', '🥯', '🫓', '🥞', '🧇', '🥔', '🌾'
 ];
 
+// Helper funkce pro normalizaci názvu produktu
+const normalizeProductName = (name: string): string => {
+  return name
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+};
+
+// Levenshtein distance pro detekci překlepů
+const levenshteinDistance = (str1: string, str2: string): number => {
+  const matrix: number[][] = [];
+
+  for (let i = 0; i <= str2.length; i++) {
+    matrix[i] = [i];
+  }
+
+  for (let j = 0; j <= str1.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= str2.length; i++) {
+    for (let j = 1; j <= str1.length; j++) {
+      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+
+  return matrix[str2.length][str1.length];
+};
+
 export default function UpravitProduktScreen() {
   const { farmar, isAuthenticated } = useFarmarAuth();
   const params = useLocalSearchParams();
@@ -99,13 +138,13 @@ export default function UpravitProduktScreen() {
         return;
       }
 
-      // Kontrola duplicitních názvů (pokud se název změnil)
-      const { data: existingProducts, error: checkError } = await supabase
+      // Kontrola duplicitních názvů s normalizací a detekcí překlepů
+      const { data: allProducts, error: checkError } = await supabase
         .from('produkty')
         .select('id, nazev')
         .eq('pestitel_id', Number(farmar.id))
-        .eq('nazev', nazev.trim())
-        .neq('id', produktId);
+        .eq('archivovano', false) // Kontrolujeme pouze aktivní produkty
+        .neq('id', produktId); // Vyloučíme upravovaný produkt
 
       if (checkError) {
         console.error('Chyba při kontrole duplicitních produktů:', checkError);
@@ -114,10 +153,32 @@ export default function UpravitProduktScreen() {
         return;
       }
 
-      if (existingProducts && existingProducts.length > 0) {
+      // Normalizovaný název upravovaného produktu
+      const normalizedNewName = normalizeProductName(nazev.trim());
+
+      // Kontrola na duplicitu nebo překlep
+      const similarProduct = allProducts?.find(product => {
+        const normalizedExisting = normalizeProductName(product.nazev);
+
+        // 1. Přesná shoda po normalizaci
+        if (normalizedExisting === normalizedNewName) {
+          return true;
+        }
+
+        // 2. Detekce překlepů - pokud se liší max o 2 znaky
+        const distance = levenshteinDistance(normalizedExisting, normalizedNewName);
+        const maxLength = Math.max(normalizedExisting.length, normalizedNewName.length);
+
+        // Povolíme max 2 odlišné znaky, nebo 20% délky slova (co je menší)
+        const threshold = Math.min(2, Math.ceil(maxLength * 0.2));
+
+        return distance <= threshold;
+      });
+
+      if (similarProduct) {
         Alert.alert(
           'Produkt již existuje',
-          `Produkt s názvem "${nazev.trim()}" již máte ve své nabídce. Zvolte jiný název.`
+          `Produkt "${similarProduct.nazev}" je již ve vaší nabídce.\n\nZvolte prosím jiný název nebo upravte stávající produkt.`
         );
         setSaving(false);
         return;
