@@ -34,7 +34,7 @@ export default function HomeScreen() {
         style={styles.secondaryButton}
         onPress={() => router.push('/explore')}
       >
-        <Text style={styles.buttonIcon}>🫂</Text>
+        <Text style={styles.buttonIcon}>🐻‍❄️</Text>
         <View style={{ flex: 1 }}>
           <Text style={styles.buttonTitle}>Oblíbené</Text>
         </View>
@@ -79,7 +79,7 @@ export default function HomeScreen() {
               style={styles.secondaryButton}
               onPress={() => router.push('/explore')}
             >
-              <Text style={styles.buttonIcon}>🫂</Text>
+              <Text style={styles.buttonIcon}>🐻‍❄️</Text>
               <View style={{ flex: 1 }}>
                 <Text style={styles.buttonTitle}>Oblíbené</Text>
               </View>
