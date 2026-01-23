@@ -156,87 +156,73 @@ export default function UpravitProduktScreen() {
     }
   };
 
-  const handleArchivovat = () => {
+  const handleArchivovat = async () => {
     console.log('🎯 handleArchivovat CALLED! archivovano:', archivovano);
     const akce = archivovano ? 'obnovit z archivu' : 'dát do archivu';
-    const nadpis = archivovano ? 'Obnovit produkt?' : 'Dát do archivu?';
     const zprava = archivovano
       ? 'Opravdu chcete obnovit tento produkt z archivu? Produkt se znovu zobrazí ve vaší nabídce.'
       : 'Opravdu chcete dát tento produkt do archivu? Produkt se skryje z nabídky, ale zůstane v historii objednávek.';
 
-    console.log('📢 Showing alert dialog:', nadpis);
-    Alert.alert(
-      nadpis,
-      zprava,
-      [
-        { text: 'Zrušit', style: 'cancel' },
-        {
-          text: archivovano ? 'Obnovit' : 'Archivovat',
-          style: archivovano ? 'default' : 'destructive',
-          onPress: async () => {
-            try {
-              console.log(`📦 Attempting to ${akce} product with ID:`, produktId);
-              console.log('👤 Farmer ID:', farmar?.id);
+    console.log('📢 Showing confirmation dialog');
+    const confirmed = window.confirm(zprava);
 
-              // Zkontrolovat, jestli máme oprávnění
-              if (!farmar?.id) {
-                Alert.alert('Chyba', `Nejste přihlášeni. Nelze ${akce} produkt.`);
-                return;
-              }
+    if (!confirmed) {
+      console.log('❌ User cancelled');
+      return;
+    }
 
-              // Aktualizuj archivační stav
-              const novyStav = !archivovano;
-              console.log('🔍 Debug archivace:', {
-                produktId,
-                farmarId: farmar.id,
-                farmarIdType: typeof farmar.id,
-                novyStav,
-                puvodniStav: archivovano
-              });
+    console.log('✅ User confirmed, proceeding...');
 
-              const { data, error } = await supabase
-                .from('produkty')
-                .update({ archivovano: novyStav })
-                .eq('id', produktId)
-                .select();
+    try {
+      console.log(`📦 Attempting to ${akce} product with ID:`, produktId);
+      console.log('👤 Farmer ID:', farmar?.id);
 
-              console.log('📊 Supabase response:', { data, error });
+      // Zkontrolovat, jestli máme oprávnění
+      if (!farmar?.id) {
+        alert(`Nejste přihlášeni. Nelze ${akce} produkt.`);
+        return;
+      }
 
-              if (error) {
-                console.error(`❌ Chyba při ${akce}:`, error);
-                Alert.alert(
-                  'Chyba',
-                  `Nepodařilo se ${akce} produkt.\n\nDetail: ${error.message}`
-                );
-                return;
-              }
+      // Aktualizuj archivační stav
+      const novyStav = !archivovano;
+      console.log('🔍 Debug archivace:', {
+        produktId,
+        farmarId: farmar.id,
+        farmarIdType: typeof farmar.id,
+        novyStav,
+        puvodniStav: archivovano
+      });
 
-              if (!data || data.length === 0) {
-                console.error('❌ Produkt nebyl nalezen nebo nemáte oprávnění');
-                Alert.alert('Chyba', 'Produkt nebyl nalezen nebo nemáte oprávnění k této akci');
-                return;
-              }
+      const { data, error } = await supabase
+        .from('produkty')
+        .update({ archivovano: novyStav })
+        .eq('id', produktId)
+        .select();
 
-              // Aktualizuj lokální state
-              setArchivovano(novyStav);
+      console.log('📊 Supabase response:', { data, error });
 
-              console.log(`✅ Produkt úspěšně ${archivovano ? 'obnoven' : 'archivován'}`);
-              Alert.alert(
-                'Úspěch',
-                archivovano ? 'Produkt byl obnoven z archivu' : 'Produkt byl přesunut do archivu',
-                [{ text: 'OK', onPress: () => router.push('/moje-farma') }]
-              );
-            } catch (error: any) {
-              console.error(`❌ Chyba při ${akce}:`, error);
-              Alert.alert(
-                'Chyba',
-                `Nepodařilo se ${akce} produkt.\n\nDetail: ${error?.message || 'Neznámá chyba'}`
-              );
-            }
-          }
-        }
-      ]
-    );
+      if (error) {
+        console.error(`❌ Chyba při ${akce}:`, error);
+        alert(`Nepodařilo se ${akce} produkt.\n\nDetail: ${error.message}`);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        console.error('❌ Produkt nebyl nalezen nebo nemáte oprávnění');
+        alert('Produkt nebyl nalezen nebo nemáte oprávnění k této akci');
+        return;
+      }
+
+      // Aktualizuj lokální state
+      setArchivovano(novyStav);
+
+      console.log(`✅ Produkt úspěšně ${archivovano ? 'obnoven' : 'archivován'}`);
+      alert(archivovano ? 'Produkt byl obnoven z archivu' : 'Produkt byl přesunut do archivu');
+      router.push('/moje-farma');
+    } catch (error: any) {
+      console.error(`❌ Chyba při ${akce}:`, error);
+      alert(`Nepodařilo se ${akce} produkt.\n\nDetail: ${error?.message || 'Neznámá chyba'}`);
+    }
   };
 
   if (loading) {
