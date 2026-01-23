@@ -93,13 +93,26 @@ export default function UpravitFarmuScreen() {
   // Funkce pro změnu PINu
   const handleZmenitPin = async () => {
     // Validace
-    if (newPin.length < 4 || newPin.length > 6) {
-      Alert.alert('Chyba', 'PIN musí mít 4-6 číslic');
+    if (newPin.length !== 8) {
+      Alert.alert('Chyba', 'PIN musí mít přesně 8 číslic');
       return;
     }
 
     if (!/^\d+$/.test(newPin)) {
       Alert.alert('Chyba', 'PIN může obsahovat pouze číslice');
+      return;
+    }
+
+    // Validace zakázaných PINů
+    const forbiddenPins = ['12345678', '87654321', '00000000', '11111111', '22222222', '33333333', '44444444', '55555555', '66666666', '77777777', '88888888', '99999999'];
+    if (forbiddenPins.includes(newPin)) {
+      Alert.alert('Chyba', 'Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
+      return;
+    }
+
+    // Validace opakujících se číslic
+    if (/^(.)\1+$/.test(newPin)) {
+      Alert.alert('Chyba', 'PIN nesmí obsahovat pouze stejné číslice.');
       return;
     }
 
@@ -433,15 +446,15 @@ export default function UpravitFarmuScreen() {
               {showPinSection && (
                 <View style={styles.pinChangeForm}>
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Nový PIN (4-6 číslic)</Text>
+                    <Text style={styles.label}>Nový PIN (8 číslic)</Text>
                     <TextInput
                       style={styles.pinInput}
-                      placeholder="••••"
+                      placeholder="••••••••"
                       placeholderTextColor="#999"
                       value={newPin}
                       onChangeText={setNewPin}
                       keyboardType="number-pad"
-                      maxLength={6}
+                      maxLength={8}
                       secureTextEntry
                     />
                   </View>
@@ -450,12 +463,12 @@ export default function UpravitFarmuScreen() {
                     <Text style={styles.label}>Potvrďte nový PIN</Text>
                     <TextInput
                       style={styles.pinInput}
-                      placeholder="••••"
+                      placeholder="••••••••"
                       placeholderTextColor="#999"
                       value={confirmPin}
                       onChangeText={setConfirmPin}
                       keyboardType="number-pad"
-                      maxLength={6}
+                      maxLength={8}
                       secureTextEntry
                     />
                   </View>
@@ -492,15 +505,15 @@ export default function UpravitFarmuScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Nový PIN (4-6 číslic)</Text>
+                <Text style={styles.label}>Nový PIN (8 číslic)</Text>
                 <TextInput
                   style={styles.pinInput}
-                  placeholder="••••"
+                  placeholder="••••••••"
                   placeholderTextColor="#999"
                   value={newPin}
                   onChangeText={setNewPin}
                   keyboardType="number-pad"
-                  maxLength={6}
+                  maxLength={8}
                   secureTextEntry
                 />
               </View>
@@ -509,12 +522,12 @@ export default function UpravitFarmuScreen() {
                 <Text style={styles.label}>Potvrďte PIN</Text>
                 <TextInput
                   style={styles.pinInput}
-                  placeholder="••••"
+                  placeholder="••••••••"
                   placeholderTextColor="#999"
                   value={confirmPin}
                   onChangeText={setConfirmPin}
                   keyboardType="number-pad"
-                  maxLength={6}
+                  maxLength={8}
                   secureTextEntry
                 />
               </View>
