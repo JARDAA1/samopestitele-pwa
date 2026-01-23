@@ -157,12 +157,14 @@ export default function UpravitProduktScreen() {
   };
 
   const handleArchivovat = () => {
+    console.log('🎯 handleArchivovat CALLED! archivovano:', archivovano);
     const akce = archivovano ? 'obnovit z archivu' : 'dát do archivu';
     const nadpis = archivovano ? 'Obnovit produkt?' : 'Dát do archivu?';
     const zprava = archivovano
       ? 'Opravdu chcete obnovit tento produkt z archivu? Produkt se znovu zobrazí ve vaší nabídce.'
       : 'Opravdu chcete dát tento produkt do archivu? Produkt se skryje z nabídky, ale zůstane v historii objednávek.';
 
+    console.log('📢 Showing alert dialog:', nadpis);
     Alert.alert(
       nadpis,
       zprava,
@@ -422,7 +424,11 @@ export default function UpravitProduktScreen() {
 
           <TouchableOpacity
             style={archivovano ? styles.restoreButton : styles.deleteButton}
-            onPress={handleArchivovat}
+            onPress={() => {
+              console.log('🖱️ BUTTON CLICKED!');
+              handleArchivovat();
+            }}
+            activeOpacity={0.7}
           >
             <Text style={archivovano ? styles.restoreButtonText : styles.deleteButtonText}>
               {archivovano ? '📤 Obnovit z archivu' : '📦 Dej do archivu'}
