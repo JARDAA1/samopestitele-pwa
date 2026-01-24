@@ -8,19 +8,22 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated } = useFarmarAuth();
+  const { isAuthenticated, isSessionChecked } = useFarmarAuth();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      // Redirect only once when auth changes
+    // Počkat, než se dokončí kontrola session
+    if (isSessionChecked && !isAuthenticated) {
+      console.log('🚫 Not authenticated after session check, redirecting to /prihlaseni');
       const timer = setTimeout(() => {
         router.replace('/prihlaseni');
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isSessionChecked]);
 
-  if (!isAuthenticated) {
+  // Zobrazit loading, dokud se kontroluje session
+  if (!isSessionChecked) {
+    console.log('⏳ Waiting for session check to complete...');
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#4CAF50" />
@@ -28,6 +31,17 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
+  // Pokud není přihlášen po dokončení kontroly, zobrazit loading (přesměrování probíhá)
+  if (!isAuthenticated) {
+    console.log('🚫 Not authenticated, showing loading while redirecting...');
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+      </View>
+    );
+  }
+
+  console.log('✅ Authenticated, rendering protected content');
   return <>{children}</>;
 }
 

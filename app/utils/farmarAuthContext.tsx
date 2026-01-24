@@ -17,6 +17,7 @@ interface Farmar {
 interface FarmarAuthContextType {
   farmar: Farmar | null;
   isAuthenticated: boolean;
+  isSessionChecked: boolean; // Indikuje, zda už byla kontrola session dokončena
   authLevel: 'none' | 'pin' | 'sms' | 'magic_link'; // Úroveň autentizace
   loginWithPin: (farmNumber: string, pin: string) => Promise<{ success: boolean; error?: string; remainingAttempts?: number }>;
   loginWithSMS: (telefon: string, kod: string) => Promise<boolean>;
@@ -812,6 +813,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
   const value: FarmarAuthContextType = {
     farmar,
     isAuthenticated: farmar !== null && authLevel !== 'none',
+    isSessionChecked,
     authLevel,
     loginWithPin,
     loginWithSMS,
