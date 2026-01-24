@@ -16,12 +16,17 @@ export default function StankyLoginScreen() {
       return;
     }
 
-    if (pin.length !== 8) {
-      alert('PIN musí mít přesně 8 číslic');
+    if (pin.length < 4) {
+      alert('PIN musí mít minimálně 4 číslice');
       return;
     }
 
-    const forbiddenPins = ['12345678', '87654321', '00000000', '11111111', '22222222', '33333333', '44444444', '55555555', '66666666', '77777777', '88888888', '99999999'];
+    if (!/^\d+$/.test(pin)) {
+      alert('PIN může obsahovat pouze číslice');
+      return;
+    }
+
+    const forbiddenPins = ['1234', '4321', '0000', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999', '12345678', '87654321'];
     if (forbiddenPins.includes(pin)) {
       alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
       return;
@@ -84,15 +89,15 @@ export default function StankyLoginScreen() {
             autoFocus
           />
 
-          <Text style={styles.label}>PIN kód (8 číslic)</Text>
+          <Text style={styles.label}>PIN kód (min. 4 číslice)</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••••••"
+            placeholder="••••"
             value={pin}
             onChangeText={setPin}
             secureTextEntry
             keyboardType="numeric"
-            maxLength={8}
+            maxLength={12}
             onSubmitEditing={handlePinLogin}
           />
 

@@ -13,11 +13,11 @@ export default function ZmenitPinScreen() {
 
   const handleZmenitPin = async () => {
     // Validace starého PINu
-    if (starycPin.length !== 8) {
+    if (starycPin.length < 4) {
       if (Platform.OS === 'web') {
-        alert('Starý PIN musí mít přesně 8 číslic');
+        alert('Starý PIN musí mít minimálně 4 číslice');
       } else {
-        Alert.alert('Chyba', 'Starý PIN musí mít přesně 8 číslic');
+        Alert.alert('Chyba', 'Starý PIN musí mít minimálně 4 číslice');
       }
       return;
     }
@@ -33,11 +33,11 @@ export default function ZmenitPinScreen() {
     }
 
     // Validace délky nového PINu
-    if (novyPin.length !== 8) {
+    if (novyPin.length < 4) {
       if (Platform.OS === 'web') {
-        alert('Nový PIN musí mít přesně 8 číslic');
+        alert('Nový PIN musí mít minimálně 4 číslice');
       } else {
-        Alert.alert('Chyba', 'Nový PIN musí mít přesně 8 číslic');
+        Alert.alert('Chyba', 'Nový PIN musí mít minimálně 4 číslice');
       }
       return;
     }
@@ -53,7 +53,7 @@ export default function ZmenitPinScreen() {
     }
 
     // Validace zakázaných PINů
-    const forbiddenPins = ['12345678', '87654321', '00000000', '11111111', '22222222', '33333333', '44444444', '55555555', '66666666', '77777777', '88888888', '99999999'];
+    const forbiddenPins = ['1234', '4321', '0000', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999', '12345678', '87654321'];
     if (forbiddenPins.includes(novyPin)) {
       if (Platform.OS === 'web') {
         alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
@@ -63,7 +63,7 @@ export default function ZmenitPinScreen() {
       return;
     }
 
-    // Validace opakujících se číslic (již zahrnuto v forbiddenPins výše)
+    // Validace opakujících se číslic
     if (/^(.)\1+$/.test(novyPin)) {
       if (Platform.OS === 'web') {
         alert('PIN nesmí obsahovat pouze stejné číslice.');
@@ -138,7 +138,7 @@ export default function ZmenitPinScreen() {
 
           <Text style={styles.title}>Změna PIN kódu</Text>
           <Text style={styles.subtitle}>
-            Změňte svůj 8místný PIN kód pro přihlášení do Prodejny
+            Změňte svůj PIN kód pro přihlášení do Prodejny
           </Text>
 
           <View style={styles.infoBox}>
@@ -154,37 +154,37 @@ export default function ZmenitPinScreen() {
             </Text>
           </View>
 
-          <Text style={styles.label}>Starý PIN (8 číslic)</Text>
+          <Text style={styles.label}>Starý PIN (min. 4 číslice)</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••••••"
+            placeholder="••••"
             value={starycPin}
             onChangeText={setStarycPin}
             keyboardType="number-pad"
-            maxLength={8}
+            maxLength={12}
             secureTextEntry
             autoFocus
           />
 
-          <Text style={styles.label}>Nový PIN (8 číslic)</Text>
+          <Text style={styles.label}>Nový PIN (min. 4 číslice)</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••••••"
+            placeholder="••••"
             value={novyPin}
             onChangeText={setNovyPin}
             keyboardType="number-pad"
-            maxLength={8}
+            maxLength={12}
             secureTextEntry
           />
 
           <Text style={styles.label}>Potvrďte nový PIN</Text>
           <TextInput
             style={styles.pinInput}
-            placeholder="••••••••"
+            placeholder="••••"
             value={novyPinPotvrzeni}
             onChangeText={setNovyPinPotvrzeni}
             keyboardType="number-pad"
-            maxLength={8}
+            maxLength={12}
             secureTextEntry
             onSubmitEditing={handleZmenitPin}
           />
@@ -202,7 +202,7 @@ export default function ZmenitPinScreen() {
           <View style={styles.helpBox}>
             <Text style={styles.helpTitle}>💡 Pravidla pro PIN</Text>
             <Text style={styles.helpText}>
-              • Přesně 8 číslic{'\n'}
+              • Minimálně 4 číslice{'\n'}
               • Nesmí být jednoduché postupnosti{'\n'}
               • Nesmí obsahovat pouze stejné číslice{'\n'}
               • Používá se společně s číslem farmy pro přihlášení
