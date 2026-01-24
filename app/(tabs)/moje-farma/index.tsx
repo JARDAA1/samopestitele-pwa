@@ -302,6 +302,12 @@ function MojeProdejnaScreenContent() {
                 </View>
               )}
 
+              <View style={styles.logoutInfoBox}>
+                <Text style={styles.logoutInfoText}>
+                  ℹ️ Zůstáváte přihlášeni do manuálního odhlášení. Nechcete-li být v prodejně trvale přihlášeni, zde se odhlaste.
+                </Text>
+              </View>
+
               <TouchableOpacity
                 style={styles.logoutButton}
                 onPress={handleOdhlasit}
@@ -456,7 +462,9 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#FFFFFF', marginHorizontal: 15, marginTop: 15, padding: 16, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#2E7D32' },
-  logoutButton: { backgroundColor: '#FF5252', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 15 },
+  logoutInfoBox: { backgroundColor: '#E3F2FD', padding: 12, borderRadius: 8, marginTop: 15, borderLeftWidth: 3, borderLeftColor: '#2196F3' },
+  logoutInfoText: { fontSize: 11, color: '#1565C0', lineHeight: 16, textAlign: 'center' },
+  logoutButton: { backgroundColor: '#FF5252', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 12 },
   logoutButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   infoGrid: { gap: 10 },
   profileHintText: { fontSize: 11, color: '#FF5252', marginBottom: 10, fontStyle: 'italic', lineHeight: 16 },

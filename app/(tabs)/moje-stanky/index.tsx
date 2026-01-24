@@ -22,7 +22,7 @@ interface Stanek {
 }
 
 function MojeStankyScreenContent() {
-  const { isAuthenticated, farmar } = useFarmarAuth();
+  const { isAuthenticated, farmar, logout } = useFarmarAuth();
 
   const [loading, setLoading] = useState(true);
   const [stanky, setStanky] = useState<Stanek[]>([]);
@@ -321,6 +321,24 @@ function MojeStankyScreenContent() {
       cas_do: stanek.cas_do,
     });
     setShowStanekForm(true);
+  };
+
+  const handleOdhlasit = async () => {
+    Alert.alert(
+      'Odhlásit se?',
+      'Opravdu se chcete odhlásit?',
+      [
+        { text: 'Zrušit', style: 'cancel' },
+        {
+          text: 'Odhlásit',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            router.replace('/prihlaseni');
+          }
+        }
+      ]
+    );
   };
 
   const handleSmazatStanek = async (stanekId: string) => {
@@ -707,6 +725,21 @@ function MojeStankyScreenContent() {
             ))
           )}
         </View>
+
+        {/* Sekce odhlášení */}
+        <View style={styles.logoutSection}>
+          <View style={styles.logoutInfoBox}>
+            <Text style={styles.logoutInfoText}>
+              ℹ️ Zůstáváte přihlášeni do manuálního odhlášení. Nechcete-li být ve stáncích trvale přihlášeni, zde se odhlaste.
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={handleOdhlasit}
+          >
+            <Text style={styles.logoutButtonText}>🚪 Odhlásit se</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
@@ -801,4 +834,9 @@ const styles = StyleSheet.create({
   deleteButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   inaktivniBadge: { backgroundColor: '#FF5252', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
   inaktivniText: { color: '#FFFFFF', fontSize: 11, fontWeight: 'bold' },
+  logoutSection: { padding: 15, paddingTop: 20, paddingBottom: 30 },
+  logoutInfoBox: { backgroundColor: '#E3F2FD', padding: 12, borderRadius: 8, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: '#2196F3' },
+  logoutInfoText: { fontSize: 11, color: '#1565C0', lineHeight: 16, textAlign: 'center' },
+  logoutButton: { backgroundColor: '#FF5252', padding: 14, borderRadius: 10, alignItems: 'center' },
+  logoutButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
 });
