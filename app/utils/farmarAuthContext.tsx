@@ -44,7 +44,7 @@ const FarmarAuthContext = createContext<FarmarAuthContextType | undefined>(undef
 // ============================================================
 const MAX_LOGIN_ATTEMPTS = 5; // Max počet neúspěšných pokusů
 const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minut v ms
-const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minut v ms
+// SESSION_TIMEOUT odstraněn - uživatelé zůstávají přihlášeni do manuálního odhlášení
 const BCRYPT_SALT_ROUNDS = 10; // Náročnost hashování
 
 // ============================================================
@@ -164,35 +164,19 @@ async function resetFailedAttempts(identifier: string = 'default'): Promise<void
 }
 
 /**
- * Kontrola session timeout - vrátí true pokud session vypršela
+ * DEAKTIVOVÁNO - Kontrola session timeout
+ * Uživatelé nyní zůstávají přihlášeni do manuálního odhlášení
  */
 async function checkSessionTimeout(): Promise<boolean> {
-  try {
-    const lastActivityStr = await AsyncStorage.getItem('last_activity');
-    if (!lastActivityStr) {
-      return false; // Žádná aktivita zaznamenána
-    }
-
-    const lastActivity = parseInt(lastActivityStr, 10);
-    const now = Date.now();
-    const timeSinceLastActivity = now - lastActivity;
-
-    return timeSinceLastActivity > SESSION_TIMEOUT;
-  } catch (error) {
-    console.error('Chyba při kontrole session timeout:', error);
-    return false;
-  }
+  return false; // Session nikdy nevyprší
 }
 
 /**
- * Aktualizovat čas poslední aktivity
+ * DEAKTIVOVÁNO - Aktualizovat čas poslední aktivity
+ * Již není potřeba sledovat aktivitu
  */
 async function updateLastActivity(): Promise<void> {
-  try {
-    await AsyncStorage.setItem('last_activity', Date.now().toString());
-  } catch (error) {
-    console.error('Chyba při aktualizaci poslední aktivity:', error);
-  }
+  // Neděláme nic - tracking aktivity odstraněn
 }
 
 export function FarmarAuthProvider({ children }: { children: React.ReactNode }) {
@@ -210,21 +194,9 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
       const storedAuthLevel = await AsyncStorage.getItem('auth_level');
 
       if (storedFarmar && storedAuthLevel) {
-        // Zkontrolovat session timeout
-        const isExpired = await checkSessionTimeout();
-
-        if (isExpired) {
-          console.log('⏰ Session vypršela kvůli neaktivitě (30 minut)');
-          // Vymazat session
-          await AsyncStorage.removeItem('farmar_session');
-          await AsyncStorage.removeItem('auth_level');
-          await AsyncStorage.removeItem('last_activity');
-        } else {
-          setFarmar(JSON.parse(storedFarmar));
-          setAuthLevel((storedAuthLevel as any) || 'pin');
-          // Aktualizovat čas aktivity
-          await updateLastActivity();
-        }
+        // Session timeout odstraněn - uživatelé zůstávají přihlášeni
+        setFarmar(JSON.parse(storedFarmar));
+        setAuthLevel((storedAuthLevel as any) || 'pin');
       }
     } catch (error) {
       console.error('Error checking session:', error);
@@ -412,9 +384,6 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
       await AsyncStorage.setItem('farmar_session', JSON.stringify(farmer));
       await AsyncStorage.setItem('auth_level', 'pin');
       await AsyncStorage.setItem('farmar_data', JSON.stringify(farmer));
-
-      // SESSION TIMEOUT - Uložit čas aktivity
-      await updateLastActivity();
 
       console.log('✅ Login successful!');
       return { success: true };
@@ -762,31 +731,12 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
   };
 
   /**
-   * Kontrola aktivity session a automatické odhlášení při timeoutu
-   * Volat při každé významné akci uživatele
+   * DEAKTIVOVÁNO - Kontrola aktivity session
+   * Funkce zachována pro kompatibilitu, ale již nekontroluje timeout
    */
   const checkAndUpdateActivity = async (): Promise<boolean> => {
-    try {
-      if (!farmar || authLevel === 'none') {
-        return true; // Není přihlášen, není co kontrolovat
-      }
-
-      // Zkontrolovat session timeout
-      const isExpired = await checkSessionTimeout();
-
-      if (isExpired) {
-        console.log('⏰ Session vypršela, automatické odhlášení');
-        await logout();
-        return false; // Session vypršela
-      }
-
-      // Aktualizovat čas poslední aktivity
-      await updateLastActivity();
-      return true; // Session je platná
-    } catch (error) {
-      console.error('Chyba při kontrole aktivity:', error);
-      return true; // V případě chyby neodhlašujeme
-    }
+    // Session timeout odstraněn - funkce vždy vrací true
+    return true;
   };
 
   const logout = async () => {
