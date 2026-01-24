@@ -1,16 +1,24 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
 
 export default function ProdejnaLoginScreen() {
-  const { loginWithPin, sendMagicLink } = useFarmarAuth();
+  const { loginWithPin, sendMagicLink, isAuthenticated, authLevel } = useFarmarAuth();
 
   const [farmNumber, setFarmNumber] = useState('');
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [showMagicLinkOption, setShowMagicLinkOption] = useState(false);
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
+
+  // Pokud je uživatel už přihlášen, přesměruj ho
+  useEffect(() => {
+    if (isAuthenticated && authLevel === 'pin') {
+      console.log('✅ User already authenticated, redirecting to moje-farma...');
+      router.replace('/(tabs)/moje-farma');
+    }
+  }, [isAuthenticated, authLevel]);
 
   const handlePinLogin = async () => {
     // Validace čísla farmy

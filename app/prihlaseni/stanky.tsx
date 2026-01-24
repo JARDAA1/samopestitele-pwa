@@ -1,14 +1,22 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
 
 export default function StankyLoginScreen() {
-  const { loginWithPin } = useFarmarAuth();
+  const { loginWithPin, isAuthenticated, authLevel } = useFarmarAuth();
 
   const [farmNumber, setFarmNumber] = useState('');
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Pokud je uživatel už přihlášen, přesměruj ho
+  useEffect(() => {
+    if (isAuthenticated && authLevel === 'pin') {
+      console.log('✅ User already authenticated, redirecting to moje-stanky...');
+      router.replace('/(tabs)/moje-stanky');
+    }
+  }, [isAuthenticated, authLevel]);
 
   const handlePinLogin = async () => {
     if (!farmNumber || farmNumber.trim() === '') {
