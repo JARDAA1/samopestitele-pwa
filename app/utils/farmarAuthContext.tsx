@@ -190,18 +190,27 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
 
   const checkExistingSession = async () => {
     try {
+      console.log('🔍 Checking existing session...');
       const storedFarmar = await AsyncStorage.getItem('farmar_session');
       const storedAuthLevel = await AsyncStorage.getItem('auth_level');
 
+      console.log('📦 Stored farmar:', storedFarmar ? 'Found' : 'Not found');
+      console.log('📦 Stored auth level:', storedAuthLevel);
+
       if (storedFarmar && storedAuthLevel) {
         // Session timeout odstraněn - uživatelé zůstávají přihlášeni
-        setFarmar(JSON.parse(storedFarmar));
+        const parsedFarmar = JSON.parse(storedFarmar);
+        console.log('✅ Restoring session for:', parsedFarmar.nazev_farmy);
+        setFarmar(parsedFarmar);
         setAuthLevel((storedAuthLevel as any) || 'pin');
+      } else {
+        console.log('❌ No valid session found');
       }
     } catch (error) {
-      console.error('Error checking session:', error);
+      console.error('❌ Error checking session:', error);
     } finally {
       setIsSessionChecked(true);
+      console.log('✅ Session check complete');
     }
   };
 
@@ -378,6 +387,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
       await resetFailedAttempts(`pin_login_${farmNumber}`);
 
       // Nastavit session
+      console.log('💾 Saving session for farmer:', farmer.nazev_farmy, 'ID:', farmer.id);
       setFarmar(farmer);
       setAuthLevel('pin');
 
@@ -385,6 +395,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
       await AsyncStorage.setItem('auth_level', 'pin');
       await AsyncStorage.setItem('farmar_data', JSON.stringify(farmer));
 
+      console.log('✅ Session saved to AsyncStorage');
       console.log('✅ Login successful!');
       return { success: true };
     } catch (error) {
