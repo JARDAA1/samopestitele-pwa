@@ -180,11 +180,14 @@ async function updateLastActivity(): Promise<void> {
 }
 
 export function FarmarAuthProvider({ children }: { children: React.ReactNode }) {
+  console.log('🚀 FarmarAuthProvider mounting...');
+
   const [farmar, setFarmar] = useState<Farmar | null>(null);
   const [authLevel, setAuthLevel] = useState<'none' | 'pin' | 'sms' | 'magic_link'>('none');
   const [isSessionChecked, setIsSessionChecked] = useState(false);
 
   useEffect(() => {
+    console.log('🎯 useEffect triggered - calling checkExistingSession');
     checkExistingSession();
   }, []);
 
