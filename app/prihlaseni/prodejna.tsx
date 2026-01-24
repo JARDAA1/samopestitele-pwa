@@ -126,7 +126,7 @@ export default function ProdejnaLoginScreen() {
             value={farmNumber}
             onChangeText={(text) => setFarmNumber(text.toUpperCase())}
             autoCapitalize="characters"
-            maxLength={10}
+            maxLength={4}
             autoFocus
           />
 

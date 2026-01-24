@@ -1,6 +1,6 @@
 -- Přidání sloupce farm_number do tabulky pestitele
 -- Tento sloupec slouží jako unikátní identifikátor farmy pro autentizaci
--- Formát: Náhodná kombinace 8 znaků (písmena A-Z a číslice 0-9), např. K7M9P2X4, B3N8R1Q5
+-- Formát: Náhodná kombinace 4 znaků (písmena A-Z a číslice 0-9), např. K7M9, B3N8
 
 -- 1. Přidat sloupec farm_number (pokud neexistuje)
 DO $$
@@ -9,7 +9,7 @@ BEGIN
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'pestitele' AND column_name = 'farm_number'
   ) THEN
-    ALTER TABLE pestitele ADD COLUMN farm_number VARCHAR(10) UNIQUE;
+    ALTER TABLE pestitele ADD COLUMN farm_number VARCHAR(4) UNIQUE;
   END IF;
 END $$;
 
@@ -17,19 +17,19 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_pestitele_farm_number ON pestitele(farm_number);
 
 -- 3. Přidat komentář k sloupci
-COMMENT ON COLUMN pestitele.farm_number IS 'Unikátní náhodné číslo farmy (např. K7M9P2X4) používané jako identifikátor při přihlášení PINem';
+COMMENT ON COLUMN pestitele.farm_number IS 'Unikátní náhodné číslo farmy (např. K7M9) používané jako identifikátor při přihlášení PINem';
 
 -- 4. Vytvořit funkci pro generování náhodného farm_number
 CREATE OR REPLACE FUNCTION generate_random_farm_number()
-RETURNS VARCHAR(10) AS $$
+RETURNS VARCHAR(4) AS $$
 DECLARE
   chars TEXT := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; -- Bez O, I, 0, 1 kvůli záměně
-  result VARCHAR(10) := '';
+  result VARCHAR(4) := '';
   i INTEGER;
   random_pos INTEGER;
 BEGIN
-  -- Vygenerovat 8 náhodných znaků
-  FOR i IN 1..8 LOOP
+  -- Vygenerovat 4 náhodné znaky
+  FOR i IN 1..4 LOOP
     random_pos := floor(random() * length(chars) + 1)::INTEGER;
     result := result || substring(chars FROM random_pos FOR 1);
   END LOOP;
@@ -43,7 +43,7 @@ $$ LANGUAGE plpgsql;
 DO $$
 DECLARE
   rec RECORD;
-  new_farm_number VARCHAR(10);
+  new_farm_number VARCHAR(4);
   max_attempts INTEGER := 100;
   attempt INTEGER;
 BEGIN
@@ -78,7 +78,7 @@ END $$;
 CREATE OR REPLACE FUNCTION trigger_generate_farm_number()
 RETURNS TRIGGER AS $$
 DECLARE
-  new_farm_number VARCHAR(10);
+  new_farm_number VARCHAR(4);
   max_attempts INTEGER := 100;
   attempt INTEGER := 0;
 BEGIN
@@ -115,13 +115,14 @@ CREATE TRIGGER trigger_generate_farm_number
 
 -- HOTOVO!
 -- Po spuštění této migrace:
--- - Všichni stávající farmáři dostanou náhodné číslo farmy (např. K7M9P2X4, B3N8R1Q5)
+-- - Všichni stávající farmáři dostanou náhodné číslo farmy (např. K7M9, B3N8, P2X4)
 -- - Noví farmáři dostanou náhodné číslo farmy automaticky při registraci
 -- - farm_number je UNIQUE, takže nedojde k duplicitám
 -- - Čísla jsou náhodná a nelze je uhodnout/odvodit
 
 -- BEZPEČNOSTNÍ VÝHODY:
--- ✅ 8 znaků z 32 možných = 32^8 = 1,099,511,627,776 kombinací (přes bilion)
+-- ✅ 4 znaky z 32 možných = 32^4 = 1,048,576 kombinací (přes milion)
 -- ✅ Nelze uhodnout/odvodit číslo jiného farmáře
 -- ✅ Vyloučeny znaky podobné sobě (0/O, 1/I) pro lepší čitelnost
 -- ✅ Pouze velká písmena a číslice pro jednoduchost zadávání
+-- ✅ Krátké a snadno zapamatovatelné

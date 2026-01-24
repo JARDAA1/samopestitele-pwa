@@ -80,7 +80,7 @@ export default function StankyLoginScreen() {
             value={farmNumber}
             onChangeText={(text) => setFarmNumber(text.toUpperCase())}
             autoCapitalize="characters"
-            maxLength={10}
+            maxLength={4}
             autoFocus
           />
 

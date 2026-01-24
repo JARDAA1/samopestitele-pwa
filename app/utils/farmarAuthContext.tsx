@@ -10,7 +10,7 @@ interface Farmar {
   nazev_farmy: string;
   jmeno: string;
   email?: string;
-  farm_number?: string; // Číslo farmy (např. K7M9P2X4) - náhodný 8-místný identifikátor pro autentizaci
+  farm_number?: string; // Číslo farmy (např. K7M9) - náhodný 4-místný identifikátor pro autentizaci
   heslo_hash?: string; // PIN hash pro zobrazení v UI (jestli má PIN nebo ne)
 }
 
