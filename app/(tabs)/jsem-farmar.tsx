@@ -21,7 +21,7 @@ export default function JsemFarmarScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Tlačítka nahoře - vždy viditelné */}
+        {/* Tlačítko registrace */}
         <TouchableOpacity
           style={styles.registerButton}
           onPress={() => router.push('/registrace')}
@@ -31,16 +31,42 @@ export default function JsemFarmarScreen() {
 
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>NEBO</Text>
+          <Text style={styles.dividerText}>NEBO PŘIHLÁSIT SE</Text>
           <View style={styles.dividerLine} />
         </View>
 
-        <TouchableOpacity
-          style={styles.loginButton}
-          onPress={() => router.push('/prihlaseni')}
-        >
-          <Text style={styles.loginButtonText}>🔑 Už mám účet - Přihlásit se</Text>
-        </TouchableOpacity>
+        {/* Sekce přihlášení - 3 možnosti */}
+        <View style={styles.loginSectionsContainer}>
+          {/* PROFIL */}
+          <TouchableOpacity
+            style={[styles.loginSectionCard, styles.loginSectionCardPrimary]}
+            onPress={() => router.push('/prihlaseni/profil')}
+          >
+            <Text style={styles.loginSectionEmoji}>👤</Text>
+            <Text style={styles.loginSectionTitle}>Profil</Text>
+            <Text style={styles.loginSectionSubtitle}>Kompletní přístup</Text>
+          </TouchableOpacity>
+
+          {/* MOJE PRODEJNA */}
+          <TouchableOpacity
+            style={[styles.loginSectionCard, styles.loginSectionCardSecondary]}
+            onPress={() => router.push('/prihlaseni/prodejna')}
+          >
+            <Text style={styles.loginSectionEmoji}>🏪</Text>
+            <Text style={styles.loginSectionTitle}>Moje prodejna</Text>
+            <Text style={styles.loginSectionSubtitle}>Správa produktů</Text>
+          </TouchableOpacity>
+
+          {/* MOJE STÁNKY */}
+          <TouchableOpacity
+            style={[styles.loginSectionCard, styles.loginSectionCardTertiary]}
+            onPress={() => router.push('/prihlaseni/stanky')}
+          >
+            <Text style={styles.loginSectionEmoji}>🎪</Text>
+            <Text style={styles.loginSectionTitle}>Moje stánky</Text>
+            <Text style={styles.loginSectionSubtitle}>Správa stánků</Text>
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.helpCard}>
           <Text style={styles.helpTitle}>Potřebujete pomoc?</Text>
@@ -148,19 +174,45 @@ const styles = StyleSheet.create({
     color: '#999',
     fontWeight: '600'
   },
-  loginButton: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#4CAF50',
+  loginSectionsContainer: {
+    gap: 12,
     marginBottom: 16
   },
-  loginButtonText: {
-    color: '#4CAF50',
-    fontSize: 14,
-    fontWeight: '600'
+  loginSectionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 18,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+    borderLeftWidth: 4
+  },
+  loginSectionCardPrimary: {
+    borderLeftColor: '#1976D2'
+  },
+  loginSectionCardSecondary: {
+    borderLeftColor: '#4CAF50'
+  },
+  loginSectionCardTertiary: {
+    borderLeftColor: '#FF9800'
+  },
+  loginSectionEmoji: {
+    fontSize: 32,
+    marginBottom: 8
+  },
+  loginSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2E7D32',
+    marginBottom: 2
+  },
+  loginSectionSubtitle: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500'
   },
   helpCard: {
     backgroundColor: '#FFF9E6',
