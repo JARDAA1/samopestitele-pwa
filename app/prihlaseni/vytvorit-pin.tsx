@@ -183,7 +183,7 @@ export default function VytvoritPinScreen() {
             <Text style={styles.helpText}>
               • Rychlé přihlášení do Prodejny pomocí čísla farmy + PIN{'\n'}
               • Vaše číslo farmy: <Text style={styles.farmNumberHighlight}>{farmar?.farm_number || 'Načítá se...'}</Text>{'\n'}
-              • Session platná 30 minut inaktivity{'\n'}
+              • Zůstanete přihlášeni do manuálního odhlášení{'\n'}
               • Umožňuje spravovat produkty, objednávky a zákazníky{'\n'}
               • PIN nesmí být jednoduché postupnosti nebo opakující se číslice
             </Text>
