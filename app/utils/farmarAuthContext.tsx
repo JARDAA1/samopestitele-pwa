@@ -10,13 +10,15 @@ interface Farmar {
   nazev_farmy: string;
   jmeno: string;
   email?: string;
+  farm_number?: string; // Číslo farmy (F001, F002, ...) pro autentizaci
+  heslo_hash?: string; // PIN hash pro zobrazení v UI (jestli má PIN nebo ne)
 }
 
 interface FarmarAuthContextType {
   farmar: Farmar | null;
   isAuthenticated: boolean;
   authLevel: 'none' | 'pin' | 'sms' | 'magic_link'; // Úroveň autentizace
-  loginWithPin: (telefon: string, pin: string) => Promise<{ success: boolean; error?: string; remainingAttempts?: number }>;
+  loginWithPin: (farmNumber: string, pin: string) => Promise<{ success: boolean; error?: string; remainingAttempts?: number }>;
   loginWithSMS: (telefon: string, kod: string) => Promise<boolean>;
   sendMagicLink: (email: string) => Promise<{ success: boolean; error?: string }>;
   checkMagicLinkSession: () => Promise<boolean>;
@@ -313,12 +315,21 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
-  const loginWithPin = async (telefon: string, pin: string): Promise<{ success: boolean; error?: string; remainingAttempts?: number }> => {
+  const loginWithPin = async (farmNumber: string, pin: string): Promise<{ success: boolean; error?: string; remainingAttempts?: number }> => {
     try {
-      console.log('🔐 loginWithPin called');
+      console.log('🔐 loginWithPin called with farm_number:', farmNumber);
 
-      // 1. RATE LIMITING - Zkontrolovat, jestli není účet uzamčen
-      const rateLimitCheck = await checkRateLimiting('pin_login');
+      // 1. Validace farm_number
+      if (!farmNumber || farmNumber.trim() === '') {
+        return {
+          success: false,
+          error: 'Číslo farmy je povinné',
+        };
+      }
+
+      // 2. RATE LIMITING - Zkontrolovat, jestli není účet uzamčen
+      // Použijeme farm_number jako identifier pro rate limiting
+      const rateLimitCheck = await checkRateLimiting(`pin_login_${farmNumber}`);
       if (rateLimitCheck.isLocked) {
         console.log('🔒 Účet je uzamčen kvůli příliš mnoha pokusům');
         return {
@@ -327,57 +338,52 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         };
       }
 
-      // 2. Pro WEB i NATIVE - kontrola proti Supabase databázi
+      // 3. Pro WEB i NATIVE - kontrola proti Supabase databázi
       const { supabase } = require('../../lib/supabase');
 
-      console.log('🔑 Vyhledávám všechny farmáře...');
+      console.log('🔑 Vyhledávám farmáře podle farm_number...');
 
-      // Načteme VŠECHNY farmáře s PINem (nemůžeme filtrovat podle hashe)
-      const { data: allFarmers, error } = await supabase
+      // BEZPEČNOSTNÍ VYLEPŠENÍ: Načteme POUZE farmáře s konkrétním farm_number
+      // Tím se eliminuje problém s kolizí PINů!
+      const { data: farmers, error } = await supabase
         .from('pestitele')
         .select('*')
+        .eq('farm_number', farmNumber)
         .not('heslo_hash', 'is', null);
 
-      console.log('📊 Počet farmářů s PINem:', allFarmers?.length || 0);
+      console.log('📊 Nalezeno farmářů:', farmers?.length || 0);
 
-      if (error || !allFarmers || allFarmers.length === 0) {
-        console.log('❌ Žádný farmář s PINem nenalezen');
+      if (error || !farmers || farmers.length === 0) {
+        console.log('❌ Farmář s tímto číslem farmy nenalezen');
         // Zaznamenat neúspěšný pokus
-        const result = await recordFailedAttempt('pin_login');
+        const result = await recordFailedAttempt(`pin_login_${farmNumber}`);
         return {
           success: false,
-          error: 'Nesprávný PIN',
+          error: 'Nesprávné číslo farmy nebo PIN',
           remainingAttempts: result.remainingAttempts,
         };
       }
 
-      // 3. HASHOVÁNÍ - Porovnat PIN s každým hashem
-      let matchedFarmar = null;
-      for (const farmer of allFarmers) {
-        const pinHash = farmer.heslo_hash;
+      // 4. HASHOVÁNÍ - Porovnat PIN s hashem
+      const farmer = farmers[0]; // Měl by být jen jeden (farm_number je UNIQUE)
+      const pinHash = farmer.heslo_hash;
 
-        // Pokud je to starý plain text PIN (pro zpětnou kompatibilitu)
-        if (pinHash === pin) {
-          console.log('⚠️ Nalezen plain text PIN - měl by být zahashován!');
-          matchedFarmar = farmer;
-          break;
-        }
+      let isMatch = false;
 
-        // Pokud je to hash, porovnáme s bcrypt
-        if (pinHash.startsWith('$2a$') || pinHash.startsWith('$2b$')) {
-          const isMatch = await comparePin(pin, pinHash);
-          if (isMatch) {
-            console.log('✅ PIN hash match!');
-            matchedFarmar = farmer;
-            break;
-          }
-        }
+      // Pokud je to starý plain text PIN (pro zpětnou kompatibilitu)
+      if (pinHash === pin) {
+        console.log('⚠️ Nalezen plain text PIN - měl by být zahashován!');
+        isMatch = true;
+      }
+      // Pokud je to hash, porovnáme s bcrypt
+      else if (pinHash.startsWith('$2a$') || pinHash.startsWith('$2b$')) {
+        isMatch = await comparePin(pin, pinHash);
       }
 
-      if (!matchedFarmar) {
+      if (!isMatch) {
         console.log('❌ PIN nesouhlasí');
         // Zaznamenat neúspěšný pokus
-        const result = await recordFailedAttempt('pin_login');
+        const result = await recordFailedAttempt(`pin_login_${farmNumber}`);
 
         if (result.isLocked) {
           return {
@@ -388,24 +394,24 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
 
         return {
           success: false,
-          error: 'Nesprávný PIN',
+          error: 'Nesprávné číslo farmy nebo PIN',
           remainingAttempts: result.remainingAttempts,
         };
       }
 
-      // 4. Úspěšné přihlášení
-      console.log('✅ PIN match! Logging in...');
+      // 5. Úspěšné přihlášení
+      console.log('✅ PIN match! Logging in farmer:', farmer.nazev_farmy);
 
       // Resetovat neúspěšné pokusy
-      await resetFailedAttempts('pin_login');
+      await resetFailedAttempts(`pin_login_${farmNumber}`);
 
       // Nastavit session
-      setFarmar(matchedFarmar);
+      setFarmar(farmer);
       setAuthLevel('pin');
 
-      await AsyncStorage.setItem('farmar_session', JSON.stringify(matchedFarmar));
+      await AsyncStorage.setItem('farmar_session', JSON.stringify(farmer));
       await AsyncStorage.setItem('auth_level', 'pin');
-      await AsyncStorage.setItem('farmar_data', JSON.stringify(matchedFarmar));
+      await AsyncStorage.setItem('farmar_data', JSON.stringify(farmer));
 
       // SESSION TIMEOUT - Uložit čas aktivity
       await updateLastActivity();

@@ -144,6 +144,9 @@ export default function ZmenitPinScreen() {
           <View style={styles.infoBox}>
             <Text style={styles.infoTitle}>📱 Váš účet</Text>
             <Text style={styles.infoText}>
+              <Text style={styles.infoLabel}>Číslo farmy:</Text> {farmar?.farm_number || 'Nenačteno'}
+            </Text>
+            <Text style={styles.infoText}>
               <Text style={styles.infoLabel}>Jméno:</Text> {farmar?.jmeno}
             </Text>
             <Text style={styles.infoText}>
@@ -202,13 +205,13 @@ export default function ZmenitPinScreen() {
               • Přesně 8 číslic{'\n'}
               • Nesmí být jednoduché postupnosti{'\n'}
               • Nesmí obsahovat pouze stejné číslice{'\n'}
-              • Slouží k rychlému přihlášení do Prodejny
+              • Používá se společně s číslem farmy pro přihlášení
             </Text>
           </View>
 
           <View style={styles.securityBox}>
             <Text style={styles.securityText}>
-              🔒 PIN je uložen bezpečně a slouží pouze k přihlášení do Prodejny. Pro plný přístup k Profilu použijte email.
+              🔒 Pro přihlášení do Prodejny použijte číslo farmy ({farmar?.farm_number}) + PIN kód. Pro plný přístup k Profilu použijte email.
             </Text>
           </View>
         </View>

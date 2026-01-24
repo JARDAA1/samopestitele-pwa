@@ -6,10 +6,16 @@ import { useFarmarAuth } from '../utils/farmarAuthContext';
 export default function StankyLoginScreen() {
   const { loginWithPin } = useFarmarAuth();
 
+  const [farmNumber, setFarmNumber] = useState('');
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handlePinLogin = async () => {
+    if (!farmNumber || farmNumber.trim() === '') {
+      alert('Zadejte číslo farmy');
+      return;
+    }
+
     if (pin.length !== 8) {
       alert('PIN musí mít přesně 8 číslic');
       return;
@@ -28,14 +34,14 @@ export default function StankyLoginScreen() {
 
     setLoading(true);
 
-    const success = await loginWithPin('', pin);
+    const result = await loginWithPin(farmNumber, pin);
 
     setLoading(false);
 
-    if (success) {
+    if (result.success) {
       router.replace('/(tabs)/moje-stanky');
     } else {
-      alert('Nesprávný PIN. Zkuste to znovu.');
+      alert(result.error || 'Nesprávné číslo farmy nebo PIN');
     }
   };
 
@@ -61,11 +67,22 @@ export default function StankyLoginScreen() {
           </Text>
 
           <View style={styles.securityInfo}>
-            <Text style={styles.securityTitle}>🔒 Jednoduchý přístup</Text>
+            <Text style={styles.securityTitle}>🔒 Bezpečný přístup</Text>
             <Text style={styles.securityText}>
-              PIN kód • Správa stánků • Fotografie a lokace
+              Číslo farmy + PIN kód • Správa stánků • Fotografie a lokace
             </Text>
           </View>
+
+          <Text style={styles.label}>Číslo farmy</Text>
+          <TextInput
+            style={styles.farmNumberInput}
+            placeholder="F001"
+            value={farmNumber}
+            onChangeText={(text) => setFarmNumber(text.toUpperCase())}
+            autoCapitalize="characters"
+            maxLength={10}
+            autoFocus
+          />
 
           <Text style={styles.label}>PIN kód (8 číslic)</Text>
           <TextInput
@@ -76,7 +93,6 @@ export default function StankyLoginScreen() {
             secureTextEntry
             keyboardType="numeric"
             maxLength={8}
-            autoFocus
             onSubmitEditing={handlePinLogin}
           />
 
@@ -105,7 +121,8 @@ export default function StankyLoginScreen() {
 
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>
-              ℹ️ Používáte stejný PIN jako pro Prodejnu
+              ℹ️ Používáte stejné číslo farmy a PIN jako pro Prodejnu.{'\n\n'}
+              Číslo farmy najdete ve svém Profilu po přihlášení emailem.
             </Text>
           </View>
         </View>
@@ -215,6 +232,18 @@ const styles = StyleSheet.create({
     color: '#2E7D32',
     marginBottom: 12,
     textAlign: 'center',
+  },
+  farmNumberInput: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 20,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    marginBottom: 16,
+    textAlign: 'center',
+    fontWeight: '700',
+    letterSpacing: 2,
   },
   pinInput: {
     backgroundColor: '#F5F5F5',

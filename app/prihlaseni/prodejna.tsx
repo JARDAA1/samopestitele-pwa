@@ -6,12 +6,23 @@ import { useFarmarAuth } from '../utils/farmarAuthContext';
 export default function ProdejnaLoginScreen() {
   const { loginWithPin, sendMagicLink } = useFarmarAuth();
 
+  const [farmNumber, setFarmNumber] = useState('');
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [showMagicLinkOption, setShowMagicLinkOption] = useState(false);
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
 
   const handlePinLogin = async () => {
+    // Validace čísla farmy
+    if (!farmNumber || farmNumber.trim() === '') {
+      if (Platform.OS === 'web') {
+        alert('Zadejte číslo farmy');
+      } else {
+        Alert.alert('Chyba', 'Zadejte číslo farmy');
+      }
+      return;
+    }
+
     // Validace délky PINu
     if (pin.length !== 8) {
       if (Platform.OS === 'web') {
@@ -44,7 +55,7 @@ export default function ProdejnaLoginScreen() {
     }
 
     setLoading(true);
-    const result = await loginWithPin('', pin); // Telefon už nepotřebujeme
+    const result = await loginWithPin(farmNumber, pin); // Nově s číslem farmy
     setLoading(false);
 
     if (result.success) {
@@ -87,13 +98,13 @@ export default function ProdejnaLoginScreen() {
 
           <Text style={styles.title}>Přihlášení PIN kódem</Text>
           <Text style={styles.subtitle}>
-            Spravujte své stánky na trzích - flexibilně, dnes tady, zítra jinde
+            Přihlaste se pomocí čísla farmy a PIN kódu
           </Text>
 
           <View style={styles.securityInfo}>
-            <Text style={styles.securityTitle}>🔒 Jednoduchý přístup</Text>
+            <Text style={styles.securityTitle}>🔒 Bezpečný přístup</Text>
             <Text style={styles.securityText}>
-              PIN kód • Správa stánků • Fotografie a lokace
+              Číslo farmy + PIN kód • Správa produktů • Objednávky
             </Text>
           </View>
 
@@ -108,6 +119,17 @@ export default function ProdejnaLoginScreen() {
             </View>
           )}
 
+          <Text style={styles.label}>Číslo farmy</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="F001"
+            value={farmNumber}
+            onChangeText={(text) => setFarmNumber(text.toUpperCase())}
+            autoCapitalize="characters"
+            maxLength={10}
+            autoFocus
+          />
+
           <Text style={styles.label}>PIN kód (8 číslic)</Text>
           <TextInput
             style={[styles.input, styles.pinInput]}
@@ -117,7 +139,6 @@ export default function ProdejnaLoginScreen() {
             keyboardType="number-pad"
             maxLength={8}
             secureTextEntry
-            autoFocus
             onSubmitEditing={handlePinLogin}
           />
 
@@ -157,7 +178,9 @@ export default function ProdejnaLoginScreen() {
           <View style={styles.helpBox}>
             <Text style={styles.helpTitle}>💡 První přihlášení?</Text>
             <Text style={styles.helpText}>
-              Pokud jste si ještě nevytvořili PIN, nejdřív se přihlaste do Profilu pomocí emailu. Tam si PIN vytvoříte.
+              Pokud jste si ještě nevytvořili PIN, přihlaste se do Profilu pomocí emailu. Tam najdete své číslo farmy a můžete si vytvořit PIN.{'\n\n'}
+              <Text style={styles.helpLabel}>Kde najdu číslo farmy?</Text>{'\n'}
+              Číslo farmy (např. F001) najdete ve svém Profilu po přihlášení emailem.
             </Text>
           </View>
         </View>
@@ -354,7 +377,11 @@ const styles = StyleSheet.create({
   helpText: {
     fontSize: 12,
     color: '#666',
-    lineHeight: 16,
+    lineHeight: 18,
+  },
+  helpLabel: {
+    fontWeight: '700',
+    color: '#E65100',
   },
   warningBox: {
     backgroundColor: '#FFEBEE',

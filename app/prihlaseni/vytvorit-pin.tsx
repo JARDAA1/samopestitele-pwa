@@ -131,6 +131,9 @@ export default function VytvoritPinScreen() {
           <View style={styles.infoBox}>
             <Text style={styles.infoTitle}>📱 Vaše údaje</Text>
             <Text style={styles.infoText}>
+              <Text style={styles.infoLabel}>Číslo farmy:</Text> {farmar?.farm_number || 'Nenačteno'}
+            </Text>
+            <Text style={styles.infoText}>
               <Text style={styles.infoLabel}>Jméno:</Text> {farmar?.jmeno}
             </Text>
             <Text style={styles.infoText}>
@@ -178,8 +181,9 @@ export default function VytvoritPinScreen() {
           <View style={styles.helpBox}>
             <Text style={styles.helpTitle}>💡 K čemu slouží PIN?</Text>
             <Text style={styles.helpText}>
-              • Rychlé přihlášení do Prodejny pomocí 8místného PINu{'\n'}
-              • Session platná 30 dní{'\n'}
+              • Rychlé přihlášení do Prodejny pomocí čísla farmy + PIN{'\n'}
+              • Vaše číslo farmy: <Text style={styles.farmNumberHighlight}>{farmar?.farm_number || 'Načítá se...'}</Text>{'\n'}
+              • Session platná 30 minut inaktivity{'\n'}
               • Umožňuje spravovat produkty, objednávky a zákazníky{'\n'}
               • PIN nesmí být jednoduché postupnosti nebo opakující se číslice
             </Text>
@@ -187,7 +191,7 @@ export default function VytvoritPinScreen() {
 
           <View style={styles.securityBox}>
             <Text style={styles.securityText}>
-              🔒 PIN je uložen bezpečně a slouží pouze k přihlášení do Prodejny. Pro plný přístup k Profilu použijte email.
+              🔒 PIN používejte společně s číslem farmy ({farmar?.farm_number}) pro přihlášení. Pro plný přístup k Profilu použijte email.
             </Text>
           </View>
         </View>
@@ -348,6 +352,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     lineHeight: 18,
+  },
+  farmNumberHighlight: {
+    fontWeight: '700',
+    color: '#E65100',
+    fontSize: 13,
   },
   securityBox: {
     backgroundColor: '#E8F5E9',

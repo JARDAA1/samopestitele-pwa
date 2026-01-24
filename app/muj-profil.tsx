@@ -86,6 +86,17 @@ export default function MujProfilScreen() {
           </View>
           <Text style={styles.profileName}>{farmar?.nazev_farmy || 'Farma'}</Text>
           <Text style={styles.profilePhone}>{farmar?.telefon || ''}</Text>
+
+          {/* Číslo farmy - důležité pro přihlášení */}
+          {farmar?.farm_number && (
+            <View style={styles.farmNumberBox}>
+              <Text style={styles.farmNumberLabel}>Vaše číslo farmy:</Text>
+              <Text style={styles.farmNumberValue}>{farmar.farm_number}</Text>
+              <Text style={styles.farmNumberHint}>
+                Používejte pro přihlášení do Prodejny spolu s PIN kódem
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Menu */}
@@ -189,7 +200,11 @@ const styles = StyleSheet.create({
   avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center', marginBottom: 15 },
   avatarText: { fontSize: 40 },
   profileName: { fontSize: 20, fontWeight: 'bold', color: '#2E7D32', marginBottom: 5 },
-  profilePhone: { fontSize: 14, color: '#666' },
+  profilePhone: { fontSize: 14, color: '#666', marginBottom: 15 },
+  farmNumberBox: { backgroundColor: '#E8F5E9', borderRadius: 12, padding: 16, marginTop: 15, borderLeftWidth: 4, borderLeftColor: '#4CAF50' },
+  farmNumberLabel: { fontSize: 12, color: '#666', marginBottom: 6, fontWeight: '600' },
+  farmNumberValue: { fontSize: 28, fontWeight: 'bold', color: '#2E7D32', marginBottom: 8, letterSpacing: 2 },
+  farmNumberHint: { fontSize: 11, color: '#666', lineHeight: 16 },
   section: { padding: 15 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#2E7D32', marginBottom: 15 },
   menuItem: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16, marginBottom: 12, flexDirection: 'row', alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
