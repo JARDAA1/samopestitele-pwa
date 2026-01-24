@@ -76,7 +76,7 @@ export default function StankyLoginScreen() {
           <Text style={styles.label}>Číslo farmy</Text>
           <TextInput
             style={styles.farmNumberInput}
-            placeholder="F001"
+            placeholder="Vaše číslo farmy"
             value={farmNumber}
             onChangeText={(text) => setFarmNumber(text.toUpperCase())}
             autoCapitalize="characters"

@@ -122,7 +122,7 @@ export default function ProdejnaLoginScreen() {
           <Text style={styles.label}>Číslo farmy</Text>
           <TextInput
             style={styles.input}
-            placeholder="F001"
+            placeholder="Vaše číslo farmy"
             value={farmNumber}
             onChangeText={(text) => setFarmNumber(text.toUpperCase())}
             autoCapitalize="characters"
@@ -180,7 +180,7 @@ export default function ProdejnaLoginScreen() {
             <Text style={styles.helpText}>
               Pokud jste si ještě nevytvořili PIN, přihlaste se do Profilu pomocí emailu. Tam najdete své číslo farmy a můžete si vytvořit PIN.{'\n\n'}
               <Text style={styles.helpLabel}>Kde najdu číslo farmy?</Text>{'\n'}
-              Číslo farmy (např. F001) najdete ve svém Profilu po přihlášení emailem.
+              Své číslo farmy najdete ve svém Profilu po přihlášení emailem. Je to privátní identifikátor jen pro vás.
             </Text>
           </View>
         </View>
