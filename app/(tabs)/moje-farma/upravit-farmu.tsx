@@ -326,10 +326,19 @@ export default function UpravitFarmuScreen() {
       }
 
       console.log('✅ Save successful!');
-      setSaving(false);
+
+      // Zobrazit "Uloženo" na tlačítku na chvíli
       Alert.alert('Uloženo', 'Informace o farmě byly úspěšně aktualizovány', [
-        { text: 'OK', onPress: () => router.back() }
+        { text: 'OK', onPress: () => {
+          setSaving(false);
+          router.back();
+        }}
       ]);
+
+      // Pro případ, že uživatel zavře alert - reset po 2 sekundách
+      setTimeout(() => {
+        setSaving(false);
+      }, 2000);
     } catch (error: any) {
       console.error('❌ Chyba při ukládání do databáze:', error);
       setSaving(false);
