@@ -219,7 +219,7 @@ export default function PestiteleScreen() {
                   handleRemoveFavorite(item.id, pestitel.nazev_farmy);
                 }}
               >
-                <Text style={styles.removeButtonText}>✗ Odebrat z oblíbených</Text>
+                <Text style={styles.removeButtonText}>★ Oblíbené</Text>
               </TouchableOpacity>
             </View>
           );
@@ -360,19 +360,19 @@ const styles = StyleSheet.create({
     color: '#CCC',
   },
   removeButton: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: '#F3E5F5',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
     borderTopWidth: 1,
-    borderTopColor: '#FFCDD2',
+    borderTopColor: '#E1BEE7',
     alignItems: 'center',
     marginTop: -2,
   },
   removeButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#D32F2F',
+    color: '#7B1FA2',
   },
 });
