@@ -3,6 +3,8 @@ import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DrawerMenu } from '../utils/DrawerMenu';
+import { useDrawerMenu } from '../utils/useDrawerMenu';
 
 interface Pestitel {
   id: number;
@@ -21,6 +23,7 @@ interface OblibenyPestitel {
 export default function PestiteleScreen() {
   const [oblibeni, setOblibeni] = useState<OblibenyPestitel[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
 
   useEffect(() => {
     loadOblibeniPestitele();
@@ -128,13 +131,15 @@ export default function PestiteleScreen() {
   if (oblibeni.length === 0) {
     return (
       <View style={styles.container}>
+        <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
+
         {/* Minimalistický header */}
         <View style={styles.header}>
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.push('/')}
+            style={styles.menuButton}
+            onPress={openMenu}
           >
-            <Text style={styles.backArrow}>←</Text>
+            <Text style={styles.menuIcon}>☰</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Moji farmáři</Text>
           <View style={{ width: 36 }} />
@@ -158,13 +163,15 @@ export default function PestiteleScreen() {
 
   return (
     <View style={styles.container}>
+      <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
+
       {/* Minimalistický header */}
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.push('/')}
+          style={styles.menuButton}
+          onPress={openMenu}
         >
-          <Text style={styles.backArrow}>←</Text>
+          <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Moji farmáři</Text>
         <View style={{ width: 36 }} />
@@ -232,6 +239,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  menuButton: {
+    padding: 8,
+  },
+  menuIcon: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: '400',
   },
   backButton: {
     padding: 4,
