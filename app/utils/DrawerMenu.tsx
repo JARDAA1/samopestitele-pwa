@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, Animated, Dimensions }
 import { router } from 'expo-router';
 import { useState, useRef, useEffect } from 'react';
 import { useFarmarAuth } from './farmarAuthContext';
+import { Feather } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 const DRAWER_WIDTH = Math.min(280, width * 0.8);
@@ -105,7 +106,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
             style={styles.menuItem}
             onPress={() => handleNavigate('/(tabs)')}
           >
-            <Text style={styles.menuItemIcon}>🏠</Text>
+            <Feather name="home" size={24} color="#333" style={styles.menuItemIcon} />
             <Text style={styles.menuItemText}>Domů</Text>
           </TouchableOpacity>
 
@@ -113,7 +114,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
             style={styles.menuItem}
             onPress={() => handleNavigate('/mapa')}
           >
-            <Text style={styles.menuItemIcon}>🗺️</Text>
+            <Feather name="map" size={24} color="#333" style={styles.menuItemIcon} />
             <Text style={styles.menuItemText}>Mapa</Text>
           </TouchableOpacity>
 
@@ -121,7 +122,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
             style={styles.menuItem}
             onPress={() => handleNavigate('/(tabs)/nakupni-seznam')}
           >
-            <Text style={styles.menuItemIcon}>📝</Text>
+            <Feather name="list" size={24} color="#333" style={styles.menuItemIcon} />
             <Text style={styles.menuItemText}>Můj seznam</Text>
           </TouchableOpacity>
 
@@ -135,7 +136,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
                 style={styles.menuItem}
                 onPress={() => handleNavigate('/muj-profil')}
               >
-                <Text style={styles.menuItemIcon}>👤</Text>
+                <Feather name="user" size={24} color="#333" style={styles.menuItemIcon} />
                 <Text style={styles.menuItemText}>Můj profil</Text>
               </TouchableOpacity>
 
@@ -143,7 +144,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
                 style={styles.menuItem}
                 onPress={() => handleNavigate('/(tabs)/moje-farma')}
               >
-                <Text style={styles.menuItemIcon}>🏪</Text>
+                <Feather name="shopping-bag" size={24} color="#333" style={styles.menuItemIcon} />
                 <Text style={styles.menuItemText}>Moje prodejna</Text>
               </TouchableOpacity>
 
@@ -151,7 +152,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
                 style={styles.menuItem}
                 onPress={() => handleNavigate('/(tabs)/moje-stanky')}
               >
-                <Text style={styles.menuItemIcon}>🎪</Text>
+                <Feather name="package" size={24} color="#333" style={styles.menuItemIcon} />
                 <Text style={styles.menuItemText}>Moje stánky</Text>
               </TouchableOpacity>
             </>
@@ -165,7 +166,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
               style={styles.menuItem}
               onPress={() => handleNavigate('/(tabs)/jsem-farmar')}
             >
-              <Text style={styles.menuItemIcon}>👨‍🌾</Text>
+              <Feather name="log-in" size={24} color="#333" style={styles.menuItemIcon} />
               <Text style={styles.menuItemText}>Jsem farmář</Text>
             </TouchableOpacity>
           ) : (
@@ -173,7 +174,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
               style={[styles.menuItem, styles.logoutItem]}
               onPress={handleLogout}
             >
-              <Text style={styles.menuItemIcon}>🚪</Text>
+              <Feather name="log-out" size={24} color="#F44336" style={styles.menuItemIcon} />
               <Text style={[styles.menuItemText, styles.logoutText]}>Odhlásit se</Text>
             </TouchableOpacity>
           )}
@@ -243,8 +244,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   menuItemIcon: {
-    fontSize: 24,
     width: 36,
+    marginRight: 0,
   },
   menuItemText: {
     fontSize: 16,
