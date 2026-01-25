@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useShoppingList } from '../utils/cartContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DrawerMenu } from '../utils/DrawerMenu';
+import { useDrawerMenu } from '../utils/useDrawerMenu';
 
 interface Pestitel {
   id: number;
@@ -29,6 +31,7 @@ interface Produkt {
 
 export default function PestitelDetailScreen() {
   const { id } = useLocalSearchParams();
+  const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
   const [pestitel, setPestitel] = useState<Pestitel | null>(null);
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -312,9 +315,11 @@ export default function PestitelDetailScreen() {
 
   return (
     <View style={styles.container}>
+      <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
+
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/(tabs)')} style={styles.menuButton}>
+        <TouchableOpacity onPress={openMenu} style={styles.menuButton}>
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
         {itemCount > 0 && (
