@@ -6,6 +6,7 @@ import { useShoppingList } from '../utils/cartContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DrawerMenu } from '../utils/DrawerMenu';
 import { useDrawerMenu } from '../utils/useDrawerMenu';
+import { responsive, spacing, fontSize, borderRadius } from '../utils/responsive';
 
 interface Pestitel {
   id: number;
@@ -490,18 +491,23 @@ const styles = StyleSheet.create({
 
   farmerPhoto: {
     width: '100%',
-    height: 250,
+    height: responsive({ mobile: 250, tablet: 350, desktop: 450 }),
     backgroundColor: '#E0E0E0',
   },
 
   farmerInfo: {
     backgroundColor: '#FFFFFF',
-    padding: 16,
+    padding: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
   farmerDetails: { flex: 1 },
-  farmerName: { fontSize: 20, fontWeight: 'bold', color: '#2E7D32', marginBottom: 6 },
+  farmerName: {
+    fontSize: fontSize.xl,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    marginBottom: spacing.sm
+  },
   farmerRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -592,8 +598,8 @@ const styles = StyleSheet.create({
 
   productCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 15,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.lg,
     overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
@@ -603,10 +609,10 @@ const styles = StyleSheet.create({
   },
   productImage: {
     width: '100%',
-    height: 150,
+    height: responsive({ mobile: 150, tablet: 200, desktop: 250 }),
     backgroundColor: '#E0E0E0',
   },
-  productInfo: { padding: 15 },
+  productInfo: { padding: spacing.lg },
   productHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -614,15 +620,20 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   productName: {
-    fontSize: 18,
+    fontSize: fontSize.lg,
     fontWeight: 'bold',
     color: '#2E7D32',
     flex: 1,
-    marginRight: 12,
+    marginRight: spacing.md,
   },
-  productDescription: { fontSize: 14, color: '#666', marginBottom: 12, lineHeight: 20 },
+  productDescription: {
+    fontSize: fontSize.base,
+    color: '#666',
+    marginBottom: spacing.md,
+    lineHeight: responsive({ mobile: 20, tablet: 24, desktop: 28 })
+  },
   productPrice: {
-    fontSize: 16,
+    fontSize: fontSize.md,
     fontWeight: 'bold',
     color: '#FF9800',
     flexShrink: 0,

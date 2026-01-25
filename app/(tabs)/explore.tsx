@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DrawerMenu } from '../utils/DrawerMenu';
 import { useDrawerMenu } from '../utils/useDrawerMenu';
+import { responsive, spacing, fontSize, borderRadius } from '../utils/responsive';
 
 interface Pestitel {
   id: number;
@@ -302,14 +303,14 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   farmerCardWrapper: {
-    marginHorizontal: 12,
-    marginVertical: 6,
+    marginHorizontal: spacing.md,
+    marginVertical: spacing.sm,
   },
   farmerCard: {
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    padding: 16,
+    borderTopLeftRadius: borderRadius.md,
+    borderTopRightRadius: borderRadius.md,
+    padding: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
@@ -319,16 +320,16 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   farmerAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: responsive({ mobile: 50, tablet: 60, desktop: 70 }),
+    height: responsive({ mobile: 50, tablet: 60, desktop: 70 }),
+    borderRadius: responsive({ mobile: 25, tablet: 30, desktop: 35 }),
     backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: spacing.md,
   },
   farmerAvatarText: {
-    fontSize: 20,
+    fontSize: fontSize.lg,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
@@ -336,24 +337,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   farmerName: {
-    fontSize: 16,
+    fontSize: fontSize.md,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 4,
+    marginBottom: spacing.xs,
   },
   farmerMeta: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
   },
   farmerLocation: {
-    fontSize: 13,
+    fontSize: fontSize.sm,
     color: '#666',
   },
   farmerPhone: {
-    fontSize: 13,
+    fontSize: fontSize.sm,
     color: '#4CAF50',
     fontWeight: '600',
-    marginTop: 2,
+    marginTop: spacing.xs,
   },
   farmerArrow: {
     fontSize: 24,
