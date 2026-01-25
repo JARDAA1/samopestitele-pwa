@@ -2,6 +2,8 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, Alert } fr
 import { useShoppingList } from '../utils/cartContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
+import { DrawerMenu } from '../utils/DrawerMenu';
+import { useDrawerMenu } from '../utils/useDrawerMenu';
 
 interface GroupedByFarmer {
   pestitelId: number;
@@ -20,6 +22,7 @@ interface GroupedByFarmer {
 
 export default function NakupniSeznamScreen() {
   const { shoppingList, removeFromList, updateQuantity, clearList, itemCount } = useShoppingList();
+  const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
 
   // Pevné pořadí produktů
   const productOrder: { [key: string]: number } = {
@@ -128,7 +131,14 @@ export default function NakupniSeznamScreen() {
   if (groupedByFarmer.length === 0) {
     return (
       <View style={styles.container}>
+        <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
         <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={openMenu}
+          >
+            <Ionicons name="menu" size={28} color="#FFFFFF" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Můj seznam</Text>
         </View>
         <View style={styles.emptyContainer}>
@@ -144,7 +154,14 @@ export default function NakupniSeznamScreen() {
 
   return (
     <View style={styles.container}>
+      <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={openMenu}
+        >
+          <Ionicons name="menu" size={28} color="#FFFFFF" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Můj seznam</Text>
         <TouchableOpacity onPress={handleClearAll} style={styles.clearButton}>
           <Text style={styles.clearButtonText}>Smazat</Text>
@@ -257,9 +274,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  menuButton: {
+    padding: 8,
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'center',
     color: '#fff',
     flex: 1,
     flexShrink: 1,
