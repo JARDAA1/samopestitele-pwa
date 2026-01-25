@@ -157,13 +157,13 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
-    color: '#2E7D32',
+    color: '#6A1B9A',
     fontWeight: '600',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#6A1B9A',
   },
   headerSpacer: {
     width: 40,
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -213,17 +213,17 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   securityInfo: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
     borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
+    borderLeftColor: '#7B1FA2',
   },
   securityTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginBottom: 4,
   },
   securityText: {
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginBottom: 8,
   },
   input: {

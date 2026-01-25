@@ -296,7 +296,7 @@ export default function UpravitProduktScreen() {
           <Text style={styles.headerTitle}>Upravit produkt</Text>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="large" color="#7B1FA2" />
           <Text style={styles.loadingText}>Načítám...</Text>
         </View>
       </View>
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5'
   },
   header: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20
@@ -565,8 +565,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0'
   },
   emojiButtonSelected: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50',
+    backgroundColor: '#F3E5F5',
+    borderColor: '#7B1FA2',
     borderWidth: 3
   },
   emojiText: {
@@ -611,8 +611,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0'
   },
   categoryButtonActive: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50'
+    backgroundColor: '#F3E5F5',
+    borderColor: '#7B1FA2'
   },
   categoryButtonText: {
     fontSize: 14,
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     color: '#666'
   },
   categoryButtonTextActive: {
-    color: '#4CAF50'
+    color: '#7B1FA2'
   },
   unitButtons: {
     flexDirection: 'row',
@@ -636,8 +636,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0'
   },
   unitButtonActive: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50'
+    backgroundColor: '#F3E5F5',
+    borderColor: '#7B1FA2'
   },
   unitButtonText: {
     fontSize: 16,
@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
     color: '#666'
   },
   unitButtonTextActive: {
-    color: '#4CAF50'
+    color: '#7B1FA2'
   },
   availabilityButtons: {
     flexDirection: 'row',
@@ -661,8 +661,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0'
   },
   availabilityButtonActive: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50'
+    backgroundColor: '#F3E5F5',
+    borderColor: '#7B1FA2'
   },
   availabilityButtonUnavailable: {
     backgroundColor: '#FFEBEE',
@@ -674,13 +674,13 @@ const styles = StyleSheet.create({
     color: '#666'
   },
   availabilityButtonTextActive: {
-    color: '#4CAF50'
+    color: '#7B1FA2'
   },
   availabilityButtonTextUnavailable: {
     color: '#F44336'
   },
   submitButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 18,
     borderRadius: 10,
     alignItems: 'center',

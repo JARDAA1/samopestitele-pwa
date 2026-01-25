@@ -205,7 +205,7 @@ function MojeProdejnaScreenContent() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#7B1FA2" />
         <Text style={styles.loadingText}>Načítám...</Text>
       </View>
     );
@@ -460,7 +460,7 @@ export default function MojeProdejnaScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
-  header: { backgroundColor: '#4CAF50', paddingTop: 50, paddingBottom: 12, paddingHorizontal: 16 },
+  header: { backgroundColor: '#7B1FA2', paddingTop: 50, paddingBottom: 12, paddingHorizontal: 16 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   menuButton: { padding: 8, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   menuIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '400' },
@@ -475,12 +475,12 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 15, paddingTop: 15 },
   statBoxCompact: { flex: 1, backgroundColor: '#FFFFFF', padding: 12, borderRadius: 10, alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3 },
   statIcon: { fontSize: 24, marginBottom: 4 },
-  statNumberCompact: { fontSize: 20, fontWeight: 'bold', color: '#2E7D32', marginBottom: 2 },
+  statNumberCompact: { fontSize: 20, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 2 },
   statLabelCompact: { fontSize: 10, color: '#666', textAlign: 'center' },
   // Karty
   card: { backgroundColor: '#FFFFFF', marginHorizontal: 15, marginTop: 15, padding: 16, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#2E7D32' },
+  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#6A1B9A' },
   logoutInfoBox: { backgroundColor: '#E3F2FD', padding: 12, borderRadius: 8, marginTop: 15, borderLeftWidth: 3, borderLeftColor: '#2196F3' },
   logoutInfoText: { fontSize: 11, color: '#1565C0', lineHeight: 16, textAlign: 'center' },
   logoutButton: { backgroundColor: '#FF5252', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 12, flexDirection: 'row', justifyContent: 'center' },
@@ -500,10 +500,10 @@ const styles = StyleSheet.create({
   productRowContent: { flex: 1 },
   productName: { fontSize: 15, fontWeight: '600', color: '#333', marginBottom: 2 },
   productNameArchived: { color: '#757575' },
-  productPrice: { fontSize: 13, color: '#4CAF50', fontWeight: '600' },
+  productPrice: { fontSize: 13, color: '#7B1FA2', fontWeight: '600' },
   productPriceArchived: { color: '#9E9E9E' },
   statusDot: { width: 10, height: 10, borderRadius: 5 },
-  statusDotAvailable: { backgroundColor: '#4CAF50' },
+  statusDotAvailable: { backgroundColor: '#7B1FA2' },
   statusDotUnavailable: { backgroundColor: '#FF5252' },
   statusDotArchived: { backgroundColor: '#9E9E9E' },
   productDetails: { paddingHorizontal: 12, paddingBottom: 12, gap: 8, borderTopWidth: 1, borderTopColor: '#E0E0E0', paddingTop: 8 },
@@ -512,11 +512,11 @@ const styles = StyleSheet.create({
   productStock: { fontSize: 12, color: '#666' },
   productActions: { flexDirection: 'row', gap: 8, marginTop: 8 },
   availabilityBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, flex: 1, alignItems: 'center' },
-  availableBadge: { backgroundColor: '#E8F5E9' },
+  availableBadge: { backgroundColor: '#F3E5F5' },
   unavailableBadge: { backgroundColor: '#FFEBEE' },
   archivedBadge: { backgroundColor: '#F5F5F5' },
   availabilityText: { fontSize: 11, fontWeight: '600' },
-  editButton: { backgroundColor: '#4CAF50', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 6, flex: 1, alignItems: 'center' },
+  editButton: { backgroundColor: '#7B1FA2', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 6, flex: 1, alignItems: 'center' },
   editButtonArchived: { backgroundColor: '#9E9E9E' },
   editButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
   editButtonTextArchived: { color: '#FFFFFF' },
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   tab: { flex: 1, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6, alignItems: 'center' },
   activeTab: { backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   tabText: { fontSize: 13, fontWeight: '600', color: '#666' },
-  activeTabText: { color: '#2E7D32' },
+  activeTabText: { color: '#6A1B9A' },
   // Floating Action Button
   fab: {
     position: 'absolute',
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 6,

@@ -298,7 +298,7 @@ export default function PestitelDetailScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#7B1FA2" />
         <Text style={styles.loadingText}>Načítám farmáře...</Text>
       </View>
     );
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
   farmerName: {
     fontSize: fontSize.xl,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginBottom: spacing.sm
   },
   farmerRow: {
@@ -585,15 +585,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
-  descriptionTitle: { fontSize: 16, fontWeight: 'bold', color: '#2E7D32', marginBottom: 8 },
+  descriptionTitle: { fontSize: 16, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 8 },
   descriptionText: { fontSize: 15, color: '#666', lineHeight: 22 },
 
   productsContainer: { padding: 15, paddingBottom: 100 },
-  productsTitle: { fontSize: 18, fontWeight: 'bold', color: '#2E7D32', marginBottom: 15 },
+  productsTitle: { fontSize: 18, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 15 },
 
   emptyState: { alignItems: 'center', padding: 40, marginTop: 20 },
   emptyIcon: { fontSize: 60, marginBottom: 15 },
-  emptyTitle: { fontSize: 20, fontWeight: 'bold', color: '#2E7D32', marginBottom: 8 },
+  emptyTitle: { fontSize: 20, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 8 },
   emptyText: { fontSize: 15, color: '#666', textAlign: 'center' },
 
   productCard: {
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: fontSize.lg,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     flex: 1,
     marginRight: spacing.md,
   },
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   addButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 20,
     right: 20,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 16,
     borderRadius: 12,
     flexDirection: 'row',
@@ -667,6 +667,6 @@ const styles = StyleSheet.create({
   floatingListIcon: { fontSize: 24, marginRight: 10 },
   floatingListText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
 
-  backButton: { backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
+  backButton: { backgroundColor: '#7B1FA2', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
   backButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 });

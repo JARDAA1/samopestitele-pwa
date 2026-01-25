@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: 50,
     paddingBottom: 12,
     paddingHorizontal: 12,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   phoneNumber: {
     fontSize: 14,
-    color: '#4CAF50',
+    color: '#7B1FA2',
     marginBottom: 15,
   },
   actionButtons: {
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   callButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
   productTotal: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#4CAF50',
+    color: '#7B1FA2',
     marginTop: 4,
   },
   quantityControls: {
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -459,12 +459,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 2,
-    borderTopColor: '#4CAF50',
+    borderTopColor: '#7B1FA2',
   },
   farmerTotalText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: '#7B1FA2',
     textAlign: 'right',
   },
 });

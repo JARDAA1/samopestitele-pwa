@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5'
   },
   header: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: 50,
     paddingBottom: 15,
     paddingHorizontal: 16,
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     paddingBottom: 25
   },
   registerButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     borderLeftColor: '#1976D2'
   },
   loginSectionCardSecondary: {
-    borderLeftColor: '#4CAF50'
+    borderLeftColor: '#7B1FA2'
   },
   loginSectionCardTertiary: {
     borderLeftColor: '#FF9800'
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   loginSectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginBottom: 2
   },
   loginSectionSubtitle: {

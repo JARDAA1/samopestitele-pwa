@@ -218,7 +218,7 @@ export default function PridatProduktScreen() {
       >
         {loadingProducts ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#4CAF50" />
+            <ActivityIndicator size="large" color="#7B1FA2" />
             <Text style={styles.loadingText}>Načítám produkty...</Text>
           </View>
         ) : (
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5'
   },
   header: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20
@@ -440,12 +440,12 @@ const styles = StyleSheet.create({
   selectedProductBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: '#4CAF50'
+    borderColor: '#7B1FA2'
   },
   selectedEmoji: {
     fontSize: 48,
@@ -462,11 +462,11 @@ const styles = StyleSheet.create({
   },
   selectedCategory: {
     fontSize: 14,
-    color: '#4CAF50',
+    color: '#7B1FA2',
     fontWeight: '600'
   },
   changeButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   categoryHeader: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: '#7B1FA2',
     marginTop: 16,
     marginBottom: 12,
     paddingHorizontal: 4
@@ -560,8 +560,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0'
   },
   unitButtonActive: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50'
+    backgroundColor: '#F3E5F5',
+    borderColor: '#7B1FA2'
   },
   unitButtonText: {
     fontSize: 16,
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
     color: '#666'
   },
   unitButtonTextActive: {
-    color: '#4CAF50'
+    color: '#7B1FA2'
   },
   availabilityButtons: {
     flexDirection: 'row',
@@ -585,8 +585,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0'
   },
   availabilityButtonActive: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#4CAF50'
+    backgroundColor: '#F3E5F5',
+    borderColor: '#7B1FA2'
   },
   availabilityButtonUnavailable: {
     backgroundColor: '#FFEBEE',
@@ -598,13 +598,13 @@ const styles = StyleSheet.create({
     color: '#666'
   },
   availabilityButtonTextActive: {
-    color: '#4CAF50'
+    color: '#7B1FA2'
   },
   availabilityButtonTextUnavailable: {
     color: '#F44336'
   },
   submitButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 18,
     borderRadius: 10,
     alignItems: 'center',

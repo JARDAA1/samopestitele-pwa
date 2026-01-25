@@ -456,7 +456,7 @@ export default function MapaScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#7B1FA2" />
         <Text style={styles.loadingText}>Načítám farmáře...</Text>
       </View>
     );
@@ -762,7 +762,7 @@ export default function MapaScreen() {
         {/* Indikátor filtrování */}
         {filtering && (
           <View style={styles.filteringIndicator}>
-            <ActivityIndicator size="large" color="#4CAF50" />
+            <ActivityIndicator size="large" color="#7B1FA2" />
             <Text style={styles.filteringText}>Vyhledávám...</Text>
           </View>
         )}
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 12,
     paddingHorizontal: 15,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   sectionHeader: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderTopLeftRadius: 12,
@@ -835,7 +835,7 @@ const styles = StyleSheet.create({
   subsectionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginBottom: 8,
   },
   searchInput: {
@@ -859,8 +859,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   distanceButtonActive: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
+    borderColor: '#7B1FA2',
   },
   distanceButtonText: {
     fontSize: 13,
@@ -902,16 +902,16 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
   resultsInfo: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
-  resultsText: { fontSize: 14, color: '#2E7D32', fontWeight: '600', textAlign: 'center' },
+  resultsText: { fontSize: 14, color: '#6A1B9A', fontWeight: '600', textAlign: 'center' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyIcon: { fontSize: 80, marginBottom: 20 },
   emptyImage: { width: 200, height: 200, marginBottom: 20 },
-  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#2E7D32', marginBottom: 10 },
+  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 10 },
   emptyText: { fontSize: 16, color: '#666', textAlign: 'center', lineHeight: 24 },
   produktyFilterHeader: {
     paddingVertical: 10,
@@ -966,12 +966,12 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#4CAF50',
+    borderColor: '#7B1FA2',
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
   },
   checkboxIcon: {
     color: '#FFFFFF',
@@ -979,7 +979,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   filteringIndicator: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     paddingVertical: 20,
     paddingHorizontal: 15,
     flexDirection: 'row',
@@ -991,7 +991,7 @@ const styles = StyleSheet.create({
   },
   filteringText: {
     fontSize: 18,
-    color: '#2E7D32',
+    color: '#6A1B9A',
     fontWeight: 'bold',
   },
   addressInputRow: {
@@ -1010,7 +1010,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   geocodeButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
@@ -1027,7 +1027,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   geocodeButtonFull: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 12,
     borderRadius: 8,
     justifyContent: 'center',
@@ -1048,17 +1048,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   currentLocationBadge: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#7B1FA2',
   },
   currentLocationText: {
     fontSize: 13,
-    color: '#2E7D32',
+    color: '#6A1B9A',
     fontWeight: '500',
   },
   orDividerText: {
@@ -1133,8 +1133,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   chipActive: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
+    borderColor: '#7B1FA2',
   },
   chipEmoji: {
     fontSize: 16,
@@ -1150,7 +1150,7 @@ const styles = StyleSheet.create({
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -1168,23 +1168,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#7B1FA2',
     marginBottom: 12,
   },
   locationBadgeText: {
     fontSize: 14,
-    color: '#2E7D32',
+    color: '#6A1B9A',
     fontWeight: '600',
     flex: 1,
   },
   locationBadgeChange: {
     fontSize: 14,
-    color: '#4CAF50',
+    color: '#7B1FA2',
     fontWeight: '600',
   },
   searchSection: {
@@ -1307,7 +1307,7 @@ const styles = StyleSheet.create({
   distanceValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: '#7B1FA2',
     textAlign: 'right',
     marginBottom: 8,
   },
@@ -1327,8 +1327,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   distanceButtonSmallActive: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
+    borderColor: '#7B1FA2',
   },
   distanceButtonSmallText: {
     fontSize: 13,
@@ -1374,7 +1374,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -1410,7 +1410,7 @@ const styles = StyleSheet.create({
     color: '#CCC',
   },
   showResultsButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     marginHorizontal: 12,
     marginVertical: 16,
     paddingVertical: 14,
@@ -1444,8 +1444,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   matchFilterBtnActive: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
+    borderColor: '#7B1FA2',
   },
   matchFilterText: {
     fontSize: 11,
@@ -1462,18 +1462,18 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   matchBadgeComplete: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 4,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#7B1FA2',
   },
   matchBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#6A1B9A',
   },
   matchBadgePartial: {
     backgroundColor: '#FFF3E0',
@@ -1525,7 +1525,7 @@ const styles = StyleSheet.create({
   },
   productItemMatched: {
     fontSize: 12,
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginLeft: 6,
     marginVertical: 1,
   },

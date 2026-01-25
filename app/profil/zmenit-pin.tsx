@@ -241,13 +241,13 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
-    color: '#2E7D32',
+    color: '#6A1B9A',
     fontWeight: '600',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#6A1B9A',
   },
   headerSpacer: {
     width: 40,
@@ -267,14 +267,14 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     borderTopWidth: 4,
-    borderTopColor: '#4CAF50',
+    borderTopColor: '#7B1FA2',
   },
   iconContainer: {
     alignSelf: 'center',
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginBottom: 8,
     marginTop: 8,
   },
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   changeButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -374,14 +374,14 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   securityBox: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     padding: 12,
     borderRadius: 8,
     marginTop: 16,
   },
   securityText: {
     fontSize: 11,
-    color: '#2E7D32',
+    color: '#6A1B9A',
     lineHeight: 16,
     textAlign: 'center',
   },

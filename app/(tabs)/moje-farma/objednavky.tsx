@@ -69,7 +69,7 @@ export default function ObjednavkyScreen() {
       case 'zpracovana':
         return '#FF9800';
       case 'dokoncena':
-        return '#4CAF50';
+        return '#7B1FA2';
       case 'zrusena':
         return '#F44336';
       default:
@@ -103,7 +103,7 @@ export default function ObjednavkyScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="large" color="#7B1FA2" />
           <Text style={styles.loadingText}>Načítám objednávky...</Text>
         </View>
       ) : (
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5'
   },
   header: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   orderPrice: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#4CAF50'
+    color: '#7B1FA2'
   },
   orderNote: {
     fontSize: 13,

@@ -89,7 +89,7 @@ export default function DetailObjednavkyScreen() {
       case 'zpracovana':
         return '#FF9800';
       case 'dokoncena':
-        return '#4CAF50';
+        return '#7B1FA2';
       case 'zrusena':
         return '#F44336';
       default:
@@ -142,7 +142,7 @@ export default function DetailObjednavkyScreen() {
           <Text style={styles.headerTitle}>Detail objednávky</Text>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="large" color="#7B1FA2" />
           <Text style={styles.loadingText}>Načítám...</Text>
         </View>
       </View>
@@ -211,7 +211,7 @@ export default function DetailObjednavkyScreen() {
               <Text style={styles.statusButtonText}>Zpracovaná</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.statusButton, { backgroundColor: '#4CAF50' }]}
+              style={[styles.statusButton, { backgroundColor: '#7B1FA2' }]}
               onPress={() => zmeniStav('dokoncena')}
             >
               <Text style={styles.statusButtonText}>Dokončená</Text>
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5'
   },
   stickyHeader: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: 60,
     paddingBottom: 15,
     paddingHorizontal: 20,
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginBottom: 15
   },
   statusBadge: {
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
   productTotal: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#4CAF50'
+    color: '#7B1FA2'
   },
   totalBox: {
     flexDirection: 'row',
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     paddingTop: 15,
     borderTopWidth: 2,
-    borderTopColor: '#4CAF50'
+    borderTopColor: '#7B1FA2'
   },
   totalLabel: {
     fontSize: 18,
@@ -439,10 +439,10 @@ const styles = StyleSheet.create({
   totalPrice: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4CAF50'
+    color: '#7B1FA2'
   },
   header: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20

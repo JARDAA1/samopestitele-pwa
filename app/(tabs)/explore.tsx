@@ -123,7 +123,7 @@ export default function PestiteleScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#7B1FA2" />
         <Text style={styles.loadingText}>Načítám oblíbené farmáře...</Text>
       </View>
     );
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 12,
     paddingHorizontal: 15,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -267,10 +267,10 @@ const styles = StyleSheet.create({
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyIcon: { fontSize: 80, marginBottom: 20 },
-  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#2E7D32', marginBottom: 10 },
+  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 10 },
   emptyText: { fontSize: 16, color: '#666', textAlign: 'center', lineHeight: 24, marginBottom: 20 },
   findButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 14,
     paddingHorizontal: 30,
     borderRadius: 8,
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     width: responsive({ mobile: 50, tablet: 60, desktop: 70 }),
     height: responsive({ mobile: 50, tablet: 60, desktop: 70 }),
     borderRadius: responsive({ mobile: 25, tablet: 30, desktop: 35 }),
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   },
   farmerPhone: {
     fontSize: fontSize.sm,
-    color: '#4CAF50',
+    color: '#7B1FA2',
     fontWeight: '600',
     marginTop: spacing.xs,
   },

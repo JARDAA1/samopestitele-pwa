@@ -26,7 +26,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     console.log('⏳ Waiting for session check to complete...');
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#7B1FA2" />
       </View>
     );
   }
@@ -36,7 +36,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     console.log('🚫 Not authenticated, showing loading while redirecting...');
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#7B1FA2" />
       </View>
     );
   }

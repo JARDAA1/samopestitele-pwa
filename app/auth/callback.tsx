@@ -67,7 +67,7 @@ export default function AuthCallbackScreen() {
       <View style={styles.card}>
         {status === 'loading' && (
           <>
-            <ActivityIndicator size="large" color="#4CAF50" />
+            <ActivityIndicator size="large" color="#7B1FA2" />
             <Text style={styles.title}>Přihlašuji...</Text>
             <Text style={styles.subtitle}>
               Ověřujeme váš přihlašovací odkaz
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginTop: 16,
     marginBottom: 8,
     textAlign: 'center',
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   successIcon: {
     fontSize: 64,
-    color: '#4CAF50',
+    color: '#7B1FA2',
     fontWeight: 'bold',
   },
   errorIcon: {
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   link: {
     marginTop: 24,
     fontSize: 16,
-    color: '#4CAF50',
+    color: '#7B1FA2',
     fontWeight: '600',
     textDecorationLine: 'underline',
   },

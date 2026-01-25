@@ -79,13 +79,13 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
-    color: '#2E7D32',
+    color: '#6A1B9A',
     fontWeight: '600',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#6A1B9A',
   },
   headerSpacer: {
     width: 40,
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     borderLeftColor: '#1976D2',
   },
   sectionCardSecondary: {
-    borderLeftColor: '#4CAF50',
+    borderLeftColor: '#7B1FA2',
   },
   sectionCardTertiary: {
     borderLeftColor: '#FF9800',
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#6A1B9A',
   },
   divider: {
     flexDirection: 'row',
@@ -147,10 +147,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#4CAF50',
+    borderColor: '#7B1FA2',
   },
   registerLinkText: {
-    color: '#4CAF50',
+    color: '#7B1FA2',
     fontSize: 16,
     fontWeight: '600',
   },

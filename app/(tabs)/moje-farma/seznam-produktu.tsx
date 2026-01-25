@@ -82,7 +82,7 @@ export default function SeznamProduktScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="large" color="#7B1FA2" />
           <Text style={styles.loadingText}>Načítám produkty...</Text>
         </View>
       ) : (
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5'
   },
   header: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   addButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 10
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   },
   productPrice: {
     fontSize: 14,
-    color: '#4CAF50',
+    color: '#7B1FA2',
     fontWeight: '500'
   },
   availabilityBadge: {
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   availableBadge: {
-    backgroundColor: '#E8F5E9'
+    backgroundColor: '#F3E5F5'
   },
   unavailableBadge: {
     backgroundColor: '#FFEBEE'

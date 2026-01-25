@@ -349,7 +349,7 @@ export default function UpravitFarmuScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#7B1FA2" />
         <Text style={styles.loadingText}>Načítám...</Text>
       </View>
     );
@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   header: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: 60,
     paddingBottom: 16,
     paddingHorizontal: 20,
@@ -753,7 +753,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -805,14 +805,14 @@ const styles = StyleSheet.create({
     paddingTop: 14,
   },
   infoBox: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     borderRadius: 8,
     padding: 15,
     marginTop: 15,
     borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
+    borderLeftColor: '#7B1FA2',
   },
-  infoText: { fontSize: 13, color: '#2E7D32', lineHeight: 18 },
+  infoText: { fontSize: 13, color: '#6A1B9A', lineHeight: 18 },
   gpsInfo: {
     backgroundColor: '#F5F5F5',
     borderRadius: 8,
@@ -844,7 +844,7 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#4CAF50',
+    borderColor: '#7B1FA2',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -853,7 +853,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
   },
   gpsOptionText: {
     flex: 1,
@@ -875,7 +875,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#E0E0E0',
   },
   locationButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -888,17 +888,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   locationInfo: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     borderRadius: 8,
     padding: 15,
     marginBottom: 15,
     borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
+    borderLeftColor: '#7B1FA2',
   },
   locationInfoTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginBottom: 5,
   },
   locationInfoCoords: {
@@ -907,7 +907,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   saveButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     margin: 15,
     padding: 16,
     borderRadius: 10,
@@ -954,11 +954,11 @@ const styles = StyleSheet.create({
   pinValue: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#4CAF50',
+    color: '#7B1FA2',
     letterSpacing: 6,
   },
   changeButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
@@ -1008,7 +1008,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     flex: 1,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 12,

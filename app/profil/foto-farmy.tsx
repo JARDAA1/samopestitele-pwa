@@ -214,7 +214,7 @@ function FotoFarmyContent() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#7B1FA2" />
       </View>
     );
   }
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginBottom: 8,
   },
   hint: {
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   uploadButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',

@@ -151,13 +151,13 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
-    color: '#2E7D32',
+    color: '#6A1B9A',
     fontWeight: '600',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#6A1B9A',
   },
   headerSpacer: {
     width: 40,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginBottom: 8,
   },
   input: {
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   submitButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',

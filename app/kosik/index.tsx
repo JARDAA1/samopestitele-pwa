@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 15,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
   },
   menuButton: { marginRight: 15, padding: 8 },
   menuIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '400' },
@@ -304,13 +304,13 @@ const styles = StyleSheet.create({
   content: { flex: 1 },
 
   infoBanner: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#DDD',
   },
-  infoBannerText: { fontSize: 15, color: '#2E7D32', fontWeight: '600', textAlign: 'center' },
+  infoBannerText: { fontSize: 15, color: '#6A1B9A', fontWeight: '600', textAlign: 'center' },
 
   itemsContainer: { padding: 15 },
 
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   cartItemInfo: { marginBottom: 12 },
-  cartItemName: { fontSize: 16, fontWeight: 'bold', color: '#2E7D32', marginBottom: 4 },
+  cartItemName: { fontSize: 16, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 4 },
   cartItemPrice: { fontSize: 14, color: '#666' },
   cartItemActions: {
     flexDirection: 'row',
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   quantityText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     marginHorizontal: 20,
     minWidth: 30,
     textAlign: 'center',
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
-  totalLabel: { fontSize: 20, fontWeight: 'bold', color: '#2E7D32' },
+  totalLabel: { fontSize: 20, fontWeight: 'bold', color: '#6A1B9A' },
   totalPrice: { fontSize: 24, fontWeight: 'bold', color: '#FF9800' },
 
   formContainer: {
@@ -391,8 +391,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  formTitle: { fontSize: 18, fontWeight: 'bold', color: '#2E7D32', marginBottom: 16 },
-  label: { fontSize: 14, fontWeight: '600', color: '#2E7D32', marginBottom: 6, marginTop: 12 },
+  formTitle: { fontSize: 18, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 16 },
+  label: { fontSize: 14, fontWeight: '600', color: '#6A1B9A', marginBottom: 6, marginTop: 12 },
   input: {
     backgroundColor: '#F5F5F5',
     borderWidth: 1,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 20,
     right: 20,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingVertical: 18,
     borderRadius: 12,
     alignItems: 'center',
@@ -428,8 +428,8 @@ const styles = StyleSheet.create({
 
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
   emptyIcon: { fontSize: 80, marginBottom: 20 },
-  emptyTitle: { fontSize: 24, fontWeight: 'bold', color: '#2E7D32', marginBottom: 10 },
+  emptyTitle: { fontSize: 24, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 10 },
   emptyText: { fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 30 },
-  continueButton: { backgroundColor: '#4CAF50', paddingVertical: 14, paddingHorizontal: 30, borderRadius: 10 },
+  continueButton: { backgroundColor: '#7B1FA2', paddingVertical: 14, paddingHorizontal: 30, borderRadius: 10 },
   continueButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 });

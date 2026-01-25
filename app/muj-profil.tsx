@@ -186,7 +186,7 @@ export default function MujProfilScreen() {
               style={styles.gridItem}
               onPress={() => router.push('/moje-farma/upravit-farmu')}
             >
-              <View style={[styles.gridIconContainer, { backgroundColor: '#E8F5E9' }]}>
+              <View style={[styles.gridIconContainer, { backgroundColor: '#F3E5F5' }]}>
                 <Text style={styles.gridIcon}>📍</Text>
               </View>
               <Text style={styles.gridTitle}>Kde mě najdete</Text>
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
 
   // Moderní header s gradientem - responzivní pro všechna zařízení
   header: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: layout.header.paddingTop,
     paddingBottom: layout.header.paddingBottom,
     paddingHorizontal: spacing.lg,
@@ -308,12 +308,12 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     padding: layout.card.padding,
     elevation: 4,
-    shadowColor: '#4CAF50',
+    shadowColor: '#7B1FA2',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     borderWidth: 1,
-    borderColor: '#E8F5E9',
+    borderColor: '#F3E5F5',
   },
   farmNumberHeader: {
     flexDirection: 'row',
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     width: responsive({ mobile: 48, tablet: 60, desktop: 70 }),
     height: responsive({ mobile: 48, tablet: 60, desktop: 70 }),
     borderRadius: responsive({ mobile: 24, tablet: 30, desktop: 35 }),
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F3E5F5',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
   farmNumberValue: {
     fontSize: responsive({ mobile: 32, tablet: 40, desktop: 48 }),
     fontWeight: '800',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     letterSpacing: responsive({ mobile: 3, tablet: 4, desktop: 5 }),
   },
   pinStatus: {
@@ -370,12 +370,12 @@ const styles = StyleSheet.create({
   pinDots: {
     fontSize: responsive({ mobile: 28, tablet: 36, desktop: 40 }),
     fontWeight: '800',
-    color: '#2E7D32',
+    color: '#6A1B9A',
     letterSpacing: 2,
   },
   pinSet: {
     fontSize: fontSize.sm,
-    color: '#4CAF50',
+    color: '#7B1FA2',
     fontWeight: '600',
   },
   pinNotSet: {
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   },
   farmNumberHint: {
     fontSize: fontSize.sm,
-    color: '#2E7D32',
+    color: '#6A1B9A',
     lineHeight: responsive({ mobile: 18, tablet: 22, desktop: 26 }),
   },
 
@@ -532,10 +532,10 @@ const styles = StyleSheet.create({
   loadingText: { fontSize: 16, color: '#666' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
   emptyIcon: { fontSize: 80, marginBottom: 20 },
-  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#2E7D32', marginBottom: 10 },
+  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 10 },
   emptyText: { fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 30 },
-  buttonPrimary: { backgroundColor: '#4CAF50', paddingVertical: 16, paddingHorizontal: 40, borderRadius: 10, marginBottom: 15, width: '80%', alignItems: 'center' },
+  buttonPrimary: { backgroundColor: '#7B1FA2', paddingVertical: 16, paddingHorizontal: 40, borderRadius: 10, marginBottom: 15, width: '80%', alignItems: 'center' },
   buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  buttonSecondary: { backgroundColor: '#F5F5F5', paddingVertical: 16, paddingHorizontal: 40, borderRadius: 10, width: '80%', alignItems: 'center', borderWidth: 2, borderColor: '#4CAF50' },
-  buttonSecondaryText: { color: '#4CAF50', fontSize: 16, fontWeight: '600' },
+  buttonSecondary: { backgroundColor: '#F5F5F5', paddingVertical: 16, paddingHorizontal: 40, borderRadius: 10, width: '80%', alignItems: 'center', borderWidth: 2, borderColor: '#7B1FA2' },
+  buttonSecondaryText: { color: '#7B1FA2', fontSize: 16, fontWeight: '600' },
 });

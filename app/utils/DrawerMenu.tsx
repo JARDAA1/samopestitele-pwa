@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     elevation: 16,
   },
   drawerHeader: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#7B1FA2',
     paddingTop: 60,
     paddingBottom: 24,
     paddingHorizontal: 20,
