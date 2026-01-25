@@ -106,7 +106,7 @@ export default function MujProfilScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Číslo farmy - prominentně nahoře */}
+        {/* Číslo farmy a PIN - prominentně nahoře */}
         {farmar?.farm_number && (
           <View style={styles.farmNumberCard}>
             <View style={styles.farmNumberHeader}>
@@ -114,13 +114,31 @@ export default function MujProfilScreen() {
                 <Text style={styles.farmNumberIcon}>🔑</Text>
               </View>
               <View style={styles.farmNumberTextContainer}>
-                <Text style={styles.farmNumberLabel}>Vaše číslo farmy</Text>
-                <Text style={styles.farmNumberValue}>{farmar.farm_number}</Text>
+                <Text style={styles.farmNumberLabel}>Přihlašovací údaje do Prodejny</Text>
+                <View style={styles.credentialsRow}>
+                  <View style={styles.credentialItem}>
+                    <Text style={styles.credentialLabel}>Číslo farmy:</Text>
+                    <Text style={styles.farmNumberValue}>{farmar.farm_number}</Text>
+                  </View>
+                  <View style={styles.credentialItem}>
+                    <Text style={styles.credentialLabel}>PIN:</Text>
+                    <View style={styles.pinStatus}>
+                      {farmar.heslo_hash ? (
+                        <>
+                          <Text style={styles.pinDots}>••••</Text>
+                          <Text style={styles.pinSet}>✓ Nastaven</Text>
+                        </>
+                      ) : (
+                        <Text style={styles.pinNotSet}>Nenastaveno</Text>
+                      )}
+                    </View>
+                  </View>
+                </View>
               </View>
             </View>
             <View style={styles.farmNumberHintBox}>
               <Text style={styles.farmNumberHint}>
-                💡 Pro přihlášení do Prodejny použijte toto číslo + PIN
+                💡 Pro přihlášení do Prodejny použijte číslo farmy + PIN kód
               </Text>
             </View>
           </View>
@@ -318,18 +336,52 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   farmNumberLabel: {
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: '#666',
+    marginBottom: spacing.md,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  credentialsRow: {
+    flexDirection: responsive({ mobile: 'column', tablet: 'row', desktop: 'row' }) as any,
+    gap: spacing.lg,
+  },
+  credentialItem: {
+    flex: responsive({ mobile: undefined, tablet: 1, desktop: 1 }) as any,
+  },
+  credentialLabel: {
+    fontSize: fontSize.xs,
+    color: '#888',
     marginBottom: spacing.xs,
     fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   farmNumberValue: {
-    fontSize: responsive({ mobile: 28, tablet: 36, desktop: 44 }),
+    fontSize: responsive({ mobile: 32, tablet: 40, desktop: 48 }),
     fontWeight: '800',
     color: '#2E7D32',
-    letterSpacing: responsive({ mobile: 2.5, tablet: 3, desktop: 4 }),
+    letterSpacing: responsive({ mobile: 3, tablet: 4, desktop: 5 }),
+  },
+  pinStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  pinDots: {
+    fontSize: responsive({ mobile: 28, tablet: 36, desktop: 40 }),
+    fontWeight: '800',
+    color: '#2E7D32',
+    letterSpacing: 2,
+  },
+  pinSet: {
+    fontSize: fontSize.sm,
+    color: '#4CAF50',
+    fontWeight: '600',
+  },
+  pinNotSet: {
+    fontSize: fontSize.base,
+    color: '#FF9800',
+    fontWeight: '600',
   },
   farmNumberHintBox: {
     backgroundColor: '#F1F8F4',
