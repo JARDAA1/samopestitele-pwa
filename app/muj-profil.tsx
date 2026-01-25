@@ -75,6 +75,12 @@ export default function MujProfilScreen() {
     <View style={styles.container}>
       {/* Moderní header s gradientem */}
       <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => router.push('/(tabs)')}
+        >
+          <Text style={styles.menuIcon}>☰</Text>
+        </TouchableOpacity>
         <View style={styles.headerContent}>
           <View style={styles.avatarLarge}>
             <Text style={styles.avatarLargeText}>🌾</Text>
@@ -209,6 +215,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
+  },
+  menuButton: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+  },
+  menuIcon: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: '400',
   },
   headerContent: {
     alignItems: 'center',

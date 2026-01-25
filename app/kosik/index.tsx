@@ -139,8 +139,8 @@ export default function KosikScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← Zpět</Text>
+          <TouchableOpacity onPress={() => router.push('/(tabs)')} style={styles.menuButton}>
+            <Text style={styles.menuIcon}>☰</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>🛒 Košík</Text>
         </View>
@@ -165,8 +165,8 @@ export default function KosikScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Zpět</Text>
+        <TouchableOpacity onPress={() => router.push('/(tabs)')} style={styles.menuButton}>
+          <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>🛒 Košík ({itemCount})</Text>
       </View>
@@ -292,8 +292,8 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
     backgroundColor: '#4CAF50',
   },
-  backButton: { marginRight: 15 },
-  backButtonText: { fontSize: 16, color: '#FFFFFF', fontWeight: '600' },
+  menuButton: { marginRight: 15, padding: 8 },
+  menuIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '400' },
   headerTitle: { flex: 1, fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
 
   content: { flex: 1 },

@@ -216,10 +216,10 @@ function MojeProdejnaScreenContent() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity
-            style={styles.homeButton}
-            onPress={() => router.push('/')}
+            style={styles.menuButton}
+            onPress={() => router.push('/(tabs)')}
           >
-            <Text style={styles.homeIcon}>←</Text>
+            <Text style={styles.menuIcon}>☰</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
             {farmarData?.nazev_farmy}
@@ -455,8 +455,8 @@ const styles = StyleSheet.create({
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   header: { backgroundColor: '#4CAF50', paddingTop: 50, paddingBottom: 12, paddingHorizontal: 16 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  homeButton: { padding: 8, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  homeIcon: { fontSize: 22 },
+  menuButton: { padding: 8, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  menuIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '400' },
   addButtonCircle: { alignItems: 'center', minWidth: 60 },
   addCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#9C27B0', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   addCirclePlus: { fontSize: 28, color: '#FFFFFF', fontWeight: 'bold', lineHeight: 28 },

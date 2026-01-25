@@ -396,11 +396,10 @@ function MojeStankyScreenContent() {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={styles.homeButton}
-              onPress={() => router.push('/')}
+              style={styles.menuButton}
+              onPress={() => router.push('/(tabs)')}
             >
-              <Text style={styles.homeIcon}>🏠</Text>
-              <Text style={styles.homeText}>Domů</Text>
+              <Text style={styles.menuIcon}>☰</Text>
             </TouchableOpacity>
           )}
           <View style={styles.headerCenter}>
@@ -765,9 +764,8 @@ const styles = StyleSheet.create({
   headerSubtitle: { fontSize: 13, color: '#FFFFFF', opacity: 0.9, textAlign: 'center' },
   backButton: { padding: 8, marginRight: 10, minWidth: 60 },
   backIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '600' },
-  homeButton: { alignItems: 'center', padding: 8, minWidth: 60 },
-  homeIcon: { fontSize: 24 },
-  homeText: { fontSize: 10, color: '#FFFFFF', marginTop: 2 },
+  menuButton: { alignItems: 'center', padding: 8, minWidth: 60, justifyContent: 'center' },
+  menuIcon: { fontSize: 32, color: '#FFFFFF', fontWeight: '400' },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerSpacer: { minWidth: 60 },
   addButtonCircle: { alignItems: 'center', minWidth: 60 },

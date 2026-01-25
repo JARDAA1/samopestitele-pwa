@@ -464,10 +464,10 @@ export default function MapaScreen() {
       {/* Minimalistický header */}
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.push('/')}
+          style={styles.menuButton}
+          onPress={() => router.push('/(tabs)')}
         >
-          <Text style={styles.backArrow}>←</Text>
+          <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Hledat produkty</Text>
         <View style={{ width: 36 }} />
@@ -791,13 +791,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  backButton: {
+  menuButton: {
     padding: 4,
   },
-  backArrow: {
+  menuIcon: {
     fontSize: 28,
     color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontWeight: '400',
   },
   sectionContainer: {
     marginBottom: 16,

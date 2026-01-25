@@ -314,8 +314,8 @@ export default function PestitelDetailScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBackButton}>
-          <Text style={styles.headerBackText}>← Zpět</Text>
+        <TouchableOpacity onPress={() => router.push('/(tabs)')} style={styles.menuButton}>
+          <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
         {itemCount > 0 && (
           <TouchableOpacity onPress={handleViewList} style={styles.listBadgeContainer}>
@@ -454,8 +454,8 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
     backgroundColor: '#9C27B0',
   },
-  headerBackButton: {},
-  headerBackText: { fontSize: 16, color: '#FFFFFF', fontWeight: '600' },
+  menuButton: { padding: 8 },
+  menuIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '400' },
   listBadgeContainer: { position: 'relative' },
   listIcon: { fontSize: 28 },
   listBadge: {
