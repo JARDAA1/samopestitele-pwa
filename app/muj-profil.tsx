@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useFarmarAuth } from './utils/farmarAuthContext';
 import { DrawerMenu } from './utils/DrawerMenu';
 import { useDrawerMenu } from './utils/useDrawerMenu';
+import { Feather } from '@expo/vector-icons';
 
 export default function MujProfilScreen() {
   const { isAuthenticated, farmar, logout } = useFarmarAuth();
@@ -189,7 +190,7 @@ export default function MujProfilScreen() {
         {/* Odhlásit */}
         <View style={styles.section}>
           <TouchableOpacity style={styles.logoutButton} onPress={handleOdhlasit}>
-            <Text style={styles.logoutIcon}>🚪</Text>
+            <Feather name="log-out" size={22} color="#F44336" style={{ marginRight: 10 }} />
             <Text style={styles.logoutText}>Odhlásit se</Text>
           </TouchableOpacity>
         </View>

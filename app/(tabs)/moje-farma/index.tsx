@@ -7,6 +7,7 @@ import { useFarmarAuth } from '../../utils/farmarAuthContext';
 import { ProtectedRoute } from '../../utils/ProtectedRoute';
 import { DrawerMenu } from '../../utils/DrawerMenu';
 import { useDrawerMenu } from '../../utils/useDrawerMenu';
+import { Feather } from '@expo/vector-icons';
 
 interface FarmarData {
   id: string;
@@ -327,7 +328,8 @@ function MojeProdejnaScreenContent() {
                 style={styles.logoutButton}
                 onPress={handleOdhlasit}
               >
-                <Text style={styles.logoutButtonText}>🚪 Odhlásit se</Text>
+                <Feather name="log-out" size={20} color="#F44336" style={{ marginRight: 8 }} />
+                <Text style={styles.logoutButtonText}>Odhlásit se</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -481,7 +483,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#2E7D32' },
   logoutInfoBox: { backgroundColor: '#E3F2FD', padding: 12, borderRadius: 8, marginTop: 15, borderLeftWidth: 3, borderLeftColor: '#2196F3' },
   logoutInfoText: { fontSize: 11, color: '#1565C0', lineHeight: 16, textAlign: 'center' },
-  logoutButton: { backgroundColor: '#FF5252', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 12 },
+  logoutButton: { backgroundColor: '#FF5252', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 12, flexDirection: 'row', justifyContent: 'center' },
   logoutButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   infoGrid: { gap: 10 },
   profileHintText: { fontSize: 11, color: '#FF5252', marginBottom: 10, fontStyle: 'italic', lineHeight: 16 },

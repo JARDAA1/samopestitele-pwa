@@ -8,6 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { DrawerMenu } from '../../utils/DrawerMenu';
 import { useDrawerMenu } from '../../utils/useDrawerMenu';
+import { Feather } from '@expo/vector-icons';
 
 interface Stanek {
   id: string;
@@ -744,7 +745,8 @@ function MojeStankyScreenContent() {
             style={styles.logoutButton}
             onPress={handleOdhlasit}
           >
-            <Text style={styles.logoutButtonText}>🚪 Odhlásit se</Text>
+            <Feather name="log-out" size={20} color="#F44336" style={{ marginRight: 8 }} />
+            <Text style={styles.logoutButtonText}>Odhlásit se</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -845,6 +847,6 @@ const styles = StyleSheet.create({
   logoutSection: { padding: 15, paddingTop: 20, paddingBottom: 30 },
   logoutInfoBox: { backgroundColor: '#E3F2FD', padding: 12, borderRadius: 8, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: '#2196F3' },
   logoutInfoText: { fontSize: 11, color: '#1565C0', lineHeight: 16, textAlign: 'center' },
-  logoutButton: { backgroundColor: '#FF5252', padding: 14, borderRadius: 10, alignItems: 'center' },
+  logoutButton: { backgroundColor: '#FF5252', padding: 14, borderRadius: 10, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
   logoutButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
 });
