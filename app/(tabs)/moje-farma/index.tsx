@@ -236,7 +236,7 @@ function MojeProdejnaScreenContent() {
             <View style={styles.addCircle}>
               <Text style={styles.addCirclePlus}>+</Text>
             </View>
-            <Text style={styles.addCircleText}>Přidat další</Text>
+            <Text style={styles.addCircleText}>Přidat</Text>
           </TouchableOpacity>
         </View>
       </View>
