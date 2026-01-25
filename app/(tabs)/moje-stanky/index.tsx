@@ -409,7 +409,7 @@ function MojeStankyScreenContent() {
           </View>
           {!showStanekForm ? (
             <TouchableOpacity
-              style={styles.addButtonHeader}
+              style={styles.addButtonCircle}
               onPress={() => {
                 setEditujiciStanek(null);
                 setStanekForm({
@@ -426,7 +426,10 @@ function MojeStankyScreenContent() {
                 setShowStanekForm(true);
               }}
             >
-              <Text style={styles.addButtonHeaderText}>+ Přidat</Text>
+              <View style={styles.addCircle}>
+                <Text style={styles.addCirclePlus}>+</Text>
+              </View>
+              <Text style={styles.addCircleText}>Přidat další</Text>
             </TouchableOpacity>
           ) : (
             <View style={styles.headerSpacer} />
@@ -767,8 +770,10 @@ const styles = StyleSheet.create({
   homeText: { fontSize: 10, color: '#FFFFFF', marginTop: 2 },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerSpacer: { minWidth: 60 },
-  addButtonHeader: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
-  addButtonHeaderText: { color: '#FF9800', fontSize: 16, fontWeight: 'bold' },
+  addButtonCircle: { alignItems: 'center', minWidth: 60 },
+  addCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#9C27B0', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  addCirclePlus: { fontSize: 28, color: '#FFFFFF', fontWeight: 'bold', lineHeight: 28 },
+  addCircleText: { fontSize: 9, color: '#FFFFFF', fontWeight: '600', textAlign: 'center' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   content: { flex: 1 },
   formCard: { backgroundColor: '#FFFFFF', margin: 15, padding: 20, borderRadius: 12, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4 },

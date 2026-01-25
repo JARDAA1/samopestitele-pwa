@@ -225,10 +225,13 @@ function MojeProdejnaScreenContent() {
             {farmarData?.nazev_farmy}
           </Text>
           <TouchableOpacity
-            style={styles.menuButton}
-            onPress={() => setFarmaInfoExpanded(!farmaInfoExpanded)}
+            style={styles.addButtonCircle}
+            onPress={() => router.push('/moje-farma/nova-polozka')}
           >
-            <Text style={styles.menuIcon}>⚙️</Text>
+            <View style={styles.addCircle}>
+              <Text style={styles.addCirclePlus}>+</Text>
+            </View>
+            <Text style={styles.addCircleText}>Přidat další</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -259,6 +262,13 @@ function MojeProdejnaScreenContent() {
             <Text style={styles.statIcon}>📋</Text>
             <Text style={styles.statNumberCompact}>{pocetObjednavek}</Text>
             <Text style={styles.statLabelCompact}>Objednávek</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.statBoxCompact}
+            onPress={() => setFarmaInfoExpanded(!farmaInfoExpanded)}
+          >
+            <Text style={styles.statIcon}>⚙️</Text>
+            <Text style={styles.statLabelCompact}>Nastavení</Text>
           </TouchableOpacity>
         </View>
 
@@ -447,8 +457,10 @@ const styles = StyleSheet.create({
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   homeButton: { padding: 8, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   homeIcon: { fontSize: 22 },
-  menuButton: { padding: 8, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
-  menuIcon: { fontSize: 22 },
+  addButtonCircle: { alignItems: 'center', minWidth: 60 },
+  addCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#9C27B0', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  addCirclePlus: { fontSize: 28, color: '#FFFFFF', fontWeight: 'bold', lineHeight: 28 },
+  addCircleText: { fontSize: 9, color: '#FFFFFF', fontWeight: '600', textAlign: 'center' },
   headerTitle: { flex: 1, fontSize: 18, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center', paddingHorizontal: 8 },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   content: { flex: 1 },
