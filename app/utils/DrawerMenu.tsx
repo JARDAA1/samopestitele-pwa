@@ -122,15 +122,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
             onPress={() => handleNavigate('/(tabs)/nakupni-seznam')}
           >
             <Text style={styles.menuItemIcon}>📝</Text>
-            <Text style={styles.menuItemText}>Nákupní seznam</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => handleNavigate('/kosik')}
-          >
-            <Text style={styles.menuItemIcon}>🛒</Text>
-            <Text style={styles.menuItemText}>Košík</Text>
+            <Text style={styles.menuItemText}>Můj seznam</Text>
           </TouchableOpacity>
 
           {/* Divider */}

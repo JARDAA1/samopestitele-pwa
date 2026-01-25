@@ -95,3 +95,17 @@ export function useShoppingList() {
   return context;
 }
 
+// Alias pro zpětnou kompatibilitu - košík a nákupní seznam jsou to samé
+// Používáme jen jeden seznam pro všechny produkty od všech farmářů
+export function useCart() {
+  const context = useShoppingList();
+  return {
+    cart: context.shoppingList, // Alias: cart = shoppingList
+    addToCart: context.addToList,
+    removeFromCart: context.removeFromList,
+    updateQuantity: context.updateQuantity,
+    clearCart: context.clearList,
+    totalPrice: context.totalPrice,
+    itemCount: context.itemCount,
+  };
+}
