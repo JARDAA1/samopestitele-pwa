@@ -5,6 +5,7 @@ import { useFarmarAuth } from './utils/farmarAuthContext';
 import { DrawerMenu } from './utils/DrawerMenu';
 import { useDrawerMenu } from './utils/useDrawerMenu';
 import { Feather } from '@expo/vector-icons';
+import { responsive, spacing, fontSize, borderRadius, layout } from './utils/responsive';
 
 export default function MujProfilScreen() {
   const { isAuthenticated, farmar, logout } = useFarmarAuth();
@@ -216,14 +217,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA'
   },
 
-  // Moderní header s gradientem - optimalizováno pro menší displeje
+  // Moderní header s gradientem - responzivní pro všechna zařízení
   header: {
     backgroundColor: '#4CAF50',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingTop: layout.header.paddingTop,
+    paddingBottom: layout.header.paddingBottom,
+    paddingHorizontal: spacing.lg,
+    borderBottomLeftRadius: borderRadius.lg,
+    borderBottomRightRadius: borderRadius.lg,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -232,13 +233,13 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     position: 'absolute',
-    top: 50,
-    left: 20,
+    top: layout.header.paddingTop,
+    left: spacing.lg,
     zIndex: 10,
-    padding: 8,
+    padding: spacing.sm,
   },
   menuIcon: {
-    fontSize: 28,
+    fontSize: fontSize.xl,
     color: '#FFFFFF',
     fontWeight: '400',
   },
@@ -246,13 +247,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarLarge: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: layout.avatar.medium,
+    height: layout.avatar.medium,
+    borderRadius: layout.avatar.medium / 2,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: spacing.md,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -261,16 +262,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   avatarLargeText: {
-    fontSize: 36
+    fontSize: responsive({ mobile: 36, tablet: 48, desktop: 60 })
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: fontSize.xl,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 4
+    marginBottom: spacing.xs
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: fontSize.base,
     color: '#FFFFFF',
     opacity: 0.95
   },
@@ -280,14 +281,14 @@ const styles = StyleSheet.create({
     marginTop: -20,
   },
 
-  // Číslo farmy - kompaktnější pro menší displeje
+  // Číslo farmy - responzivní karta
   farmNumberCard: {
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginTop: 10,
-    marginBottom: 16,
-    borderRadius: 12,
-    padding: 16,
+    marginHorizontal: layout.card.margin,
+    marginTop: spacing.md,
+    marginBottom: layout.card.margin,
+    borderRadius: borderRadius.md,
+    padding: layout.card.padding,
     elevation: 4,
     shadowColor: '#4CAF50',
     shadowOffset: { width: 0, height: 3 },
@@ -299,59 +300,59 @@ const styles = StyleSheet.create({
   farmNumberHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: spacing.md,
   },
   farmNumberIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: responsive({ mobile: 48, tablet: 60, desktop: 70 }),
+    height: responsive({ mobile: 48, tablet: 60, desktop: 70 }),
+    borderRadius: responsive({ mobile: 24, tablet: 30, desktop: 35 }),
     backgroundColor: '#E8F5E9',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: spacing.md,
   },
   farmNumberIcon: {
-    fontSize: 24,
+    fontSize: fontSize.lg,
   },
   farmNumberTextContainer: {
     flex: 1,
   },
   farmNumberLabel: {
-    fontSize: 11,
+    fontSize: fontSize.xs,
     color: '#666',
-    marginBottom: 3,
+    marginBottom: spacing.xs,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   farmNumberValue: {
-    fontSize: 28,
+    fontSize: responsive({ mobile: 28, tablet: 36, desktop: 44 }),
     fontWeight: '800',
     color: '#2E7D32',
-    letterSpacing: 2.5,
+    letterSpacing: responsive({ mobile: 2.5, tablet: 3, desktop: 4 }),
   },
   farmNumberHintBox: {
     backgroundColor: '#F1F8F4',
-    padding: 10,
-    borderRadius: 8,
+    padding: spacing.md,
+    borderRadius: borderRadius.sm,
   },
   farmNumberHint: {
-    fontSize: 12,
+    fontSize: fontSize.sm,
     color: '#2E7D32',
-    lineHeight: 18,
+    lineHeight: responsive({ mobile: 18, tablet: 22, desktop: 26 }),
   },
 
-  // Grid menu - kompaktnější
+  // Grid menu - responzivní
   gridSection: {
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    paddingHorizontal: layout.card.margin,
+    marginBottom: spacing.sm,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: fontSize.lg,
     fontWeight: '700',
     color: '#1A1A1A',
-    marginBottom: 12,
-    marginLeft: 2,
+    marginBottom: spacing.md,
+    marginLeft: spacing.xs,
   },
   gridContainer: {
     flexDirection: 'row',
@@ -359,11 +360,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   gridItem: {
-    width: '48%',
+    width: responsive({ mobile: '48%', tablet: '48%', desktop: '23%' }),
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
+    borderRadius: borderRadius.md,
+    padding: responsive({ mobile: 14, tablet: 18, desktop: 22 }),
+    marginBottom: spacing.md,
     alignItems: 'center',
     elevation: 3,
     shadowColor: '#000',
@@ -372,28 +373,28 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   gridIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: responsive({ mobile: 50, tablet: 60, desktop: 70 }),
+    height: responsive({ mobile: 50, tablet: 60, desktop: 70 }),
+    borderRadius: responsive({ mobile: 25, tablet: 30, desktop: 35 }),
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: spacing.md,
   },
   gridIcon: {
-    fontSize: 28,
+    fontSize: responsive({ mobile: 28, tablet: 34, desktop: 40 }),
   },
   gridTitle: {
-    fontSize: 13,
+    fontSize: fontSize.sm,
     fontWeight: '700',
     color: '#1A1A1A',
     textAlign: 'center',
-    marginBottom: 3,
+    marginBottom: spacing.xs,
   },
   gridSubtitle: {
-    fontSize: 10,
+    fontSize: fontSize.xs,
     color: '#666',
     textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: responsive({ mobile: 14, tablet: 16, desktop: 18 }),
   },
 
   // Bezpečnost
