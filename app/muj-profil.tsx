@@ -216,14 +216,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA'
   },
 
-  // Moderní header s gradientem
+  // Moderní header s gradientem - optimalizováno pro menší displeje
   header: {
     backgroundColor: '#4CAF50',
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingTop: 50,
+    paddingBottom: 20,
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     position: 'absolute',
-    top: 60,
+    top: 50,
     left: 20,
     zIndex: 10,
     padding: 8,
@@ -246,13 +246,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarLarge: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -261,16 +261,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   avatarLargeText: {
-    fontSize: 48
+    fontSize: 36
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 5
+    marginBottom: 4
   },
   headerSubtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#FFFFFF',
     opacity: 0.95
   },
@@ -280,14 +280,14 @@ const styles = StyleSheet.create({
     marginTop: -20,
   },
 
-  // Číslo farmy - moderní karta
+  // Číslo farmy - kompaktnější pro menší displeje
   farmNumberCard: {
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
+    marginHorizontal: 16,
     marginTop: 10,
-    marginBottom: 20,
-    borderRadius: 16,
-    padding: 20,
+    marginBottom: 16,
+    borderRadius: 12,
+    padding: 16,
     elevation: 4,
     shadowColor: '#4CAF50',
     shadowOffset: { width: 0, height: 3 },
@@ -299,41 +299,41 @@ const styles = StyleSheet.create({
   farmNumberHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   farmNumberIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#E8F5E9',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 12,
   },
   farmNumberIcon: {
-    fontSize: 28,
+    fontSize: 24,
   },
   farmNumberTextContainer: {
     flex: 1,
   },
   farmNumberLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#666',
-    marginBottom: 4,
+    marginBottom: 3,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   farmNumberValue: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
     color: '#2E7D32',
-    letterSpacing: 3,
+    letterSpacing: 2.5,
   },
   farmNumberHintBox: {
     backgroundColor: '#F1F8F4',
-    padding: 12,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 8,
   },
   farmNumberHint: {
     fontSize: 12,
@@ -341,17 +341,17 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
-  // Grid menu
+  // Grid menu - kompaktnější
   gridSection: {
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    paddingHorizontal: 16,
+    marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: '700',
     color: '#1A1A1A',
-    marginBottom: 16,
-    marginLeft: 4,
+    marginBottom: 12,
+    marginLeft: 2,
   },
   gridContainer: {
     flexDirection: 'row',
@@ -361,9 +361,9 @@ const styles = StyleSheet.create({
   gridItem: {
     width: '48%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 15,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
     alignItems: 'center',
     elevation: 3,
     shadowColor: '#000',
@@ -372,28 +372,28 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   gridIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   gridIcon: {
-    fontSize: 32,
+    fontSize: 28,
   },
   gridTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#1A1A1A',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   gridSubtitle: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#666',
     textAlign: 'center',
-    lineHeight: 15,
+    lineHeight: 14,
   },
 
   // Bezpečnost
