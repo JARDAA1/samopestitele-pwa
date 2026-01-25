@@ -115,7 +115,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
             onPress={() => handleNavigate('/mapa')}
           >
             <Feather name="map" size={24} color="#333" style={styles.menuItemIcon} />
-            <Text style={styles.menuItemText}>Mapa</Text>
+            <Text style={styles.menuItemText}>Najdi něco ze zahrádky</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
