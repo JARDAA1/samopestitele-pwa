@@ -2,9 +2,12 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'rea
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { useFarmarAuth } from './utils/farmarAuthContext';
+import { DrawerMenu } from './utils/DrawerMenu';
+import { useDrawerMenu } from './utils/useDrawerMenu';
 
 export default function MujProfilScreen() {
   const { isAuthenticated, farmar, logout } = useFarmarAuth();
+  const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
 
   // Pokud není přihlášen, přesměruj na přihlášení
   useEffect(() => {
@@ -73,11 +76,13 @@ export default function MujProfilScreen() {
 
   return (
     <View style={styles.container}>
+      <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
+
       {/* Moderní header s gradientem */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.menuButton}
-          onPress={() => router.push('/(tabs)')}
+          onPress={openMenu}
         >
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>

@@ -8,12 +8,15 @@ import {
   TextInput,
 } from 'react-native';
 import { router } from 'expo-router';
+import { DrawerMenu } from '../utils/DrawerMenu';
+import { useDrawerMenu } from '../utils/useDrawerMenu';
 import { useState } from 'react';
 import { useCart } from '../utils/cartContext';
 import { supabase } from '../../lib/supabase';
 
 export default function KosikScreen() {
   const { cart, removeFromCart, updateQuantity, clearCart, totalPrice, itemCount } = useCart();
+  const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
   const [jmeno, setJmeno] = useState('');
   const [telefon, setTelefon] = useState('');
   const [poznamka, setPoznamka] = useState('');
@@ -138,8 +141,9 @@ export default function KosikScreen() {
   if (cart.length === 0) {
     return (
       <View style={styles.container}>
+        <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push('/(tabs)')} style={styles.menuButton}>
+          <TouchableOpacity onPress={openMenu} style={styles.menuButton}>
             <Text style={styles.menuIcon}>☰</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>🛒 Košík</Text>
@@ -164,8 +168,9 @@ export default function KosikScreen() {
 
   return (
     <View style={styles.container}>
+      <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/(tabs)')} style={styles.menuButton}>
+        <TouchableOpacity onPress={openMenu} style={styles.menuButton}>
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>🛒 Košík ({itemCount})</Text>

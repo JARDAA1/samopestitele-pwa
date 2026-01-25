@@ -5,6 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../../lib/supabase';
 import { useFarmarAuth } from '../../utils/farmarAuthContext';
 import { ProtectedRoute } from '../../utils/ProtectedRoute';
+import { DrawerMenu } from '../../utils/DrawerMenu';
+import { useDrawerMenu } from '../../utils/useDrawerMenu';
 
 interface FarmarData {
   id: string;
@@ -30,6 +32,7 @@ interface Produkt {
 
 function MojeProdejnaScreenContent() {
   const { isAuthenticated, farmar, authLevel, logout } = useFarmarAuth();
+  const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -212,12 +215,14 @@ function MojeProdejnaScreenContent() {
   // PŘIHLÁŠENÝ FARMÁŘ - PRODEJNA
   return (
     <View style={styles.container}>
+      <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
+
       {/* Kompaktní header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity
             style={styles.menuButton}
-            onPress={() => router.push('/(tabs)')}
+            onPress={openMenu}
           >
             <Text style={styles.menuIcon}>☰</Text>
           </TouchableOpacity>

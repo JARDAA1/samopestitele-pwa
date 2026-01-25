@@ -6,6 +6,8 @@ import { useFarmarAuth } from '../../utils/farmarAuthContext';
 import { ProtectedRoute } from '../../utils/ProtectedRoute';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { DrawerMenu } from '../../utils/DrawerMenu';
+import { useDrawerMenu } from '../../utils/useDrawerMenu';
 
 interface Stanek {
   id: string;
@@ -23,6 +25,7 @@ interface Stanek {
 
 function MojeStankyScreenContent() {
   const { isAuthenticated, farmar, logout } = useFarmarAuth();
+  const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
 
   const [loading, setLoading] = useState(true);
   const [stanky, setStanky] = useState<Stanek[]>([]);
@@ -382,6 +385,8 @@ function MojeStankyScreenContent() {
 
   return (
     <View style={styles.container}>
+      <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
+
       <View style={styles.header}>
         <View style={styles.headerTop}>
           {showStanekForm ? (
@@ -397,7 +402,7 @@ function MojeStankyScreenContent() {
           ) : (
             <TouchableOpacity
               style={styles.menuButton}
-              onPress={() => router.push('/(tabs)')}
+              onPress={openMenu}
             >
               <Text style={styles.menuIcon}>☰</Text>
             </TouchableOpacity>
