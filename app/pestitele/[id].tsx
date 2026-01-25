@@ -17,6 +17,7 @@ interface Pestitel {
   telefon: string;
   gps_lat?: number;
   gps_lng?: number;
+  foto_url?: string | null;
 }
 
 interface Produkt {
@@ -72,7 +73,7 @@ export default function PestitelDetailScreen() {
       // Načteme reálná data ze Supabase
       const { data: pestitelData, error: pestitelError } = await supabase
         .from('pestitele')
-        .select('id, nazev_farmy, jmeno, mesto, adresa, popis, telefon, gps_lat, gps_lng')
+        .select('id, nazev_farmy, jmeno, mesto, adresa, popis, telefon, gps_lat, gps_lng, foto_url')
         .eq('id', id)
         .single();
 
@@ -333,6 +334,15 @@ export default function PestitelDetailScreen() {
       </View>
 
       <ScrollView style={styles.content}>
+        {/* Foto farmy - pokud existuje */}
+        {pestitel.foto_url && (
+          <Image
+            source={{ uri: pestitel.foto_url }}
+            style={styles.farmerPhoto}
+            resizeMode="cover"
+          />
+        )}
+
         {/* Informace o farmáři */}
         <View style={styles.farmerInfo}>
           <View style={styles.farmerDetails}>
@@ -477,6 +487,12 @@ const styles = StyleSheet.create({
   listBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: 'bold' },
 
   content: { flex: 1 },
+
+  farmerPhoto: {
+    width: '100%',
+    height: 250,
+    backgroundColor: '#E0E0E0',
+  },
 
   farmerInfo: {
     backgroundColor: '#FFFFFF',

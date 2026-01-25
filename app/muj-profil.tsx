@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { useFarmarAuth } from './utils/farmarAuthContext';
@@ -88,9 +88,17 @@ export default function MujProfilScreen() {
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <View style={styles.avatarLarge}>
-            <Text style={styles.avatarLargeText}>🌾</Text>
-          </View>
+          {farmar?.foto_url ? (
+            <Image
+              source={{ uri: farmar.foto_url }}
+              style={styles.avatarLarge}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.avatarLarge}>
+              <Text style={styles.avatarLargeText}>🌾</Text>
+            </View>
+          )}
           <Text style={styles.headerTitle}>{farmar?.nazev_farmy || 'Farma'}</Text>
           <Text style={styles.headerSubtitle}>{farmar?.telefon || ''}</Text>
         </View>
@@ -250,6 +258,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+    overflow: 'hidden',
   },
   avatarLargeText: {
     fontSize: 48
