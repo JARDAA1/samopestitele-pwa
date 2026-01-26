@@ -115,8 +115,8 @@ export const isPortrait = screenHeight > screenWidth;
 export const layout = {
   header: {
     height: responsive({ mobile: 90, tablet: 120, desktop: 140 }),
-    paddingTop: responsive({ mobile: 50, tablet: 60, desktop: 70 }),
-    paddingBottom: responsive({ mobile: 20, tablet: 30, desktop: 40 }),
+    paddingTop: responsive({ mobile: 40, tablet: 45, desktop: 50 }),
+    paddingBottom: responsive({ mobile: 10, tablet: 15, desktop: 20 }),
   },
   avatar: {
     small: responsive({ mobile: 50, tablet: 60, desktop: 70 }),
