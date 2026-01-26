@@ -131,7 +131,7 @@ export default function HomeScreen() {
       {/* Oddělovač */}
       <View style={styles.divider}>
         <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>Jste pěstitel?</Text>
+        <Text style={styles.dividerText}>Jste pěstitel/ka?</Text>
         <View style={styles.dividerLine} />
       </View>
 
@@ -176,7 +176,7 @@ export default function HomeScreen() {
             {/* Oddělovač */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>Jste pěstitel?</Text>
+              <Text style={styles.dividerText}>Jste pěstitel/ka?</Text>
               <View style={styles.dividerLine} />
             </View>
 
