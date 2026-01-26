@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
@@ -71,11 +71,7 @@ export default function StankyLoginScreen() {
       <View style={styles.content}>
         <View style={styles.card}>
           <View style={styles.iconContainer}>
-            <Image
-              source={require('../../assets/images/stanek-icon.png')}
-              style={styles.iconImage}
-              resizeMode="contain"
-            />
+            <Text style={styles.icon}>🎪</Text>
           </View>
 
           <Text style={styles.title}>Přihlášení PINem</Text>
@@ -209,10 +205,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 40,
-  },
-  iconImage: {
-    width: 80,
-    height: 80,
   },
   title: {
     fontSize: 24,
