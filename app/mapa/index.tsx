@@ -778,6 +778,17 @@ export default function MapaScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Plovoucí tlačítko pro zavření seznamu produktů */}
+      {showProduktyFilter && (
+        <TouchableOpacity
+          style={styles.floatingCloseButton}
+          onPress={() => setShowProduktyFilter(false)}
+        >
+          <Text style={styles.floatingCloseButtonIcon}>✕</Text>
+          <Text style={styles.floatingCloseButtonText}>Zavřít seznam</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -1534,5 +1545,33 @@ const styles = StyleSheet.create({
     color: '#999',
     marginLeft: 6,
     marginVertical: 1,
+  },
+  // Plovoucí tlačítko pro zavření seznamu produktů
+  floatingCloseButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#7B1FA2',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 25,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  floatingCloseButtonIcon: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    marginRight: 6,
+  },
+  floatingCloseButtonText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 });
