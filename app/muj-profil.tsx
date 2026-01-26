@@ -89,17 +89,6 @@ export default function MujProfilScreen() {
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          {farmar?.foto_url ? (
-            <Image
-              source={{ uri: farmar.foto_url }}
-              style={styles.avatarLarge}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={styles.avatarLarge}>
-              <Text style={styles.avatarLargeText}>🌾</Text>
-            </View>
-          )}
           <Text style={styles.headerTitle}>{farmar?.nazev_farmy || 'Farma'}</Text>
           <Text style={styles.headerSubtitle}>{farmar?.telefon || ''}</Text>
         </View>
