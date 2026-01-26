@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
@@ -68,7 +68,11 @@ export default function ProfilLoginScreen() {
       <View style={styles.content}>
         <View style={styles.card}>
           <View style={styles.iconContainer}>
-            <Text style={styles.icon}>👤</Text>
+            <Image
+              source={require('../../assets/images/profil-icon.png')}
+              style={styles.iconImage}
+              resizeMode="contain"
+            />
           </View>
 
           {emailSent ? (
@@ -197,6 +201,10 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 40,
+  },
+  iconImage: {
+    width: 80,
+    height: 80,
   },
   title: {
     fontSize: 24,
