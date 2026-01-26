@@ -20,18 +20,19 @@ export default function PodminkyScreen() {
 
           <Text style={styles.heading}>1. Základní ustanovení</Text>
           <Text style={styles.text}>
-            Tyto obchodní podmínky upravují používání platformy Samopěstitelé.cz (dále jen "Platforma"), která propojuje pěstitele s koncovými zákazníky. Provozovatelem Platformy je [DOPLNIT NÁZEV SPOLEČNOSTI], IČO: [DOPLNIT], se sídlem [DOPLNIT] (dále jen "Provozovatel").
+            Tyto podmínky upravují používání platformy Samopěstitelé.cz (dále jen "Platforma"), která propojuje samopěstitele s koncovými zákazníky. Platforma je určena především fyzickým osobám, které prodávají přebytky ze své zahrady a nespadají pod živnostenské podnikání. Provozovatelem je [DOPLNIT JMÉNO/NÁZEV], se sídlem [DOPLNIT ADRESA] (dále jen "Provozovatel").
           </Text>
 
-          <Text style={styles.heading}>2. Odpovědnost pěstitele</Text>
+          <Text style={styles.heading}>2. Odpovědnost samopěstitele</Text>
           <Text style={styles.text}>
-            Registrací na Platformě pěstitel prohlašuje a zavazuje se, že:
+            Registrací na Platformě samopěstitel prohlašuje a zavazuje se, že:
           </Text>
           <Text style={styles.bullet}>• Nese plnou odpovědnost za pravdivost, kvalitu a bezpečnost nabízených produktů</Text>
-          <Text style={styles.bullet}>• Dodržuje platné hygienické a zdravotní standardy ČR při pěstování a prodeji potravin</Text>
-          <Text style={styles.bullet}>• Má v pořádku všechna potřebná povolení a registrace podle českého práva</Text>
-          <Text style={styles.bullet}>• Produkty jsou v souladu se zákonem č. 110/1997 Sb., o potravinách</Text>
-          <Text style={styles.bullet}>• V případě prodeje živočišných produktů má platnou registraci u Státní veterinární správy</Text>
+          <Text style={styles.bullet}>• Dodržuje základní hygienické standardy při pěstování a prodeji produktů</Text>
+          <Text style={styles.bullet}>• Produkty pocházejí z vlastního pěstování nebo chovu</Text>
+          <Text style={styles.bullet}>• Produkty jsou určeny k přímé spotřebě a neobsahují škodlivé látky</Text>
+          <Text style={styles.bullet}>• V případě živočišných produktů (vejce, mléko, med) dodržuje zákonné požadavky</Text>
+          <Text style={styles.bullet}>• Neprodává produkty ve velkém množství, které by vyžadovalo živnostenské oprávnění</Text>
 
           <Text style={styles.heading}>3. Vyloučení odpovědnosti Provozovatele</Text>
           <Text style={styles.text}>
@@ -42,9 +43,14 @@ export default function PodminkyScreen() {
           <Text style={styles.bullet}>• Neprovádí kontrolu hygienických podmínek u pěstitelů</Text>
           <Text style={styles.bullet}>• Nenese odpovědnost za případné zdravotní komplikace vzniklé konzumací produktů</Text>
 
-          <Text style={styles.heading}>4. Práva a povinnosti</Text>
+          <Text style={styles.heading}>4. Prodej přebytků vs. podnikání</Text>
           <Text style={styles.text}>
-            Provozovatel si vyhrazuje právo odstranit nabídku nebo zablokovat účet pěstitele v případě porušení těchto podmínek nebo na základě stížností zákazníků.
+            Tato Platforma je určena pro neformální prodej přebytků ze zahrady. Pokud samopěstitel pravidelně prodává velké množství produktů, může být povinen získat živnostenské oprávnění podle zákona č. 455/1991 Sb., živnostenský zákon. V takovém případě samopěstitel nese plnou odpovědnost za dodržování příslušných právních předpisů.
+          </Text>
+
+          <Text style={styles.heading}>5. Práva a povinnosti</Text>
+          <Text style={styles.text}>
+            Provozovatel si vyhrazuje právo odstranit nabídku nebo zablokovat účet samopěstitele v případě porušení těchto podmínek nebo na základě opakovaných stížností zákazníků.
           </Text>
         </View>
 
@@ -55,7 +61,7 @@ export default function PodminkyScreen() {
 
           <Text style={styles.heading}>1. Správce osobních údajů</Text>
           <Text style={styles.text}>
-            Správcem osobních údajů je Provozovatel Platformy [DOPLNIT NÁZEV], IČO: [DOPLNIT], se sídlem [DOPLNIT], email: [DOPLNIT EMAIL].
+            Správcem osobních údajů je Provozovatel Platformy [DOPLNIT JMÉNO/NÁZEV], se sídlem [DOPLNIT ADRESA], email: [DOPLNIT EMAIL], telefon: [DOPLNIT TELEFON].
           </Text>
 
           <Text style={styles.heading}>2. Zpracovávané osobní údaje</Text>
