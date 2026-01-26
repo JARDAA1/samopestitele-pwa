@@ -1,0 +1,28 @@
+{
+  "name": "Samopěstitelé",
+  "short_name": "Samopěstitelé",
+  "description": "Najděte lokální farmáře a samopěstitele ve vašem okolí",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#7B1FA2",
+  "background_color": "#7B1FA2",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "food", "lifestyle"],
+  "lang": "cs",
+  "dir": "ltr",
+  "scope": "/"
+}

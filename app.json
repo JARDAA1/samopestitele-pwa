@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#4CAF50"
+      "backgroundColor": "#7B1FA2"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -32,7 +32,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#4CAF50"
+        "backgroundColor": "#7B1FA2"
       },
       "package": "com.samopestitele.app",
       "permissions": [
@@ -68,7 +68,7 @@
       "favicon": "./assets/images/icon.png",
       "bundler": "metro",
       "output": "static",
-      "backgroundColor": "#4CAF50"
+      "backgroundColor": "#7B1FA2"
     }
   }
 }

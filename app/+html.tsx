@@ -6,14 +6,32 @@ import { ScrollViewStyleReset } from 'expo-router/html';
 // do not have access to the DOM or browser APIs.
 export default function Root({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="cs">
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-        {/* 
-          Disable body scrolling on web. This makes ScrollView components work closer to how they do on native. 
+        {/* PWA Configuration */}
+        <meta name="application-name" content="Samopěstitelé" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Samopěstitelé" />
+        <meta name="theme-color" content="#7B1FA2" />
+        <meta name="mobile-web-app-capable" content="yes" />
+
+        {/* Description */}
+        <meta name="description" content="Najděte lokální farmáře a samopěstitele ve vašem okolí. Čerstvé produkty přímo od pěstitelů." />
+        <meta name="keywords" content="farmáři, samopěstitelé, lokální produkty, farm to table, čerstvá zelenina, ovoce" />
+
+        {/* Manifest */}
+        <link rel="manifest" href="/manifest.json" />
+
+        {/* Apple Touch Icons */}
+        <link rel="apple-touch-icon" href="/icon.png" />
+
+        {/*
+          Disable body scrolling on web. This makes ScrollView components work closer to how they do on native.
           However, body scrolling is often nice to have for mobile web. If you want to enable it, remove this line.
         */}
         <ScrollViewStyleReset />
@@ -29,10 +47,10 @@ export default function Root({ children }: { children: React.ReactNode }) {
 
 const responsiveBackground = `
 body {
-  background-color: #fff;
+  background-color: #F8F9FA;
 }
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: #000;
+    background-color: #1A1A1A;
   }
 }`;
