@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
@@ -111,7 +111,11 @@ export default function ProdejnaLoginScreen() {
       <View style={styles.content}>
         <View style={styles.card}>
           <View style={styles.iconContainer}>
-            <Text style={styles.icon}>🏪</Text>
+            <Image
+              source={require('../../assets/images/prodejna-icon.png')}
+              style={styles.iconImage}
+              resizeMode="contain"
+            />
           </View>
 
           <Text style={styles.title}>Přihlášení PIN kódem</Text>
@@ -268,6 +272,10 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 40,
+  },
+  iconImage: {
+    width: 60,
+    height: 60,
   },
   title: {
     fontSize: 24,
