@@ -18,8 +18,9 @@ export default function RegistraceScreen() {
   const [heslo, setHeslo] = useState('');
   const [hesloPotvrdit, setHesloPotvrdit] = useState('');
 
-  // KROK 3: Souhlas
-  const [souhlas, setSouhlas] = useState(false);
+  // KROK 3: Souhlasy
+  const [souhlasGDPR, setSouhlasGDPR] = useState(false);
+  const [souhlasOdpovednost, setSouhlasOdpovednost] = useState(false);
 
   /**
    * KROK 1: Validace základních informací
@@ -96,11 +97,20 @@ export default function RegistraceScreen() {
    * KROK 3: Dokončení registrace
    */
   const registrovat = async () => {
-    if (!souhlas) {
+    if (!souhlasGDPR) {
       if (Platform.OS === 'web') {
-        alert('Musíte souhlasit se zpracováním údajů');
+        alert('Musíte souhlasit se zpracováním osobních údajů');
       } else {
-        Alert.alert('Chyba', 'Musíte souhlasit se zpracováním údajů');
+        Alert.alert('Chyba', 'Musíte souhlasit se zpracováním osobních údajů');
+      }
+      return;
+    }
+
+    if (!souhlasOdpovednost) {
+      if (Platform.OS === 'web') {
+        alert('Musíte potvrdit odpovědnost za nabízené produkty');
+      } else {
+        Alert.alert('Chyba', 'Musíte potvrdit odpovědnost za nabízené produkty');
       }
       return;
     }
@@ -274,15 +284,41 @@ export default function RegistraceScreen() {
               <Text style={styles.summaryItem}>🔐 Heslo: ••••••</Text>
             </View>
 
+            {/* GDPR Souhlas */}
             <TouchableOpacity
               style={styles.checkbox}
-              onPress={() => setSouhlas(!souhlas)}
+              onPress={() => setSouhlasGDPR(!souhlasGDPR)}
             >
-              <View style={[styles.checkboxBox, souhlas && styles.checkboxBoxChecked]}>
-                {souhlas && <Text style={styles.checkboxCheck}>✓</Text>}
+              <View style={[styles.checkboxBox, souhlasGDPR && styles.checkboxBoxChecked]}>
+                {souhlasGDPR && <Text style={styles.checkboxCheck}>✓</Text>}
               </View>
               <Text style={styles.checkboxText}>
-                Souhlasím se zpracováním osobních údajů pro účely této aplikace (jméno, email, adresa farmy)
+                Souhlasím se zpracováním osobních údajů (jméno, email, telefon, adresa) v souladu s nařízením GDPR pro účely poskytování služeb této platformy. Jsem si vědom/a svých práv na přístup, opravu, výmaz a přenositelnost údajů. Více informací v{' '}
+                <Text
+                  style={styles.checkboxLink}
+                  onPress={() => router.push('/podmínky')}
+                >
+                  Zásadách ochrany osobních údajů
+                </Text>.
+              </Text>
+            </TouchableOpacity>
+
+            {/* Odpovědnost za nabídku */}
+            <TouchableOpacity
+              style={styles.checkbox}
+              onPress={() => setSouhlasOdpovednost(!souhlasOdpovednost)}
+            >
+              <View style={[styles.checkboxBox, souhlasOdpovednost && styles.checkboxBoxChecked]}>
+                {souhlasOdpovednost && <Text style={styles.checkboxCheck}>✓</Text>}
+              </View>
+              <Text style={styles.checkboxText}>
+                Prohlašuji, že nesu plnou odpovědnost za pravdivost, kvalitu a bezpečnost nabízených produktů. Zavazuji se dodržovat platné hygienické a zdravotní standardy ČR při pěstování a prodeji potravin. Více informací v{' '}
+                <Text
+                  style={styles.checkboxLink}
+                  onPress={() => router.push('/podminky')}
+                >
+                  Obchodních podmínkách
+                </Text>.
               </Text>
             </TouchableOpacity>
 
@@ -377,4 +413,5 @@ const styles = StyleSheet.create({
   checkboxBoxChecked: { backgroundColor: '#7B1FA2' },
   checkboxCheck: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
   checkboxText: { flex: 1, fontSize: 13, color: '#666', lineHeight: 18 },
+  checkboxLink: { color: '#7B1FA2', fontWeight: '600', textDecorationLine: 'underline' },
 });
