@@ -5,6 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const isWeb = Platform.OS === 'web';
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
   const [showBee, setShowBee] = useState(false);
   const beePosition = useRef(new Animated.ValueXY({ x: -50, y: -50 })).current;
   const beeOpacity = useRef(new Animated.Value(0)).current;
@@ -74,39 +76,9 @@ export default function HomeScreen() {
     });
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Hero obrázek jako pozadí - celá obrazovka */}
-      <ImageBackground
-        source={require('../../assets/images/hero-banner.jpg')}
-        style={styles.heroBackground}
-        resizeMode="contain"
-      >
-        {/* Jemný overlay pro lepší čitelnost tlačítek */}
-        <View style={styles.heroOverlay} />
-
-        {/* Animovaná včelka - jednou denně */}
-        {showBee && (
-          <Animated.View
-            style={[
-              styles.bee,
-              {
-                transform: [
-                  { translateX: beePosition.x },
-                  { translateY: beePosition.y },
-                ],
-                opacity: beeOpacity,
-              },
-            ]}
-          >
-            <Text style={styles.beeEmoji}>🐝</Text>
-          </Animated.View>
-        )}
-
-        {/* Tlačítka přes obrázek */}
-        {!isWeb && (
-          <View style={styles.buttonsOverlay}>
-            {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
+  // Komponenta s tlačítky pro opakované použití
+  const ActionButtons = ({ containerStyle }: { containerStyle?: any }) => (
+    <View style={containerStyle}>
       <TouchableOpacity
         style={styles.primaryButton}
         onPress={() => router.push('/mapa')}
@@ -117,7 +89,6 @@ export default function HomeScreen() {
         </View>
       </TouchableOpacity>
 
-      {/* TLAČÍTKO 2 - MOJI FARMÁŘI */}
       <TouchableOpacity
         style={styles.secondaryButton}
         onPress={() => router.push('/explore')}
@@ -128,14 +99,12 @@ export default function HomeScreen() {
         </View>
       </TouchableOpacity>
 
-      {/* Oddělovač */}
       <View style={styles.divider}>
         <View style={styles.dividerLine} />
         <Text style={styles.dividerText}>Jste pěstitel/ka?</Text>
         <View style={styles.dividerLine} />
       </View>
 
-      {/* TLAČÍTKO 3 - JSEM SAMOPĚSTITEL/KA */}
       <TouchableOpacity
         style={styles.farmerButton}
         onPress={() => router.push('/jsem-farmar')}
@@ -145,54 +114,88 @@ export default function HomeScreen() {
           <Text style={styles.buttonTitle}>Jsem samopěstitel/ka</Text>
         </View>
       </TouchableOpacity>
-          </View>
-        )}
+    </View>
+  );
 
-        {/* Web verze s absolutním pozicováním */}
-        {isWeb && (
-          <View style={styles.buttonsOverlayWeb}>
-            {/* TLAČÍTKO 1 - NAJDI FARMÁŘE (MAPA S FILTREM) */}
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => router.push('/mapa')}
-            >
-              <Text style={styles.buttonIcon}>🍎</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.buttonTitle}>Najdi něco ze zahrádky</Text>
-              </View>
-            </TouchableOpacity>
+  return (
+    <View style={styles.container}>
+      {/* Desktop layout - dvousloupcový */}
+      {isDesktop ? (
+        <View style={styles.desktopContainer}>
+          {/* Levý sloupec - obsah */}
+          <View style={styles.desktopLeftColumn}>
+            <View style={styles.desktopContent}>
+              <Text style={styles.desktopTitle}>Samopěstitelé</Text>
+              <Text style={styles.desktopSubtitle}>
+                Najděte čerstvé produkty přímo od pěstitelů ve vašem okolí
+              </Text>
 
-            {/* TLAČÍTKO 2 - MOJI FARMÁŘI */}
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => router.push('/explore')}
-            >
-              <Text style={styles.buttonIcon}>🐻‍❄️</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.buttonTitle}>Oblíbené</Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Oddělovač */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>Jste pěstitel/ka?</Text>
-              <View style={styles.dividerLine} />
+              <ActionButtons containerStyle={styles.desktopButtonsContainer} />
             </View>
-
-            {/* TLAČÍTKO 3 - JSEM SAMOPĚSTITEL/KA */}
-            <TouchableOpacity
-              style={styles.farmerButton}
-              onPress={() => router.push('/jsem-farmar')}
-            >
-              <Text style={styles.buttonIcon}>🌾</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.buttonTitle}>Jsem samopěstitel/ka</Text>
-              </View>
-            </TouchableOpacity>
           </View>
-        )}
-      </ImageBackground>
+
+          {/* Pravý sloupec - hero obrázek */}
+          <View style={styles.desktopRightColumn}>
+            <ImageBackground
+              source={require('../../assets/images/hero-banner.jpg')}
+              style={styles.desktopHeroImage}
+              resizeMode="cover"
+            />
+          </View>
+
+          {/* Animovaná včelka */}
+          {showBee && (
+            <Animated.View
+              style={[
+                styles.bee,
+                {
+                  transform: [
+                    { translateX: beePosition.x },
+                    { translateY: beePosition.y },
+                  ],
+                  opacity: beeOpacity,
+                },
+              ]}
+            >
+              <Text style={styles.beeEmoji}>🐝</Text>
+            </Animated.View>
+          )}
+        </View>
+      ) : (
+        /* Mobilní layout - původní */
+        <ImageBackground
+          source={require('../../assets/images/hero-banner.jpg')}
+          style={styles.heroBackground}
+          resizeMode="contain"
+        >
+          <View style={styles.heroOverlay} />
+
+          {/* Animovaná včelka */}
+          {showBee && (
+            <Animated.View
+              style={[
+                styles.bee,
+                {
+                  transform: [
+                    { translateX: beePosition.x },
+                    { translateY: beePosition.y },
+                  ],
+                  opacity: beeOpacity,
+                },
+              ]}
+            >
+              <Text style={styles.beeEmoji}>🐝</Text>
+            </Animated.View>
+          )}
+
+          {/* Tlačítka přes obrázek */}
+          {isWeb ? (
+            <ActionButtons containerStyle={styles.buttonsOverlayWeb} />
+          ) : (
+            <ActionButtons containerStyle={styles.buttonsOverlay} />
+          )}
+        </ImageBackground>
+      )}
     </View>
   );
 }
@@ -202,6 +205,52 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+
+  // Desktop styly
+  desktopContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    maxWidth: 1320,
+    marginHorizontal: 'auto',
+    width: '100%',
+  },
+  desktopLeftColumn: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 60,
+    paddingVertical: 40,
+    backgroundColor: '#F5F5F5',
+  },
+  desktopContent: {
+    maxWidth: 400,
+  },
+  desktopTitle: {
+    fontSize: 48,
+    fontWeight: '700',
+    color: '#6A1B9A',
+    marginBottom: 20,
+  },
+  desktopSubtitle: {
+    fontSize: 18,
+    color: '#666',
+    marginBottom: 40,
+    lineHeight: 26,
+  },
+  desktopButtonsContainer: {
+    width: '100%',
+  },
+  desktopRightColumn: {
+    flex: 1,
+    minHeight: '70vh',
+    maxHeight: '80vh',
+  },
+  desktopHeroImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+
+  // Mobilní styly
   heroBackground: {
     flex: 1,
     width: '100%',
@@ -227,88 +276,86 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     zIndex: 1,
   },
+
+  // Tlačítka
   primaryButton: {
     backgroundColor: '#4CAF50',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
     width: '100%',
-    maxWidth: 200,
+    maxWidth: 360,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 8,
   },
   secondaryButton: {
     backgroundColor: '#FF9800',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
     width: '100%',
-    maxWidth: 200,
+    maxWidth: 360,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  farmerButton: {
+    backgroundColor: '#9C27B0',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    width: '100%',
+    maxWidth: 360,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 8,
   },
   buttonIcon: {
-    fontSize: 18,
-    marginRight: 8
+    fontSize: 24,
+    marginRight: 12,
   },
   buttonTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#FFFFFF',
   },
-  buttonSubtitle: {
-    fontSize: 9,
-    color: '#FFFFFF',
-    opacity: 0.9
-  },
+
+  // Oddělovač
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    maxWidth: 200,
-    marginVertical: 8,
+    maxWidth: 360,
+    marginVertical: 16,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: 'rgba(106, 27, 154, 0.3)',
   },
   dividerText: {
-    marginHorizontal: 8,
-    fontSize: 10,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 4,
+    marginHorizontal: 12,
+    fontSize: 12,
+    color: '#6A1B9A',
+    fontWeight: '600',
   },
-  farmerButton: {
-    backgroundColor: '#9C27B0',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    width: '100%',
-    maxWidth: 200,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 8,
-  },
+
+  // Včelka
   bee: {
     position: 'absolute',
     zIndex: 999,
