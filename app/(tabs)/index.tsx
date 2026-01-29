@@ -254,12 +254,13 @@ const styles = StyleSheet.create({
   desktopContentOverlay: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingHorizontal: 80,
     paddingVertical: 60,
   },
   desktopContent: {
     maxWidth: 500,
+    alignItems: 'center',
   },
   desktopTitle: {
     fontSize: 56,
@@ -269,6 +270,7 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 10,
+    textAlign: 'center',
   },
   desktopSubtitle: {
     fontSize: 20,
@@ -278,9 +280,11 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 8,
+    textAlign: 'center',
   },
   desktopButtonsContainer: {
     width: '100%',
+    alignItems: 'center',
   },
 
   // Mobilní styly
