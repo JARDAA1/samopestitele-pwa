@@ -85,7 +85,7 @@ export default function HomeScreen() {
       >
         <Text style={styles.buttonIcon}>🍎</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.buttonTitle}>Najdi něco ze zahrádky</Text>
+          <Text style={styles.buttonTitle}>Mapa farmářů a produktů</Text>
         </View>
       </TouchableOpacity>
 
@@ -93,9 +93,9 @@ export default function HomeScreen() {
         style={styles.secondaryButton}
         onPress={() => router.push('/explore')}
       >
-        <Text style={styles.buttonIcon}>🐻‍❄️</Text>
+        <Text style={styles.buttonIcon}>☀️</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.buttonTitle}>Oblíbené</Text>
+          <Text style={styles.buttonTitle}>Uložení farmáři</Text>
         </View>
       </TouchableOpacity>
 
@@ -111,7 +111,7 @@ export default function HomeScreen() {
       >
         <Text style={styles.buttonIcon}>🌾</Text>
         <View style={{ flex: 1 }}>
-          <Text style={styles.buttonTitle}>Jsem samopěstitel/ka</Text>
+          <Text style={styles.buttonTitle}>Prodávám své produkty</Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -133,7 +133,7 @@ export default function HomeScreen() {
               <View style={styles.desktopContent}>
                 <Text style={styles.desktopTitle}>Samopěstitelé</Text>
                 <Text style={styles.desktopSubtitle}>
-                  Najděte čerstvé produkty přímo od pěstitelů ve vašem okolí
+                  Platforma pro nákup čerstvých produktů přímo od lokálních pěstitelů
                 </Text>
 
                 <ActionButtons containerStyle={styles.desktopButtonsContainer} />
@@ -170,7 +170,7 @@ export default function HomeScreen() {
               <View style={styles.desktopContent}>
                 <Text style={styles.desktopTitle}>Samopěstitelé</Text>
                 <Text style={styles.desktopSubtitle}>
-                  Najděte čerstvé produkty přímo od pěstitelů ve vašem okolí
+                  Platforma pro nákup čerstvých produktů přímo od lokálních pěstitelů
                 </Text>
 
                 <ActionButtons containerStyle={styles.desktopButtonsContainer} />
