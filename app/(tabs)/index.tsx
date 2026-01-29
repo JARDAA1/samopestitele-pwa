@@ -136,11 +136,19 @@ export default function HomeScreen() {
 
           {/* Pravý sloupec - hero obrázek */}
           <View style={styles.desktopRightColumn}>
-            <ImageBackground
-              source={require('../../assets/images/hero-banner.jpg')}
-              style={styles.desktopHeroImage}
-              resizeMode="cover"
-            />
+            {Platform.OS === 'web' ? (
+              <ImageBackground
+                source={{ uri: '/assets/images/PC_WEB.png' }}
+                style={styles.desktopHeroImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <ImageBackground
+                source={require('../../assets/images/PC_WEB.png')}
+                style={styles.desktopHeroImage}
+                resizeMode="cover"
+              />
+            )}
           </View>
 
           {/* Animovaná včelka */}
