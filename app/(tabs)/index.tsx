@@ -119,56 +119,83 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Desktop layout - dvousloupcový */}
+      {/* Desktop layout - fullscreen s overlay */}
       {isDesktop ? (
-        <View style={styles.desktopContainer}>
-          {/* Levý sloupec - obsah */}
-          <View style={styles.desktopLeftColumn}>
-            <View style={styles.desktopContent}>
-              <Text style={styles.desktopTitle}>Samopěstitelé</Text>
-              <Text style={styles.desktopSubtitle}>
-                Najděte čerstvé produkty přímo od pěstitelů ve vašem okolí
-              </Text>
+        Platform.OS === 'web' ? (
+          <ImageBackground
+            source={{ uri: '/assets/images/PC_WEB.png' }}
+            style={styles.desktopFullscreenBg}
+            resizeMode="cover"
+          >
+            <View style={styles.desktopOverlay} />
 
-              <ActionButtons containerStyle={styles.desktopButtonsContainer} />
+            <View style={styles.desktopContentOverlay}>
+              <View style={styles.desktopContent}>
+                <Text style={styles.desktopTitle}>Samopěstitelé</Text>
+                <Text style={styles.desktopSubtitle}>
+                  Najděte čerstvé produkty přímo od pěstitelů ve vašem okolí
+                </Text>
+
+                <ActionButtons containerStyle={styles.desktopButtonsContainer} />
+              </View>
             </View>
-          </View>
 
-          {/* Pravý sloupec - hero obrázek */}
-          <View style={styles.desktopRightColumn}>
-            {Platform.OS === 'web' ? (
-              <ImageBackground
-                source={{ uri: '/assets/images/PC_WEB.png' }}
-                style={styles.desktopHeroImage}
-                resizeMode="cover"
-              />
-            ) : (
-              <ImageBackground
-                source={require('../../assets/images/PC_WEB.png')}
-                style={styles.desktopHeroImage}
-                resizeMode="cover"
-              />
+            {/* Animovaná včelka */}
+            {showBee && (
+              <Animated.View
+                style={[
+                  styles.bee,
+                  {
+                    transform: [
+                      { translateX: beePosition.x },
+                      { translateY: beePosition.y },
+                    ],
+                    opacity: beeOpacity,
+                  },
+                ]}
+              >
+                <Text style={styles.beeEmoji}>🐝</Text>
+              </Animated.View>
             )}
-          </View>
+          </ImageBackground>
+        ) : (
+          <ImageBackground
+            source={require('../../assets/images/PC_WEB.png')}
+            style={styles.desktopFullscreenBg}
+            resizeMode="cover"
+          >
+            <View style={styles.desktopOverlay} />
 
-          {/* Animovaná včelka */}
-          {showBee && (
-            <Animated.View
-              style={[
-                styles.bee,
-                {
-                  transform: [
-                    { translateX: beePosition.x },
-                    { translateY: beePosition.y },
-                  ],
-                  opacity: beeOpacity,
-                },
-              ]}
-            >
-              <Text style={styles.beeEmoji}>🐝</Text>
-            </Animated.View>
-          )}
-        </View>
+            <View style={styles.desktopContentOverlay}>
+              <View style={styles.desktopContent}>
+                <Text style={styles.desktopTitle}>Samopěstitelé</Text>
+                <Text style={styles.desktopSubtitle}>
+                  Najděte čerstvé produkty přímo od pěstitelů ve vašem okolí
+                </Text>
+
+                <ActionButtons containerStyle={styles.desktopButtonsContainer} />
+              </View>
+            </View>
+
+            {/* Animovaná včelka */}
+            {showBee && (
+              <Animated.View
+                style={[
+                  styles.bee,
+                  {
+                    transform: [
+                      { translateX: beePosition.x },
+                      { translateY: beePosition.y },
+                    ],
+                    opacity: beeOpacity,
+                  },
+                ]}
+              >
+                <Text style={styles.beeEmoji}>🐝</Text>
+              </Animated.View>
+            )}
+          </ImageBackground>
+        )
       ) : (
         /* Mobilní layout - původní */
         <ImageBackground
@@ -214,48 +241,46 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
 
-  // Desktop styly
-  desktopContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    maxWidth: 1320,
-    marginHorizontal: 'auto',
-    width: '100%',
-  },
-  desktopLeftColumn: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 60,
-    paddingVertical: 40,
-    backgroundColor: '#F5F5F5',
-  },
-  desktopContent: {
-    maxWidth: 400,
-  },
-  desktopTitle: {
-    fontSize: 48,
-    fontWeight: '700',
-    color: '#6A1B9A',
-    marginBottom: 20,
-  },
-  desktopSubtitle: {
-    fontSize: 18,
-    color: '#666',
-    marginBottom: 40,
-    lineHeight: 26,
-  },
-  desktopButtonsContainer: {
-    width: '100%',
-  },
-  desktopRightColumn: {
-    flex: 1,
-    minHeight: '70vh',
-    maxHeight: '80vh',
-  },
-  desktopHeroImage: {
+  // Desktop styly - fullscreen
+  desktopFullscreenBg: {
     flex: 1,
     width: '100%',
     height: '100%',
+  },
+  desktopOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  desktopContentOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    paddingHorizontal: 80,
+    paddingVertical: 60,
+  },
+  desktopContent: {
+    maxWidth: 500,
+  },
+  desktopTitle: {
+    fontSize: 56,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 20,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 10,
+  },
+  desktopSubtitle: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    marginBottom: 40,
+    lineHeight: 30,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 8,
+  },
+  desktopButtonsContainer: {
+    width: '100%',
   },
 
   // Mobilní styly
