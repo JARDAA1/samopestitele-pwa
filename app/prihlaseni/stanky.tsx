@@ -71,11 +71,19 @@ export default function StankyLoginScreen() {
       <View style={styles.content}>
         <View style={styles.card}>
           <View style={styles.iconContainer}>
-            <Image
-              source={require('../../assets/images/stanek-icon.png')}
-              style={styles.iconImage}
-              resizeMode="contain"
-            />
+            {Platform.OS === 'web' ? (
+              <Image
+                source={{ uri: '/assets/images/stanek-icon.png' }}
+                style={styles.iconImage}
+                resizeMode="contain"
+              />
+            ) : (
+              <Image
+                source={require('../../assets/images/stanek-icon.png')}
+                style={styles.iconImage}
+                resizeMode="contain"
+              />
+            )}
           </View>
 
           <Text style={styles.title}>Přihlášení PINem</Text>

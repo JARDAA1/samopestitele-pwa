@@ -111,11 +111,19 @@ export default function ProdejnaLoginScreen() {
       <View style={styles.content}>
         <View style={styles.card}>
           <View style={styles.iconContainer}>
-            <Image
-              source={require('../../assets/images/prodejna-icon.png')}
-              style={styles.iconImage}
-              resizeMode="contain"
-            />
+            {Platform.OS === 'web' ? (
+              <Image
+                source={{ uri: '/assets/images/prodejna-icon.png' }}
+                style={styles.iconImage}
+                resizeMode="contain"
+              />
+            ) : (
+              <Image
+                source={require('../../assets/images/prodejna-icon.png')}
+                style={styles.iconImage}
+                resizeMode="contain"
+              />
+            )}
           </View>
 
           <Text style={styles.title}>Přihlášení PIN kódem</Text>
