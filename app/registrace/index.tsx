@@ -8,13 +8,15 @@ export default function RegistraceScreen() {
 
   const [krok, setKrok] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [farmNumber, setFarmNumber] = useState('');
 
   // KROK 1: Email a základní informace
   const [email, setEmail] = useState('');
   const [jmeno, setJmeno] = useState('');
   const [nazevFarmy, setNazevFarmy] = useState('');
 
-  // KROK 2: Heslo (místo PIN použijeme heslo pro silnější bezpečnost)
+  // KROK 2: PIN (4-6 číslic)
   const [heslo, setHeslo] = useState('');
   const [hesloPotvrdit, setHesloPotvrdit] = useState('');
 
@@ -69,23 +71,33 @@ export default function RegistraceScreen() {
   };
 
   /**
-   * KROK 2: Validace hesla
+   * KROK 2: Validace PINu
    */
   const validovatHeslo = () => {
-    if (heslo.length < 6) {
+    // PIN musí mít 4-6 znaků a obsahovat pouze číslice
+    if (heslo.length < 4 || heslo.length > 6) {
       if (Platform.OS === 'web') {
-        alert('Heslo musí mít alespoň 6 znaků');
+        alert('PIN musí mít 4-6 číslic');
       } else {
-        Alert.alert('Chyba', 'Heslo musí mít alespoň 6 znaků');
+        Alert.alert('Chyba', 'PIN musí mít 4-6 číslic');
+      }
+      return;
+    }
+
+    if (!/^\d+$/.test(heslo)) {
+      if (Platform.OS === 'web') {
+        alert('PIN může obsahovat pouze číslice');
+      } else {
+        Alert.alert('Chyba', 'PIN může obsahovat pouze číslice');
       }
       return;
     }
 
     if (heslo !== hesloPotvrdit) {
       if (Platform.OS === 'web') {
-        alert('Hesla se neshodují');
+        alert('PINy se neshodují');
       } else {
-        Alert.alert('Chyba', 'Hesla se neshodují');
+        Alert.alert('Chyba', 'PINy se neshodují');
       }
       return;
     }
@@ -124,23 +136,14 @@ export default function RegistraceScreen() {
         nazev_farmy: nazevFarmy,
         jmeno,
         email: email,
-        pin: heslo, // Použijeme heslo místo PIN
+        pin: heslo,
       });
 
-      if (result.success) {
-        if (Platform.OS === 'web') {
-          alert('Registrace úspěšná! Nyní se prosím přihlaste pomocí magic linku, který vám zašleme na email.');
-          router.replace('/prihlaseni');
-        } else {
-          Alert.alert(
-            'Úspěch! 🎉',
-            'Váš účet byl vytvořen. Nyní se prosím přihlaste pomocí magic linku, který vám zašleme na email.',
-            [{
-              text: 'Přihlásit se',
-              onPress: () => router.replace('/prihlaseni')
-            }]
-          );
-        }
+      if (result.success && result.farmNumber) {
+        // Uložíme kód farmy a zobrazíme úspěšnou obrazovku
+        setFarmNumber(result.farmNumber);
+        setRegistrationSuccess(true);
+        setKrok(4); // Nový krok 4 - úspěšná registrace
       } else {
         if (Platform.OS === 'web') {
           alert(result.error || 'Nepodařilo se vytvořit účet');
@@ -171,11 +174,13 @@ export default function RegistraceScreen() {
       </View>
 
       {/* Progress bar */}
-      <View style={styles.progressBar}>
-        <View style={[styles.progressStep, krok >= 1 && styles.progressStepActive]} />
-        <View style={[styles.progressStep, krok >= 2 && styles.progressStepActive]} />
-        <View style={[styles.progressStep, krok >= 3 && styles.progressStepActive]} />
-      </View>
+      {krok < 4 && (
+        <View style={styles.progressBar}>
+          <View style={[styles.progressStep, krok >= 1 && styles.progressStepActive]} />
+          <View style={[styles.progressStep, krok >= 2 && styles.progressStepActive]} />
+          <View style={[styles.progressStep, krok >= 3 && styles.progressStepActive]} />
+        </View>
+      )}
 
       <ScrollView contentContainerStyle={styles.content}>
         {/* KROK 1: Základní informace */}
@@ -224,32 +229,36 @@ export default function RegistraceScreen() {
           </View>
         )}
 
-        {/* KROK 2: Vytvoření hesla */}
+        {/* KROK 2: Vytvoření PINu */}
         {krok === 2 && (
           <View style={styles.step}>
-            <Text style={styles.stepTitle}>🔐 Vytvořte heslo</Text>
+            <Text style={styles.stepTitle}>🔐 Vytvořte PIN</Text>
             <Text style={styles.stepSubtitle}>Krok 2 z 3</Text>
             <Text style={styles.infoText}>
-              Heslo použijeme pouze pro případ, že nebudete mít přístup k emailu.
+              PIN budete používat společně s kódem farmy pro rychlé přihlášení.
             </Text>
 
-            <Text style={styles.label}>Heslo (min. 6 znaků) *</Text>
+            <Text style={styles.label}>PIN (4-6 číslic) *</Text>
             <TextInput
               style={styles.input}
-              placeholder="••••••"
+              placeholder="••••"
               value={heslo}
               onChangeText={setHeslo}
               secureTextEntry
+              keyboardType="numeric"
+              maxLength={6}
               autoFocus
             />
 
-            <Text style={styles.label}>Potvrďte heslo *</Text>
+            <Text style={styles.label}>Potvrďte PIN *</Text>
             <TextInput
               style={styles.input}
-              placeholder="••••••"
+              placeholder="••••"
               value={hesloPotvrdit}
               onChangeText={setHesloPotvrdit}
               secureTextEntry
+              keyboardType="numeric"
+              maxLength={6}
             />
 
             <View style={styles.buttonRow}>
@@ -270,6 +279,53 @@ export default function RegistraceScreen() {
           </View>
         )}
 
+        {/* KROK 4: Úspěšná registrace */}
+        {krok === 4 && registrationSuccess && (
+          <View style={styles.step}>
+            <View style={styles.successContainer}>
+              <Text style={styles.successIcon}>✅</Text>
+              <Text style={styles.successTitle}>Registrace úspěšná!</Text>
+              <Text style={styles.successSubtitle}>
+                Váš účet byl vytvořen. Uložte si prosím své přihlašovací údaje:
+              </Text>
+
+              <View style={styles.credentialsBox}>
+                <Text style={styles.credentialsTitle}>🔑 Vaše přihlašovací údaje:</Text>
+
+                <View style={styles.credentialItem}>
+                  <Text style={styles.credentialLabel}>Kód farmy:</Text>
+                  <View style={styles.credentialValue}>
+                    <Text style={styles.credentialValueText}>{farmNumber}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.credentialItem}>
+                  <Text style={styles.credentialLabel}>PIN:</Text>
+                  <View style={styles.credentialValue}>
+                    <Text style={styles.credentialValueText}>{heslo}</Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.warningBox}>
+                <Text style={styles.warningTitle}>⚠️ Důležité</Text>
+                <Text style={styles.warningText}>
+                  • Uložte si tyto údaje na bezpečné místo{'\n'}
+                  • Budete je potřebovat pro přihlášení{'\n'}
+                  • Kód farmy a PIN nelze obnovit
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.buttonPrimary}
+                onPress={() => router.replace('/prihlaseni/prodejna')}
+              >
+                <Text style={styles.buttonText}>Přihlásit se →</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* KROK 3: Shrnutí a souhlas */}
         {krok === 3 && (
           <View style={styles.step}>
@@ -281,7 +337,7 @@ export default function RegistraceScreen() {
               <Text style={styles.summaryItem}>📧 {email}</Text>
               <Text style={styles.summaryItem}>👤 {jmeno}</Text>
               <Text style={styles.summaryItem}>🌾 {nazevFarmy}</Text>
-              <Text style={styles.summaryItem}>🔐 Heslo: ••••••</Text>
+              <Text style={styles.summaryItem}>🔐 PIN: {'•'.repeat(heslo.length)}</Text>
             </View>
 
             {/* GDPR Souhlas */}
@@ -414,4 +470,47 @@ const styles = StyleSheet.create({
   checkboxCheck: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
   checkboxText: { flex: 1, fontSize: 13, color: '#666', lineHeight: 18 },
   checkboxLink: { color: '#7B1FA2', fontWeight: '600', textDecorationLine: 'underline' },
+
+  // Úspěšná registrace
+  successContainer: { alignItems: 'center', paddingVertical: 20 },
+  successIcon: { fontSize: 80, marginBottom: 20 },
+  successTitle: { fontSize: 28, fontWeight: 'bold', color: '#4CAF50', marginBottom: 10, textAlign: 'center' },
+  successSubtitle: { fontSize: 16, color: '#666', marginBottom: 30, textAlign: 'center', lineHeight: 24 },
+  credentialsBox: {
+    backgroundColor: '#F3E5F5',
+    padding: 24,
+    borderRadius: 12,
+    width: '100%',
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#7B1FA2'
+  },
+  credentialsTitle: { fontSize: 18, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 20, textAlign: 'center' },
+  credentialItem: { marginBottom: 16 },
+  credentialLabel: { fontSize: 14, color: '#666', marginBottom: 6, fontWeight: '600' },
+  credentialValue: {
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#7B1FA2',
+  },
+  credentialValueText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#6A1B9A',
+    textAlign: 'center',
+    letterSpacing: 4,
+  },
+  warningBox: {
+    backgroundColor: '#FFF3E0',
+    padding: 16,
+    borderRadius: 8,
+    width: '100%',
+    marginBottom: 30,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF9800'
+  },
+  warningTitle: { fontSize: 16, fontWeight: 'bold', color: '#E65100', marginBottom: 8 },
+  warningText: { fontSize: 13, color: '#666', lineHeight: 20 },
 });

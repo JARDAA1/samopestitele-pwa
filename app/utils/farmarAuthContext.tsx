@@ -31,7 +31,7 @@ interface FarmarAuthContextType {
     jmeno: string;
     email?: string;
     pin: string;
-  }) => Promise<{ success: boolean; error?: string }>;
+  }) => Promise<{ success: boolean; error?: string; farmNumber?: string }>;
   verifyPhone: (telefon: string, kod: string) => Promise<boolean>;
   sendSMSCode: (telefon: string) => Promise<boolean>;
   checkPinSession: () => Promise<boolean>;
@@ -47,6 +47,20 @@ const MAX_LOGIN_ATTEMPTS = 5; // Max počet neúspěšných pokusů
 const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minut v ms
 // SESSION_TIMEOUT odstraněn - uživatelé zůstávají přihlášeni do manuálního odhlášení
 const BCRYPT_SALT_ROUNDS = 10; // Náročnost hashování
+
+// ============================================================
+// HELPER FUNKCE
+// ============================================================
+// Vygeneruje mock farm_number (4 znaky, písmena + číslice, bez O, I, 0, 1)
+function generateMockFarmNumber(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Bez O, I, 0, 1
+  let result = '';
+  for (let i = 0; i < 4; i++) {
+    const randomIndex = Math.floor(Math.random() * chars.length);
+    result += chars[randomIndex];
+  }
+  return result;
+}
 
 // ============================================================
 // BEZPEČNOSTNÍ HELPER FUNKCE
@@ -224,7 +238,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     jmeno: string;
     email?: string;
     pin: string;
-  }): Promise<{ success: boolean; error?: string }> => {
+  }): Promise<{ success: boolean; error?: string; farmNumber?: string }> => {
     try {
       // Pro WEB - mock registrace
       if (Platform.OS === 'web') {
@@ -233,6 +247,9 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         // Simulace zpoždění
         await new Promise(resolve => setTimeout(resolve, 1000));
 
+        // Vygenerujeme náhodný farm_number (mock)
+        const mockFarmNumber = generateMockFarmNumber();
+
         // Vytvoříme mock farmáře
         const newFarmar: Farmar = {
           id: `farmar-${Date.now()}`,
@@ -240,10 +257,12 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
           nazev_farmy: data.nazev_farmy,
           jmeno: data.jmeno,
           email: data.email,
+          farm_number: mockFarmNumber,
         };
 
         // Uložíme PIN a farmáře do AsyncStorage
         await AsyncStorage.setItem('farmar_pin', data.pin);
+        await AsyncStorage.setItem(`farmar_pin_${mockFarmNumber}`, data.pin); // Pro přihlášení pomocí farm_number
         await AsyncStorage.setItem('farmar_data', JSON.stringify(newFarmar));
 
         // NEBUDEME automaticky přihlašovat - uživatel se musí přihlásit přes PIN
@@ -252,7 +271,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         // setFarmar(newFarmar);
         // setAuthLevel('pin');
 
-        return { success: true };
+        return { success: true, farmNumber: mockFarmNumber };
       }
 
       // Pro NATIVE - reálná registrace přes Supabase
@@ -293,7 +312,8 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
       // 4. Uložit data lokálně (PIN NEukládáme, pouze hash v databázi)
       await AsyncStorage.setItem('farmar_data', JSON.stringify(newFarmar));
 
-      return { success: true };
+      // 5. Vrátit farm_number který se automaticky vygeneroval triggerem v databázi
+      return { success: true, farmNumber: newFarmar.farm_number };
     } catch (error: any) {
       console.error('Registration error:', error);
       return { success: false, error: error.message };
