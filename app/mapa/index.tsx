@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert, SafeAreaView, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -44,6 +44,8 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 
 export default function MapaScreen() {
   const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
   const [pestitele, setPestitele] = useState<Pestitel[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtering, setFiltering] = useState(false); // Nový stav pro filtrování
@@ -456,7 +458,7 @@ export default function MapaScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#7B1FA2" />
+        <ActivityIndicator size="large" color="#222222" />
         <Text style={styles.loadingText}>Načítám farmáře...</Text>
       </View>
     );
@@ -478,305 +480,312 @@ export default function MapaScreen() {
         <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={[styles.scrollContent, isDesktop && styles.scrollContentDesktop]}>
+        <View style={[styles.mainLayout, isDesktop && styles.mainLayoutDesktop]}>
+          {/* Levý panel - filtry */}
+          <View style={[styles.filtersPanel, isDesktop && styles.filtersPanelDesktop]}>
+            {/* Co sháníte? - Nadpis + Vyhledávání */}
+            <View style={[styles.searchSection, isDesktop && styles.searchSectionDesktop]}>
+              <Text style={styles.sectionMainTitle}>Co sháníte?</Text>
+              <Text style={styles.sectionSubtitle}>Najděte čerstvé zboží přímo od farmářů</Text>
 
-        {/* Co sháníte? - Nadpis + Vyhledávání */}
-        <View style={styles.searchSection}>
-          <Text style={styles.sectionMainTitle}>Co sháníte?</Text>
-          <Text style={styles.sectionSubtitle}>Najděte čerstvé zboží přímo od farmářů</Text>
+              <View style={styles.searchCard}>
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Brambory, med, vajíčka..."
+                  placeholderTextColor="#999"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                />
+              </View>
 
-          <View style={styles.searchCard}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Brambory, med, vajíčka..."
-              placeholderTextColor="#999"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              autoCorrect={false}
-              autoCapitalize="none"
-            />
-          </View>
+              <TouchableOpacity
+                style={styles.productListButton}
+                onPress={() => setShowProduktyFilter(!showProduktyFilter)}
+              >
+                <Text style={styles.productListButtonIcon}>☰</Text>
+                <Text style={styles.productListButtonText}>Vybrat ze seznamu produktů</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.productListButton}
-            onPress={() => setShowProduktyFilter(!showProduktyFilter)}
-          >
-            <Text style={styles.productListButtonIcon}>☰</Text>
-            <Text style={styles.productListButtonText}>Vybrat ze seznamu produktů</Text>
-          </TouchableOpacity>
-
-          {showProduktyFilter && (
-            <View style={styles.chipGrid}>
-              {produkty.map((produkt) => (
-                <TouchableOpacity
-                  key={produkt.id}
-                  style={[
-                    styles.chip,
-                    selectedProdukty.includes(produkt.id) && styles.chipActive
-                  ]}
-                  onPress={() => toggleProdukt(produkt.id)}
-                >
-                  <Text style={styles.chipEmoji}>{produkt.emoji}</Text>
-                  <Text style={[
-                    styles.chipText,
-                    selectedProdukty.includes(produkt.id) && styles.chipTextActive
-                  ]}>
-                    {produkt.nazev}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {showProduktyFilter && (
+                <View style={styles.chipGrid}>
+                  {produkty.map((produkt) => (
+                    <TouchableOpacity
+                      key={produkt.id}
+                      style={[
+                        styles.chip,
+                        selectedProdukty.includes(produkt.id) && styles.chipActive
+                      ]}
+                      onPress={() => toggleProdukt(produkt.id)}
+                    >
+                      <Text style={styles.chipEmoji}>{produkt.emoji}</Text>
+                      <Text style={[
+                        styles.chipText,
+                        selectedProdukty.includes(produkt.id) && styles.chipTextActive
+                      ]}>
+                        {produkt.nazev}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
-          )}
-        </View>
 
-        {/* Kde vyzvednout? */}
-        <View style={styles.locationSection}>
-          <View style={styles.sectionHeaderWithIcon}>
-            <Text style={styles.locationIcon}>📍</Text>
-            <Text style={styles.sectionMainTitle}>Kde vyzvednout?</Text>
-          </View>
-          <Text style={styles.sectionSubtitle}>Zvolte lokalitu a maximální dojezdovou vzdálenost</Text>
+            {/* Kde vyzvednout? */}
+            <View style={[styles.locationSection, isDesktop && styles.locationSectionDesktop]}>
+              <View style={styles.sectionHeaderWithIcon}>
+                <Text style={styles.locationIcon}>📍</Text>
+                <Text style={styles.sectionMainTitle}>Kde vyzvednout?</Text>
+              </View>
+              <Text style={styles.sectionSubtitle}>Zvolte lokalitu a maximální dojezdovou vzdálenost</Text>
 
-          <View style={styles.filtersCard}>
+              <View style={styles.filtersCard}>
 
-          {/* Výchozí místo */}
-          <Text style={styles.inputLabel}>Výchozí místo</Text>
+              {/* Výchozí místo */}
+              <Text style={styles.inputLabel}>Výchozí místo</Text>
 
-          <TouchableOpacity
-            style={styles.locationInputButton}
-            onPress={useMyLocation}
-          >
-            <Text style={styles.locationInputIcon}>✈️</Text>
-            <Text style={[
-              styles.locationInputText,
-              !locationSource && styles.locationInputPlaceholder
-            ]}>
-              {locationLabel || 'Brno-střed'}
-            </Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.locationInputButton}
+                onPress={useMyLocation}
+              >
+                <Text style={styles.locationInputIcon}>✈️</Text>
+                <Text style={[
+                  styles.locationInputText,
+                  !locationSource && styles.locationInputPlaceholder
+                ]}>
+                  {locationLabel || 'Brno-střed'}
+                </Text>
+              </TouchableOpacity>
 
-          {locationSource === 'address' && (
-            <TouchableOpacity
-              style={styles.gpsButton}
-              onPress={useMyLocation}
-            >
-              <Text style={styles.gpsButtonIcon}>🎯</Text>
-              <Text style={styles.gpsButtonText}>Použít aktuální GPS polohu</Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Jiný start než má poloha */}
-          <Text style={[styles.inputLabel, { marginTop: 20 }]}>Jiný start než má poloha</Text>
-          <TextInput
-            style={styles.addressInput}
-            placeholder="např. Hlavní 123, Praha"
-            placeholderTextColor="#999"
-            value={addressInput}
-            onChangeText={setAddressInput}
-            autoCorrect={false}
-            autoCapitalize="words"
-            onSubmitEditing={() => geocodeAddress(addressInput)}
-          />
-          <TouchableOpacity
-            style={[styles.geocodeButtonFull, geocoding && styles.geocodeButtonDisabled]}
-            onPress={() => geocodeAddress(addressInput)}
-            disabled={geocoding}
-          >
-            {geocoding ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.geocodeButtonText}>Hledat</Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Maximální vzdálenost */}
-          <Text style={styles.inputLabel}>Maximální vzdálenost</Text>
-          <Text style={styles.distanceValue}>{selectedDistance || 15} km</Text>
-
-          <View style={styles.distanceButtonsRow}>
-            <TouchableOpacity
-              style={[styles.distanceButtonSmall, selectedDistance === 5 && styles.distanceButtonSmallActive]}
-              onPress={() => handleDistanceChange(5)}
-            >
-              <Text style={[styles.distanceButtonSmallText, selectedDistance === 5 && styles.distanceButtonSmallTextActive]}>
-                5 km
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.distanceButtonSmall, selectedDistance === 15 && styles.distanceButtonSmallActive]}
-              onPress={() => handleDistanceChange(15)}
-            >
-              <Text style={[styles.distanceButtonSmallText, selectedDistance === 15 && styles.distanceButtonSmallTextActive]}>
-                15 km
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.distanceButtonSmall, selectedDistance === 30 && styles.distanceButtonSmallActive]}
-              onPress={() => handleDistanceChange(30)}
-            >
-              <Text style={[styles.distanceButtonSmallText, selectedDistance === 30 && styles.distanceButtonSmallTextActive]}>
-                30 km
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.distanceButtonSmall, selectedDistance === null && styles.distanceButtonSmallActive]}
-              onPress={() => handleDistanceChange(null)}
-            >
-              <Text style={[styles.distanceButtonSmallText, selectedDistance === null && styles.distanceButtonSmallTextActive]}>
-                50+ km
-              </Text>
-            </TouchableOpacity>
-          </View>
-          </View>
-        </View>
-
-        {/* Výsledky - farmáři */}
-        {!filtering && (selectedDistance !== null || selectedProdukty.length > 0 || searchQuery.length > 0) && (
-          <View style={styles.resultsSection}>
-            <Text style={styles.resultsSectionTitle}>
-              Nalezeno {filteredPestitele.length} farmářů
-            </Text>
-
-            {/* Match filter - zobrazit jen pokud byly vybrány produkty */}
-            {selectedProdukty.length > 0 && (
-              <View style={styles.matchFilterContainer}>
+              {locationSource === 'address' && (
                 <TouchableOpacity
-                  style={[styles.matchFilterBtn, matchFilter === 'all' && styles.matchFilterBtnActive]}
-                  onPress={() => setMatchFilter('all')}>
-                  <Text style={[styles.matchFilterText, matchFilter === 'all' && styles.matchFilterTextActive]}>
-                    Všichni ({filteredPestitele.length})
+                  style={styles.gpsButton}
+                  onPress={useMyLocation}
+                >
+                  <Text style={styles.gpsButtonIcon}>🎯</Text>
+                  <Text style={styles.gpsButtonText}>Použít aktuální GPS polohu</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Jiný start než má poloha */}
+              <Text style={[styles.inputLabel, { marginTop: 20 }]}>Jiný start než má poloha</Text>
+              <TextInput
+                style={styles.addressInput}
+                placeholder="např. Hlavní 123, Praha"
+                placeholderTextColor="#999"
+                value={addressInput}
+                onChangeText={setAddressInput}
+                autoCorrect={false}
+                autoCapitalize="words"
+                onSubmitEditing={() => geocodeAddress(addressInput)}
+              />
+              <TouchableOpacity
+                style={[styles.geocodeButtonFull, geocoding && styles.geocodeButtonDisabled]}
+                onPress={() => geocodeAddress(addressInput)}
+                disabled={geocoding}
+              >
+                {geocoding ? (
+                  <ActivityIndicator size="small" color="#222222" />
+                ) : (
+                  <Text style={styles.geocodeButtonText}>Hledat</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Maximální vzdálenost */}
+              <Text style={styles.inputLabel}>Maximální vzdálenost</Text>
+              <Text style={styles.distanceValue}>{selectedDistance || 15} km</Text>
+
+              <View style={styles.distanceButtonsRow}>
+                <TouchableOpacity
+                  style={[styles.distanceButtonSmall, selectedDistance === 5 && styles.distanceButtonSmallActive]}
+                  onPress={() => handleDistanceChange(5)}
+                >
+                  <Text style={[styles.distanceButtonSmallText, selectedDistance === 5 && styles.distanceButtonSmallTextActive]}>
+                    5 km
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.matchFilterBtn, matchFilter === 'complete' && styles.matchFilterBtnActive]}
-                  onPress={() => setMatchFilter('complete')}>
-                  <Text style={[styles.matchFilterText, matchFilter === 'complete' && styles.matchFilterTextActive]}>
-                    Má vše ({filteredPestitele.filter(p => p.hasCompleteMatch).length})
+                  style={[styles.distanceButtonSmall, selectedDistance === 15 && styles.distanceButtonSmallActive]}
+                  onPress={() => handleDistanceChange(15)}
+                >
+                  <Text style={[styles.distanceButtonSmallText, selectedDistance === 15 && styles.distanceButtonSmallTextActive]}>
+                    15 km
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.matchFilterBtn, matchFilter === 'partial' && styles.matchFilterBtnActive]}
-                  onPress={() => setMatchFilter('partial')}>
-                  <Text style={[styles.matchFilterText, matchFilter === 'partial' && styles.matchFilterTextActive]}>
-                    Částečná ({filteredPestitele.filter(p => !p.hasCompleteMatch && p.matchScore > 0).length})
+                  style={[styles.distanceButtonSmall, selectedDistance === 30 && styles.distanceButtonSmallActive]}
+                  onPress={() => handleDistanceChange(30)}
+                >
+                  <Text style={[styles.distanceButtonSmallText, selectedDistance === 30 && styles.distanceButtonSmallTextActive]}>
+                    30 km
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.distanceButtonSmall, selectedDistance === null && styles.distanceButtonSmallActive]}
+                  onPress={() => handleDistanceChange(null)}
+                >
+                  <Text style={[styles.distanceButtonSmallText, selectedDistance === null && styles.distanceButtonSmallTextActive]}>
+                    50+ km
                   </Text>
                 </TouchableOpacity>
               </View>
-            )}
+              </View>
+            </View>
           </View>
-        )}
 
-        {/* Seznam farmářů */}
-        {!filtering && filteredPestitele.length > 0 && (
-          <>
-            {filteredPestitele.slice(0, 3).map((item) => {
-              const hasSelectedProducts = selectedProdukty.length > 0;
-              const isExpanded = expandedFarmers[item.id] || false;
+          {/* Pravý panel - výsledky */}
+          <View style={[styles.resultsPanel, isDesktop && styles.resultsPanelDesktop]}>
+            {/* Výsledky - farmáři */}
+            {!filtering && (selectedDistance !== null || selectedProdukty.length > 0 || searchQuery.length > 0) && (
+              <View style={[styles.resultsSection, isDesktop && styles.resultsSectionDesktop]}>
+                <Text style={styles.resultsSectionTitle}>
+                  Nalezeno {filteredPestitele.length} farmářů
+                </Text>
 
-              return (
-                <View key={item.id} style={styles.farmerCardWrapper}>
-                  <TouchableOpacity
-                    style={styles.farmerCard}
-                    onPress={() => router.push(`/pestitele/${item.id}`)}
-                  >
-                    <View style={styles.farmerAvatar}>
-                      <Text style={styles.farmerAvatarText}>
-                        {item.nazev_farmy.charAt(0).toUpperCase()}
+                {/* Match filter - zobrazit jen pokud byly vybrány produkty */}
+                {selectedProdukty.length > 0 && (
+                  <View style={styles.matchFilterContainer}>
+                    <TouchableOpacity
+                      style={[styles.matchFilterBtn, matchFilter === 'all' && styles.matchFilterBtnActive]}
+                      onPress={() => setMatchFilter('all')}>
+                      <Text style={[styles.matchFilterText, matchFilter === 'all' && styles.matchFilterTextActive]}>
+                        Všichni ({filteredPestitele.length})
                       </Text>
-                    </View>
-                    <View style={styles.farmerInfo}>
-                      <Text style={styles.farmerName}>{item.nazev_farmy}</Text>
-                      <View style={styles.farmerMeta}>
-                        <Text style={styles.farmerDistance}>
-                          📍 {item.distance !== undefined ? `${item.distance.toFixed(1)} km` : item.mesto}
-                        </Text>
-                        <Text style={styles.farmerRating}>⭐ 4.9</Text>
-                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.matchFilterBtn, matchFilter === 'complete' && styles.matchFilterBtnActive]}
+                      onPress={() => setMatchFilter('complete')}>
+                      <Text style={[styles.matchFilterText, matchFilter === 'complete' && styles.matchFilterTextActive]}>
+                        Má vše ({filteredPestitele.filter(p => p.hasCompleteMatch).length})
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.matchFilterBtn, matchFilter === 'partial' && styles.matchFilterBtnActive]}
+                      onPress={() => setMatchFilter('partial')}>
+                      <Text style={[styles.matchFilterText, matchFilter === 'partial' && styles.matchFilterTextActive]}>
+                        Částečná ({filteredPestitele.filter(p => !p.hasCompleteMatch && p.matchScore > 0).length})
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            )}
 
-                      {/* Match indicator - zobrazit jen pokud byly vybrány produkty */}
-                      {hasSelectedProducts && (
-                        <View style={styles.matchIndicator}>
-                          {item.hasCompleteMatch ? (
-                            <View style={styles.matchBadgeComplete}>
-                              <Text style={styles.matchBadgeText}>✓ Má vše</Text>
-                            </View>
-                          ) : (
-                            <View style={styles.matchBadgePartial}>
-                              <Text style={styles.matchBadgeTextPartial}>
-                                {item.matchScore}/{selectedProdukty.length} produktů
-                              </Text>
+            {/* Seznam farmářů */}
+            {!filtering && filteredPestitele.length > 0 && (
+              <>
+                {filteredPestitele.slice(0, 3).map((item) => {
+                  const hasSelectedProducts = selectedProdukty.length > 0;
+                  const isExpanded = expandedFarmers[item.id] || false;
+
+                  return (
+                    <View key={item.id} style={styles.farmerCardWrapper}>
+                      <TouchableOpacity
+                        style={[styles.farmerCard, isDesktop && styles.farmerCardDesktop]}
+                        onPress={() => router.push(`/pestitele/${item.id}`)}
+                      >
+                        <View style={styles.farmerAvatar}>
+                          <Text style={styles.farmerAvatarText}>
+                            {item.nazev_farmy.charAt(0).toUpperCase()}
+                          </Text>
+                        </View>
+                        <View style={styles.farmerInfo}>
+                          <Text style={styles.farmerName}>{item.nazev_farmy}</Text>
+                          <View style={styles.farmerMeta}>
+                            <Text style={styles.farmerDistance}>
+                              📍 {item.distance !== undefined ? `${item.distance.toFixed(1)} km` : item.mesto}
+                            </Text>
+                            <Text style={styles.farmerRating}>⭐ 4.9</Text>
+                          </View>
+
+                          {/* Match indicator - zobrazit jen pokud byly vybrány produkty */}
+                          {hasSelectedProducts && (
+                            <View style={styles.matchIndicator}>
+                              {item.hasCompleteMatch ? (
+                                <View style={styles.matchBadgeComplete}>
+                                  <Text style={styles.matchBadgeText}>✓ Má vše</Text>
+                                </View>
+                              ) : (
+                                <View style={styles.matchBadgePartial}>
+                                  <Text style={styles.matchBadgeTextPartial}>
+                                    {item.matchScore}/{selectedProdukty.length} produktů
+                                  </Text>
+                                </View>
+                              )}
                             </View>
                           )}
                         </View>
-                      )}
-                    </View>
-                    <Text style={styles.farmerArrow}>›</Text>
-                  </TouchableOpacity>
-
-                  {/* Expandable sekce pro chybějící produkty */}
-                  {hasSelectedProducts && !item.hasCompleteMatch && item.missingProducts.length > 0 && (
-                    <>
-                      <TouchableOpacity
-                        style={styles.expandButton}
-                        onPress={() => setExpandedFarmers({
-                          ...expandedFarmers,
-                          [item.id]: !isExpanded
-                        })}
-                      >
-                        <Text style={styles.expandButtonText}>
-                          {isExpanded ? '▼' : '▶'} {isExpanded ? 'Skrýt' : 'Zobrazit'} chybějící produkty
-                        </Text>
+                        <Text style={styles.farmerArrow}>›</Text>
                       </TouchableOpacity>
 
-                      {isExpanded && (
-                        <View style={styles.expandedSection}>
-                          <Text style={styles.expandedTitle}>Má tyto produkty:</Text>
-                          {item.matchedProducts.map((prod: string, idx: number) => (
-                            <Text key={idx} style={styles.productItemMatched}>
-                              ✓ {prod}
+                      {/* Expandable sekce pro chybějící produkty */}
+                      {hasSelectedProducts && !item.hasCompleteMatch && item.missingProducts.length > 0 && (
+                        <>
+                          <TouchableOpacity
+                            style={[styles.expandButton, isDesktop && styles.expandButtonDesktop]}
+                            onPress={() => setExpandedFarmers({
+                              ...expandedFarmers,
+                              [item.id]: !isExpanded
+                            })}
+                          >
+                            <Text style={styles.expandButtonText}>
+                              {isExpanded ? '▼' : '▶'} {isExpanded ? 'Skrýt' : 'Zobrazit'} chybějící produkty
                             </Text>
-                          ))}
+                          </TouchableOpacity>
 
-                          <Text style={styles.expandedTitle}>Chybí:</Text>
-                          {item.missingProducts.map((prod: string, idx: number) => (
-                            <Text key={idx} style={styles.productItemMissing}>
-                              ✗ {prod}
-                            </Text>
-                          ))}
-                        </View>
+                          {isExpanded && (
+                            <View style={[styles.expandedSection, isDesktop && styles.expandedSectionDesktop]}>
+                              <Text style={styles.expandedTitle}>Má tyto produkty:</Text>
+                              {item.matchedProducts.map((prod: string, idx: number) => (
+                                <Text key={idx} style={styles.productItemMatched}>
+                                  ✓ {prod}
+                                </Text>
+                              ))}
+
+                              <Text style={styles.expandedTitle}>Chybí:</Text>
+                              {item.missingProducts.map((prod: string, idx: number) => (
+                                <Text key={idx} style={styles.productItemMissing}>
+                                  ✗ {prod}
+                                </Text>
+                              ))}
+                            </View>
+                          )}
+                        </>
                       )}
-                    </>
-                  )}
-                </View>
-              );
-            })}
+                    </View>
+                  );
+                })}
 
-            <TouchableOpacity style={styles.showResultsButton}>
-              <Text style={styles.showResultsButtonText}>
-                Zobrazit výsledky
-              </Text>
-            </TouchableOpacity>
-          </>
-        )}
+                <TouchableOpacity style={[styles.showResultsButton, isDesktop && styles.showResultsButtonDesktop]}>
+                  <Text style={styles.showResultsButtonText}>
+                    Zobrazit výsledky
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
 
-        {/* Indikátor filtrování */}
-        {filtering && (
-          <View style={styles.filteringIndicator}>
-            <ActivityIndicator size="large" color="#7B1FA2" />
-            <Text style={styles.filteringText}>Vyhledávám...</Text>
+            {/* Indikátor filtrování */}
+            {filtering && (
+              <View style={styles.filteringIndicator}>
+                <ActivityIndicator size="large" color="#222222" />
+                <Text style={styles.filteringText}>Vyhledávám...</Text>
+              </View>
+            )}
+
+            {/* Empty state */}
+            {!filtering && filteredPestitele.length === 0 && (selectedDistance !== null || searchQuery.length > 0) && (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyIcon}>😕</Text>
+                <Text style={styles.emptyTitle}>Bohužel nikoho jsme nenašli</Text>
+                <Text style={styles.emptyText}>
+                  Zkuste změnit vzdálenost nebo vyhledat jiný produkt
+                </Text>
+              </View>
+            )}
           </View>
-        )}
-
-        {/* Empty state */}
-        {!filtering && filteredPestitele.length === 0 && (selectedDistance !== null || searchQuery.length > 0) && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>😕</Text>
-            <Text style={styles.emptyTitle}>Bohužel nikoho jsme nenašli</Text>
-            <Text style={styles.emptyText}>
-              Zkuste změnit vzdálenost nebo vyhledat jiný produkt
-            </Text>
-          </View>
-        )}
+        </View>
       </ScrollView>
 
       {/* Plovoucí tlačítko pro zavření seznamu produktů */}
@@ -794,50 +803,61 @@ export default function MapaScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
+  container: { flex: 1, backgroundColor: '#eeeeee' },
   scrollContainer: { flex: 1 },
   scrollContent: { paddingBottom: 20 },
+  scrollContentDesktop: { paddingHorizontal: 24 },
+  mainLayout: { flex: 1 },
+  mainLayoutDesktop: { flexDirection: 'row', gap: 24 },
+  filtersPanel: { flex: 1 },
+  filtersPanelDesktop: { width: 380, maxWidth: 420, flexShrink: 0, flex: 0 },
+  resultsPanel: { flex: 1 },
+  resultsPanelDesktop: { flex: 1 },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   header: {
     paddingTop: 10,
     paddingBottom: 12,
     paddingHorizontal: 15,
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#ffffff',
     flexDirection: 'row',
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#dddddd',
   },
   menuButton: {
     padding: 4,
   },
   menuIcon: {
     fontSize: 28,
-    color: '#FFFFFF',
+    color: '#222222',
     fontWeight: '400',
   },
   sectionContainer: {
     marginBottom: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
     marginHorizontal: 12,
     marginTop: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   sectionHeader: {
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#ffffff',
     paddingVertical: 14,
     paddingHorizontal: 16,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#dddddd',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#222222',
   },
   sectionContent: {
     paddingVertical: 12,
@@ -846,51 +866,52 @@ const styles = StyleSheet.create({
   subsectionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6A1B9A',
+    color: '#222222',
     marginBottom: 8,
   },
   searchInput: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#ffffff',
     borderRadius: 8,
     padding: 12,
     fontSize: 15,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#dddddd',
   },
   distanceButtonsScroll: {
     flexGrow: 0,
   },
   distanceButton: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#ffffff',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#dddddd',
   },
   distanceButtonActive: {
-    backgroundColor: '#7B1FA2',
-    borderColor: '#7B1FA2',
+    backgroundColor: '#ffffff',
+    borderColor: '#222222',
   },
   distanceButtonText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#666',
+    color: '#222222',
   },
   distanceButtonTextActive: {
-    color: '#FFFFFF',
+    color: '#222222',
+    fontWeight: '700',
   },
   listContainer: { flex: 1, backgroundColor: '#F5F5F5' },
   listItem: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#ffffff',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#dddddd',
   },
   listItemContent: {
     flex: 1,
@@ -899,7 +920,7 @@ const styles = StyleSheet.create({
   listItemName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#9C27B0',
+    color: '#222222',
     marginBottom: 4,
   },
   listItemDetail: {
@@ -913,32 +934,34 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
   resultsInfo: {
-    backgroundColor: '#F3E5F5',
+    backgroundColor: '#ffffff',
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#dddddd',
   },
-  resultsText: { fontSize: 14, color: '#6A1B9A', fontWeight: '600', textAlign: 'center' },
+  resultsText: { fontSize: 14, color: '#222222', fontWeight: '600', textAlign: 'center' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyIcon: { fontSize: 80, marginBottom: 20 },
   emptyImage: { width: 200, height: 200, marginBottom: 20 },
-  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 10 },
-  emptyText: { fontSize: 16, color: '#666', textAlign: 'center', lineHeight: 24 },
+  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#222222', marginBottom: 10 },
+  emptyText: { fontSize: 16, color: '#222222', textAlign: 'center', lineHeight: 24 },
   produktyFilterHeader: {
     paddingVertical: 10,
     paddingHorizontal: 12,
-    backgroundColor: '#FF9800',
+    backgroundColor: '#ffffff',
     borderRadius: 8,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#dddddd',
   },
   produktyFilterLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#222222',
   },
   produktyFilterIcon: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: '#222222',
   },
   produktyList: {
     maxHeight: 200,
@@ -952,8 +975,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    backgroundColor: '#FAFAFA',
+    borderBottomColor: '#dddddd',
+    backgroundColor: '#ffffff',
     borderRadius: 6,
     marginBottom: 4,
   },
@@ -977,32 +1000,33 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#7B1FA2',
+    borderColor: '#dddddd',
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#222222',
+    borderColor: '#222222',
   },
   checkboxIcon: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 14,
     fontWeight: 'bold',
   },
   filteringIndicator: {
-    backgroundColor: '#F3E5F5',
+    backgroundColor: '#ffffff',
     paddingVertical: 20,
     paddingHorizontal: 15,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#dddddd',
     gap: 15,
   },
   filteringText: {
     fontSize: 18,
-    color: '#6A1B9A',
+    color: '#222222',
     fontWeight: 'bold',
   },
   addressInputRow: {
@@ -1011,65 +1035,72 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   addressInput: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#ffffff',
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
     fontSize: 15,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    color: '#333',
+    borderColor: '#dddddd',
+    color: '#222222',
   },
   geocodeButton: {
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 90,
+    borderWidth: 1,
+    borderColor: '#dddddd',
   },
   geocodeButtonDisabled: {
-    backgroundColor: '#A5D6A7',
+    backgroundColor: '#ffffff',
+    opacity: 0.5,
   },
   geocodeButtonText: {
-    color: '#FFFFFF',
+    color: '#222222',
     fontSize: 15,
     fontWeight: '600',
   },
   geocodeButtonFull: {
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#ffffff',
     paddingVertical: 12,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#dddddd',
   },
   useMyLocationButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#ffffff',
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
     marginTop: 8,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#dddddd',
   },
   useMyLocationText: {
-    color: '#FFFFFF',
+    color: '#222222',
     fontSize: 14,
     fontWeight: '600',
   },
   currentLocationBadge: {
-    backgroundColor: '#F3E5F5',
+    backgroundColor: '#ffffff',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#7B1FA2',
+    borderColor: '#dddddd',
   },
   currentLocationText: {
     fontSize: 13,
-    color: '#6A1B9A',
+    color: '#222222',
     fontWeight: '500',
   },
   orDividerText: {
@@ -1081,35 +1112,35 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    color: '#FFFFFF',
+    color: '#222222',
     fontWeight: '600',
     flex: 1,
     textAlign: 'center',
   },
   searchCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 12,
+    backgroundColor: '#ffffff',
+    marginHorizontal: 0,
     marginTop: 12,
     marginBottom: 8,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   filtersCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 12,
+    backgroundColor: '#ffffff',
+    marginHorizontal: 0,
     marginVertical: 8,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   filterToggle: {
     flexDirection: 'row',
@@ -1135,43 +1166,46 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#dddddd',
     gap: 6,
   },
   chipActive: {
-    backgroundColor: '#7B1FA2',
-    borderColor: '#7B1FA2',
+    backgroundColor: '#ffffff',
+    borderColor: '#222222',
   },
   chipEmoji: {
     fontSize: 16,
   },
   chipText: {
     fontSize: 14,
-    color: '#666',
+    color: '#222222',
     fontWeight: '500',
   },
   chipTextActive: {
-    color: '#FFFFFF',
+    color: '#222222',
+    fontWeight: '700',
   },
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#ffffff',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
     gap: 8,
+    borderWidth: 1,
+    borderColor: '#dddddd',
   },
   locationButtonIcon: {
     fontSize: 20,
   },
   locationButtonText: {
-    color: '#FFFFFF',
+    color: '#222222',
     fontSize: 15,
     fontWeight: '600',
   },
@@ -1179,49 +1213,55 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#F3E5F5',
+    backgroundColor: '#ffffff',
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#7B1FA2',
+    borderColor: '#dddddd',
     marginBottom: 12,
   },
   locationBadgeText: {
     fontSize: 14,
-    color: '#6A1B9A',
+    color: '#222222',
     fontWeight: '600',
     flex: 1,
   },
   locationBadgeChange: {
     fontSize: 14,
-    color: '#7B1FA2',
+    color: '#222222',
     fontWeight: '600',
   },
   searchSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#ffffff',
     marginHorizontal: 12,
     marginTop: 16,
     marginBottom: 8,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  searchSectionDesktop: {
+    marginHorizontal: 0,
   },
   locationSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#ffffff',
     marginHorizontal: 12,
     marginVertical: 8,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  locationSectionDesktop: {
+    marginHorizontal: 0,
   },
   sectionMainTitle: {
     fontSize: 20,
@@ -1247,23 +1287,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFF8E1',
+    backgroundColor: '#ffffff',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#FFD54F',
+    borderColor: '#dddddd',
     marginTop: 12,
     gap: 8,
   },
   productListButtonIcon: {
     fontSize: 18,
-    color: '#F57F17',
+    color: '#222222',
   },
   productListButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#F57F17',
+    color: '#222222',
   },
   inputLabel: {
     fontSize: 14,
@@ -1275,12 +1315,12 @@ const styles = StyleSheet.create({
   locationInputButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#ffffff',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#dddddd',
     gap: 10,
   },
   locationInputIcon: {
@@ -1298,12 +1338,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#ffffff',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#2196F3',
+    borderColor: '#dddddd',
     marginTop: 12,
     gap: 8,
   },
@@ -1313,12 +1353,12 @@ const styles = StyleSheet.create({
   gpsButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1976D2',
+    color: '#222222',
   },
   distanceValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#7B1FA2',
+    color: '#222222',
     textAlign: 'right',
     marginBottom: 8,
   },
@@ -1329,38 +1369,43 @@ const styles = StyleSheet.create({
   },
   distanceButtonSmall: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#ffffff',
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#dddddd',
     alignItems: 'center',
   },
   distanceButtonSmallActive: {
-    backgroundColor: '#7B1FA2',
-    borderColor: '#7B1FA2',
+    backgroundColor: '#ffffff',
+    borderColor: '#222222',
   },
   distanceButtonSmallText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#666',
+    color: '#222222',
   },
   distanceButtonSmallTextActive: {
-    color: '#FFFFFF',
+    color: '#222222',
+    fontWeight: '700',
   },
   resultsSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#ffffff',
     marginHorizontal: 12,
     marginTop: 16,
     marginBottom: 8,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  resultsSectionDesktop: {
+    marginHorizontal: 0,
+    marginTop: 16,
   },
   resultsSectionTitle: {
     fontSize: 16,
@@ -1368,24 +1413,27 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   farmerCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#ffffff',
     marginHorizontal: 12,
     marginVertical: 6,
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  farmerCardDesktop: {
+    marginHorizontal: 0,
   },
   farmerAvatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#dddddd',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -1393,7 +1441,7 @@ const styles = StyleSheet.create({
   farmerAvatarText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#222222',
   },
   farmerInfo: {
     flex: 1,
@@ -1421,22 +1469,22 @@ const styles = StyleSheet.create({
     color: '#CCC',
   },
   showResultsButton: {
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#ffffff',
     marginHorizontal: 12,
     marginVertical: 16,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#dddddd',
+  },
+  showResultsButtonDesktop: {
+    marginHorizontal: 0,
   },
   showResultsButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#222222',
   },
   matchFilterContainer: {
     flexDirection: 'row',
@@ -1448,23 +1496,24 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 6,
     paddingHorizontal: 8,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#ffffff',
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#dddddd',
     alignItems: 'center',
   },
   matchFilterBtnActive: {
-    backgroundColor: '#7B1FA2',
-    borderColor: '#7B1FA2',
+    backgroundColor: '#ffffff',
+    borderColor: '#222222',
   },
   matchFilterText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#666',
+    color: '#222222',
   },
   matchFilterTextActive: {
-    color: '#FFFFFF',
+    color: '#222222',
+    fontWeight: '700',
   },
   farmerCardWrapper: {
     marginBottom: 12,
@@ -1473,35 +1522,35 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   matchBadgeComplete: {
-    backgroundColor: '#F3E5F5',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 4,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: '#7B1FA2',
+    borderColor: '#dddddd',
   },
   matchBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#6A1B9A',
+    color: '#222222',
   },
   matchBadgePartial: {
-    backgroundColor: '#FFF3E0',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 4,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: '#FF9800',
+    borderColor: '#dddddd',
   },
   matchBadgeTextPartial: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#E65100',
+    color: '#222222',
   },
   expandButton: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#ffffff',
     paddingVertical: 8,
     paddingHorizontal: 12,
     marginHorizontal: 12,
@@ -1509,15 +1558,18 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: '#dddddd',
+  },
+  expandButtonDesktop: {
+    marginHorizontal: 0,
   },
   expandButtonText: {
     fontSize: 12,
-    color: '#666',
+    color: '#222222',
     fontWeight: '500',
   },
   expandedSection: {
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#ffffff',
     paddingVertical: 10,
     paddingHorizontal: 12,
     marginHorizontal: 12,
@@ -1525,24 +1577,27 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: '#dddddd',
+  },
+  expandedSectionDesktop: {
+    marginHorizontal: 0,
   },
   expandedTitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#333',
+    color: '#222222',
     marginTop: 6,
     marginBottom: 3,
   },
   productItemMatched: {
     fontSize: 12,
-    color: '#6A1B9A',
+    color: '#222222',
     marginLeft: 6,
     marginVertical: 1,
   },
   productItemMissing: {
     fontSize: 12,
-    color: '#999',
+    color: '#666666',
     marginLeft: 6,
     marginVertical: 1,
   },
@@ -1551,27 +1606,29 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#ffffff',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 25,
     flexDirection: 'row',
     alignItems: 'center',
-    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#dddddd',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   floatingCloseButtonIcon: {
     fontSize: 18,
-    color: '#FFFFFF',
+    color: '#222222',
     fontWeight: '600',
     marginRight: 6,
   },
   floatingCloseButtonText: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: '#222222',
     fontWeight: '600',
   },
 });
