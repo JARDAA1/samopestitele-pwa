@@ -45,7 +45,11 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 export default function MapaScreen() {
   const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
   const { width } = useWindowDimensions();
-  const isDesktop = width >= 1024;
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Desktop detection až po hydrataci (prevence React error #418)
+  const isDesktop = isMounted && width >= 1024;
+
   const [pestitele, setPestitele] = useState<Pestitel[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtering, setFiltering] = useState(false); // Nový stav pro filtrování
@@ -87,6 +91,7 @@ export default function MapaScreen() {
   };
 
   useEffect(() => {
+    setIsMounted(true);
     loadPestitele();
     loadProdukty();
     // Automaticky získat polohu a spustit filtrování při načtení
