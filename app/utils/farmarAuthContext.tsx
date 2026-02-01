@@ -21,7 +21,7 @@ interface FarmarAuthContextType {
   authLevel: 'none' | 'pin' | 'sms' | 'magic_link'; // Úroveň autentizace
   loginWithPin: (farmNumber: string, pin: string) => Promise<{ success: boolean; error?: string; remainingAttempts?: number }>;
   loginWithSMS: (telefon: string, kod: string) => Promise<boolean>;
-  sendMagicLink: (email: string) => Promise<{ success: boolean; error?: string }>;
+  sendMagicLink: (email: string, mode?: 'login' | 'recovery') => Promise<{ success: boolean; error?: string }>;
   checkMagicLinkSession: () => Promise<boolean>;
   createPin: (pin: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
@@ -636,8 +636,42 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
   /**
    * Odeslat magic link na email
    */
-  const sendMagicLink = async (email: string): Promise<{ success: boolean; error?: string }> => {
+  const sendMagicLink = async (email: string, mode: 'login' | 'recovery' = 'login'): Promise<{ success: boolean; error?: string }> => {
     try {
+      // Rate limiting - max 3 pokusy za hodinu
+      const rateLimitKey = `magic_link_${email.toLowerCase()}`;
+      const attemptsKey = `${rateLimitKey}_attempts`;
+      const timestampKey = `${rateLimitKey}_timestamp`;
+
+      const attemptsStr = await AsyncStorage.getItem(attemptsKey);
+      const timestampStr = await AsyncStorage.getItem(timestampKey);
+
+      const now = Date.now();
+      const oneHour = 60 * 60 * 1000;
+
+      if (timestampStr) {
+        const timestamp = parseInt(timestampStr, 10);
+        const attempts = attemptsStr ? parseInt(attemptsStr, 10) : 0;
+
+        // Pokud je timestamp starší než hodina, resetovat
+        if (now - timestamp > oneHour) {
+          await AsyncStorage.setItem(attemptsKey, '1');
+          await AsyncStorage.setItem(timestampKey, now.toString());
+        } else if (attempts >= 3) {
+          const remainingMinutes = Math.ceil((oneHour - (now - timestamp)) / 1000 / 60);
+          return {
+            success: false,
+            error: `Příliš mnoho pokusů. Zkuste to znovu za ${remainingMinutes} minut.`
+          };
+        } else {
+          await AsyncStorage.setItem(attemptsKey, (attempts + 1).toString());
+        }
+      } else {
+        // První pokus
+        await AsyncStorage.setItem(attemptsKey, '1');
+        await AsyncStorage.setItem(timestampKey, now.toString());
+      }
+
       const { supabase } = require('../../lib/supabase');
 
       // Najdeme farmáře podle emailu
@@ -653,8 +687,8 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
 
       // Odeslat magic link přes Supabase Auth
       const redirectUrl = Platform.OS === 'web'
-        ? `${window.location.origin}/auth/callback`
-        : 'samopestitele://auth/callback';
+        ? `${window.location.origin}/auth/callback?mode=${mode}`
+        : `samopestitele://auth/callback?mode=${mode}`;
 
       // Povolíme vytvoření uživatele pokud ještě neexistuje v Auth
       const { error } = await supabase.auth.signInWithOtp({
@@ -670,7 +704,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         return { success: false, error: error.message };
       }
 
-      console.log('Magic link sent to:', email);
+      console.log(`Magic link (${mode}) sent to:`, email);
       return { success: true };
     } catch (error: any) {
       console.error('Send magic link error:', error);

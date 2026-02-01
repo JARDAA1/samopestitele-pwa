@@ -133,6 +133,15 @@ export default function StankyLoginScreen() {
             )}
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.forgotLink}
+            onPress={() => router.push('/zapomenute-udaje')}
+          >
+            <Text style={styles.forgotLinkText}>
+              Zapomenuté údaje?
+            </Text>
+          </TouchableOpacity>
+
           <View style={styles.helpBox}>
             <Text style={styles.helpTitle}>💡 Co jsou Moje stánky?</Text>
             <Text style={styles.helpText}>
@@ -331,5 +340,15 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#6A1B9A',
     lineHeight: 14,
+  },
+  forgotLink: {
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  forgotLinkText: {
+    color: '#FF9800',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

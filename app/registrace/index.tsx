@@ -312,7 +312,7 @@ export default function RegistraceScreen() {
                 <Text style={styles.warningText}>
                   • Uložte si tyto údaje na bezpečné místo{'\n'}
                   • Budete je potřebovat pro přihlášení{'\n'}
-                  • Kód farmy a PIN nelze obnovit
+                  • Pokud zapomenete, lze je obnovit přes email na "Zapomenuté údaje"
                 </Text>
               </View>
 

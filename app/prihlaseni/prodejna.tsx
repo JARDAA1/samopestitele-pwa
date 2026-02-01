@@ -182,6 +182,15 @@ export default function ProdejnaLoginScreen() {
             </Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.forgotLink}
+            onPress={() => router.push('/zapomenute-udaje')}
+          >
+            <Text style={styles.forgotLinkText}>
+              Zapomenuté údaje?
+            </Text>
+          </TouchableOpacity>
+
           {showMagicLinkOption && (
             <View style={styles.fallbackContainer}>
               <View style={styles.divider}>
@@ -435,5 +444,15 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#666',
     lineHeight: 14,
+  },
+  forgotLink: {
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  forgotLinkText: {
+    color: '#FF9800',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

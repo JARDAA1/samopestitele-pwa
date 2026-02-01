@@ -325,6 +325,14 @@ function MojeProdejnaScreenContent() {
               </View>
 
               <TouchableOpacity
+                style={styles.settingsButton}
+                onPress={() => router.push('/(tabs)/moje-farma/nastaveni-uctu')}
+              >
+                <Feather name="settings" size={20} color="#9C27B0" style={{ marginRight: 8 }} />
+                <Text style={styles.settingsButtonText}>Nastavení účtu</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={styles.logoutButton}
                 onPress={handleOdhlasit}
               >
@@ -483,6 +491,8 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#6A1B9A' },
   logoutInfoBox: { backgroundColor: '#E3F2FD', padding: 12, borderRadius: 8, marginTop: 15, borderLeftWidth: 3, borderLeftColor: '#2196F3' },
   logoutInfoText: { fontSize: 11, color: '#1565C0', lineHeight: 16, textAlign: 'center' },
+  settingsButton: { backgroundColor: '#F3E5F5', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 12, flexDirection: 'row', justifyContent: 'center', borderWidth: 2, borderColor: '#9C27B0' },
+  settingsButtonText: { color: '#6A1B9A', fontSize: 14, fontWeight: '600' },
   logoutButton: { backgroundColor: '#FF5252', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 12, flexDirection: 'row', justifyContent: 'center' },
   logoutButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   infoGrid: { gap: 10 },
