@@ -1,236 +1,96 @@
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ImageBackground, Platform, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform, TextInput } from 'react-native';
 import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState, useEffect } from 'react';
 
 export default function HomeScreen() {
-  const isWeb = Platform.OS === 'web';
   const { width } = useWindowDimensions();
-  const isDesktop = width >= 1024;
-  const [showBee, setShowBee] = useState(false);
-  const beePosition = useRef(new Animated.ValueXY({ x: -50, y: -50 })).current;
-  const beeOpacity = useRef(new Animated.Value(0)).current;
+  const [isMounted, setIsMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    checkAndShowBee();
+    setIsMounted(true);
   }, []);
 
-  const checkAndShowBee = async () => {
-    try {
-      const lastBeeDate = await AsyncStorage.getItem('lastBeeVisit');
-      const today = new Date().toDateString();
+  const isDesktop = isMounted && width >= 768;
 
-      if (lastBeeDate !== today) {
-        await AsyncStorage.setItem('lastBeeVisit', today);
-        setShowBee(true);
-        animateBee();
-      }
-    } catch (error) {
-      console.error('Chyba při kontrole včelky:', error);
-    }
-  };
-
-  const animateBee = () => {
-    // Křivolaká cesta - začíná mimo obrazovku vlevo nahoře
-    Animated.sequence([
-      // Fade in
-      Animated.timing(beeOpacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      // Bod 1: Vlevo dole -> nahoru doprava
-      Animated.timing(beePosition, {
-        toValue: { x: 80, y: 150 },
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      // Bod 2: Nahoru doleva (křivka)
-      Animated.timing(beePosition, {
-        toValue: { x: 40, y: 100 },
-        duration: 700,
-        useNativeDriver: true,
-      }),
-      // Bod 3: Doprava nahoru (další křivka)
-      Animated.timing(beePosition, {
-        toValue: { x: 100, y: 70 },
-        duration: 700,
-        useNativeDriver: true,
-      }),
-      // Bod 4: Finální pozice - levý horní roh
-      Animated.timing(beePosition, {
-        toValue: { x: 20, y: 60 },
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      // Čekání 10 sekund
-      Animated.delay(10000),
-      // Fade out
-      Animated.timing(beeOpacity, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setShowBee(false);
+  const handleSearch = () => {
+    router.push({
+      pathname: '/mapa',
+      params: searchQuery ? { lokalita: searchQuery } : {}
     });
   };
 
-  // Komponenta s tlačítky pro opakované použití
-  const ActionButtons = ({ containerStyle }: { containerStyle?: any }) => (
-    <View style={containerStyle}>
-      <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={() => router.push('/mapa')}
-      >
-        <Text style={styles.buttonIcon}>🍎</Text>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.buttonTitle}>Mapa farmářů a produktů</Text>
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={() => router.push('/explore')}
-      >
-        <Text style={styles.buttonIcon}>☀️</Text>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.buttonTitle}>Uložení farmáři</Text>
-        </View>
-      </TouchableOpacity>
-
-      <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>Jste pěstitel/ka?</Text>
-        <View style={styles.dividerLine} />
-      </View>
-
-      <TouchableOpacity
-        style={styles.farmerButton}
-        onPress={() => router.push('/jsem-farmar')}
-      >
-        <Text style={styles.buttonIcon}>🌾</Text>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.buttonTitle}>Prodávám své produkty</Text>
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
+  const handleKeyPress = (e: any) => {
+    if (e.nativeEvent.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {/* Desktop layout - fullscreen s overlay */}
-      {isDesktop ? (
-        Platform.OS === 'web' ? (
-          <ImageBackground
-            source={{ uri: '/assets/images/PC_WEB.png' }}
-            style={styles.desktopFullscreenBg}
-            resizeMode="cover"
-          >
-            <View style={styles.desktopOverlay} />
+      {/* Hero sekce */}
+      <View style={[styles.hero, isDesktop && styles.heroDesktop]}>
+        <Text style={[styles.title, isDesktop && styles.titleDesktop]}>
+          Čerstvé produkty{'\n'}přímo od pěstitelů
+        </Text>
+        <Text style={[styles.subtitle, isDesktop && styles.subtitleDesktop]}>
+          Najděte lokální farmáře ve vašem okolí
+        </Text>
 
-            <View style={styles.desktopContentOverlay}>
-              <View style={styles.desktopContent}>
-                <Text style={styles.desktopTitle}>Samopěstitelé</Text>
-                <Text style={styles.desktopSubtitle}>
-                  Platforma pro nákup čerstvých produktů přímo od lokálních pěstitelů
-                </Text>
+        {/* Vyhledávací pole */}
+        <View style={[styles.searchContainer, isDesktop && styles.searchContainerDesktop]}>
+          <View style={styles.searchInputWrapper}>
+            <Text style={styles.searchIcon}>📍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Zadejte město nebo obec..."
+              placeholderTextColor="#999"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={handleSearch}
+              onKeyPress={handleKeyPress}
+              returnKeyType="search"
+            />
+          </View>
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+            <Text style={styles.searchButtonText}>Hledat</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-                <ActionButtons containerStyle={styles.desktopButtonsContainer} />
-              </View>
-            </View>
-
-            {/* Animovaná včelka */}
-            {showBee && (
-              <Animated.View
-                style={[
-                  styles.bee,
-                  {
-                    transform: [
-                      { translateX: beePosition.x },
-                      { translateY: beePosition.y },
-                    ],
-                    opacity: beeOpacity,
-                  },
-                ]}
-              >
-                <Text style={styles.beeEmoji}>🐝</Text>
-              </Animated.View>
-            )}
-          </ImageBackground>
-        ) : (
-          <ImageBackground
-            source={require('../../assets/images/PC_WEB.png')}
-            style={styles.desktopFullscreenBg}
-            resizeMode="cover"
-          >
-            <View style={styles.desktopOverlay} />
-
-            <View style={styles.desktopContentOverlay}>
-              <View style={styles.desktopContent}>
-                <Text style={styles.desktopTitle}>Samopěstitelé</Text>
-                <Text style={styles.desktopSubtitle}>
-                  Platforma pro nákup čerstvých produktů přímo od lokálních pěstitelů
-                </Text>
-
-                <ActionButtons containerStyle={styles.desktopButtonsContainer} />
-              </View>
-            </View>
-
-            {/* Animovaná včelka */}
-            {showBee && (
-              <Animated.View
-                style={[
-                  styles.bee,
-                  {
-                    transform: [
-                      { translateX: beePosition.x },
-                      { translateY: beePosition.y },
-                    ],
-                    opacity: beeOpacity,
-                  },
-                ]}
-              >
-                <Text style={styles.beeEmoji}>🐝</Text>
-              </Animated.View>
-            )}
-          </ImageBackground>
-        )
-      ) : (
-        /* Mobilní layout - původní */
-        <ImageBackground
-          source={require('../../assets/images/hero-banner.jpg')}
-          style={styles.heroBackground}
-          resizeMode="contain"
+      {/* Dvě cesty - jako Airbnb */}
+      <View style={[styles.pathsContainer, isDesktop && styles.pathsContainerDesktop]}>
+        <TouchableOpacity
+          style={[styles.pathCard, isDesktop && styles.pathCardDesktop]}
+          onPress={() => router.push('/mapa')}
         >
-          <View style={styles.heroOverlay} />
+          <Text style={styles.pathEmoji}>🍎</Text>
+          <Text style={styles.pathTitle}>Hledám produkty</Text>
+          <Text style={styles.pathDescription}>
+            Prohlédněte si nabídku lokálních pěstitelů a farmářů ve vašem okolí
+          </Text>
+          <Text style={styles.pathLink}>Zobrazit mapu →</Text>
+        </TouchableOpacity>
 
-          {/* Animovaná včelka */}
-          {showBee && (
-            <Animated.View
-              style={[
-                styles.bee,
-                {
-                  transform: [
-                    { translateX: beePosition.x },
-                    { translateY: beePosition.y },
-                  ],
-                  opacity: beeOpacity,
-                },
-              ]}
-            >
-              <Text style={styles.beeEmoji}>🐝</Text>
-            </Animated.View>
-          )}
+        <TouchableOpacity
+          style={[styles.pathCard, isDesktop && styles.pathCardDesktop]}
+          onPress={() => router.push('/jsem-farmar')}
+        >
+          <Text style={styles.pathEmoji}>🌾</Text>
+          <Text style={styles.pathTitle}>Nabízím produkty</Text>
+          <Text style={styles.pathDescription}>
+            Zaregistrujte se jako pěstitel a nabídněte své produkty zákazníkům
+          </Text>
+          <Text style={styles.pathLink}>Začít prodávat →</Text>
+        </TouchableOpacity>
+      </View>
 
-          {/* Tlačítka přes obrázek */}
-          {isWeb ? (
-            <ActionButtons containerStyle={styles.buttonsOverlayWeb} />
-          ) : (
-            <ActionButtons containerStyle={styles.buttonsOverlay} />
-          )}
-        </ImageBackground>
-      )}
+      {/* Footer info */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          Spojujeme pěstitele s lidmi, kteří chtějí jíst zdravě a lokálně
+        </Text>
+      </View>
     </View>
   );
 }
@@ -238,166 +98,158 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#ffffff',
   },
 
-  // Desktop styly - fullscreen
-  desktopFullscreenBg: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
+  // Hero sekce
+  hero: {
+    paddingTop: 80,
+    paddingBottom: 40,
+    paddingHorizontal: 24,
+    backgroundColor: '#ffffff',
   },
-  desktopOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  desktopContentOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  heroDesktop: {
+    paddingTop: 100,
+    paddingBottom: 60,
     paddingHorizontal: 80,
-    paddingVertical: 60,
-  },
-  desktopContent: {
-    maxWidth: 500,
     alignItems: 'center',
   },
-  desktopTitle: {
-    fontSize: 56,
+  title: {
+    fontSize: 32,
     fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 20,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 10,
+    color: '#222222',
+    lineHeight: 40,
+    marginBottom: 12,
+  },
+  titleDesktop: {
+    fontSize: 48,
+    lineHeight: 56,
     textAlign: 'center',
   },
-  desktopSubtitle: {
-    fontSize: 20,
-    color: '#FFFFFF',
-    marginBottom: 40,
-    lineHeight: 30,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 8,
-    textAlign: 'center',
+  subtitle: {
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 32,
   },
-  desktopButtonsContainer: {
-    width: '100%',
-    alignItems: 'center',
+  subtitleDesktop: {
+    fontSize: 18,
+    textAlign: 'center',
   },
 
-  // Mobilní styly
-  heroBackground: {
-    flex: 1,
+  // Vyhledávání
+  searchContainer: {
+    flexDirection: 'column',
+    gap: 12,
     width: '100%',
-    height: '100%',
+    maxWidth: 500,
   },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  searchContainerDesktop: {
+    flexDirection: 'row',
+    gap: 0,
   },
-  buttonsOverlay: {
+  searchInputWrapper: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f7f7f7',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#dddddd',
+    paddingHorizontal: 16,
+    height: 56,
+  },
+  searchIcon: {
+    fontSize: 18,
+    marginRight: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#222222',
+    ...Platform.select({
+      web: {
+        outlineStyle: 'none',
+      },
+    }),
+  },
+  searchButton: {
+    backgroundColor: '#222222',
+    borderRadius: 12,
+    height: 56,
+    paddingHorizontal: 32,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 30,
   },
-  buttonsOverlayWeb: {
-    position: 'absolute',
-    left: '8%',
-    bottom: '8%',
-    right: undefined,
-    width: 240,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    zIndex: 1,
+  searchButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 
-  // Tlačítka
-  primaryButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    width: '100%',
-    maxWidth: 280,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 6,
+  // Cesty (karty)
+  pathsContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    gap: 16,
   },
-  secondaryButton: {
-    backgroundColor: '#FF9800',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    width: '100%',
-    maxWidth: 280,
+  pathsContainerDesktop: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  farmerButton: {
-    backgroundColor: '#9C27B0',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    justifyContent: 'center',
+    paddingHorizontal: 80,
+    gap: 24,
+    maxWidth: 1000,
+    alignSelf: 'center',
     width: '100%',
-    maxWidth: 280,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 6,
   },
-  buttonIcon: {
+  pathCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#eeeeee',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  pathCardDesktop: {
+    flex: 1,
+    maxWidth: 400,
+  },
+  pathEmoji: {
+    fontSize: 40,
+    marginBottom: 16,
+  },
+  pathTitle: {
     fontSize: 20,
-    marginRight: 10,
+    fontWeight: '700',
+    color: '#222222',
+    marginBottom: 8,
   },
-  buttonTitle: {
+  pathDescription: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  pathLink: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#222222',
   },
 
-  // Oddělovač
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    maxWidth: 280,
-    marginVertical: 12,
+  // Footer
+  footer: {
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#eeeeee',
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(106, 27, 154, 0.3)',
-  },
-  dividerText: {
-    marginHorizontal: 10,
-    fontSize: 11,
-    color: '#6A1B9A',
-    fontWeight: '600',
-  },
-
-  // Včelka
-  bee: {
-    position: 'absolute',
-    zIndex: 999,
-  },
-  beeEmoji: {
-    fontSize: 32,
+  footerText: {
+    fontSize: 13,
+    color: '#999999',
+    textAlign: 'center',
   },
 });
