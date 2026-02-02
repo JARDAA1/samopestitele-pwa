@@ -810,7 +810,7 @@ export default function MapaScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#eeeeee' },
   scrollContainer: { flex: 1 },
-  scrollContent: { paddingBottom: 20 },
+  scrollContent: { paddingBottom: 100 },
   scrollContentDesktop: { paddingHorizontal: 24 },
   mainLayout: { flex: 1 },
   mainLayoutDesktop: { flexDirection: 'row', gap: 24 },
