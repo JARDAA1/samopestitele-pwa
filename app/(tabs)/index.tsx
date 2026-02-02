@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform, TextInput, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 
@@ -27,11 +27,11 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Hero sekce */}
       <View style={[styles.hero, isDesktop && styles.heroDesktop]}>
         <Text style={[styles.title, isDesktop && styles.titleDesktop]}>
-          Čerstvé produkty{'\n'}přímo od pěstitelů
+          Čerstvé produkty{'\n'}od pěstitelů
         </Text>
         <Text style={[styles.subtitle, isDesktop && styles.subtitleDesktop]}>
           Najděte lokální farmáře ve vašem okolí
@@ -43,7 +43,7 @@ export default function HomeScreen() {
             <Text style={styles.searchIcon}>📍</Text>
             <TextInput
               style={styles.searchInput}
-              placeholder="Zadejte město nebo obec..."
+              placeholder="Město nebo obec..."
               placeholderTextColor="#999"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -58,30 +58,34 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Dvě cesty - jako Airbnb */}
+      {/* Dvě cesty */}
       <View style={[styles.pathsContainer, isDesktop && styles.pathsContainerDesktop]}>
         <TouchableOpacity
           style={[styles.pathCard, isDesktop && styles.pathCardDesktop]}
           onPress={() => router.push('/mapa')}
         >
-          <Text style={styles.pathEmoji}>🍎</Text>
-          <Text style={styles.pathTitle}>Hledám produkty</Text>
-          <Text style={styles.pathDescription}>
-            Prohlédněte si nabídku lokálních pěstitelů a farmářů ve vašem okolí
-          </Text>
-          <Text style={styles.pathLink}>Zobrazit mapu →</Text>
+          <View style={styles.pathCardRow}>
+            <Text style={styles.pathEmoji}>🍎</Text>
+            <View style={styles.pathCardContent}>
+              <Text style={styles.pathTitle}>Hledám produkty</Text>
+              <Text style={styles.pathDescription}>Nabídka od lokálních pěstitelů</Text>
+            </View>
+            <Text style={styles.pathArrow}>→</Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.pathCard, isDesktop && styles.pathCardDesktop]}
           onPress={() => router.push('/jsem-farmar')}
         >
-          <Text style={styles.pathEmoji}>🌾</Text>
-          <Text style={styles.pathTitle}>Nabízím produkty</Text>
-          <Text style={styles.pathDescription}>
-            Zaregistrujte se jako pěstitel a nabídněte své produkty zákazníkům
-          </Text>
-          <Text style={styles.pathLink}>Začít prodávat →</Text>
+          <View style={styles.pathCardRow}>
+            <Text style={styles.pathEmoji}>🌾</Text>
+            <View style={styles.pathCardContent}>
+              <Text style={styles.pathTitle}>Nabízím produkty</Text>
+              <Text style={styles.pathDescription}>Zaregistrujte se jako pěstitel</Text>
+            </View>
+            <Text style={styles.pathArrow}>→</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -91,7 +95,7 @@ export default function HomeScreen() {
           Spojujeme pěstitele s lidmi, kteří chtějí jíst zdravě a lokálně
         </Text>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -100,12 +104,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
+  contentContainer: {
+    flexGrow: 1,
+  },
 
   // Hero sekce
   hero: {
-    paddingTop: 80,
-    paddingBottom: 40,
-    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
     backgroundColor: '#ffffff',
   },
   heroDesktop: {
@@ -115,11 +122,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '700',
     color: '#222222',
-    lineHeight: 40,
-    marginBottom: 12,
+    lineHeight: 32,
+    marginBottom: 8,
   },
   titleDesktop: {
     fontSize: 48,
@@ -127,24 +134,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#666666',
-    marginBottom: 32,
+    marginBottom: 20,
   },
   subtitleDesktop: {
     fontSize: 18,
     textAlign: 'center',
+    marginBottom: 32,
   },
 
   // Vyhledávání
   searchContainer: {
-    flexDirection: 'column',
-    gap: 12,
+    flexDirection: 'row',
+    gap: 8,
     width: '100%',
     maxWidth: 500,
   },
   searchContainerDesktop: {
-    flexDirection: 'row',
     gap: 0,
   },
   searchInputWrapper: {
@@ -152,19 +159,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f7f7f7',
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: '#dddddd',
-    paddingHorizontal: 16,
-    height: 56,
+    paddingHorizontal: 12,
+    height: 48,
   },
   searchIcon: {
-    fontSize: 18,
-    marginRight: 12,
+    fontSize: 16,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     color: '#222222',
     ...Platform.select({
       web: {
@@ -174,24 +181,24 @@ const styles = StyleSheet.create({
   },
   searchButton: {
     backgroundColor: '#222222',
-    borderRadius: 12,
-    height: 56,
-    paddingHorizontal: 32,
+    borderRadius: 10,
+    height: 48,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   searchButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
 
-  // Cesty (karty)
+  // Cesty (karty) - kompaktní horizontální layout pro mobil
   pathsContainer: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    gap: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 12,
   },
   pathsContainerDesktop: {
     flexDirection: 'row',
@@ -204,51 +211,58 @@ const styles = StyleSheet.create({
   },
   pathCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 12,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#eeeeee',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowRadius: 4,
+    elevation: 1,
   },
   pathCardDesktop: {
     flex: 1,
     maxWidth: 400,
+    padding: 24,
+  },
+  pathCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pathCardContent: {
+    flex: 1,
+    marginLeft: 12,
   },
   pathEmoji: {
-    fontSize: 40,
-    marginBottom: 16,
+    fontSize: 32,
   },
   pathTitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '700',
     color: '#222222',
-    marginBottom: 8,
+    marginBottom: 2,
   },
   pathDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666666',
-    lineHeight: 20,
-    marginBottom: 16,
   },
-  pathLink: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#222222',
+  pathArrow: {
+    fontSize: 18,
+    color: '#999999',
+    marginLeft: 8,
   },
 
   // Footer
   footer: {
-    paddingHorizontal: 24,
-    paddingVertical: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
     borderTopWidth: 1,
     borderTopColor: '#eeeeee',
+    marginTop: 'auto',
   },
   footerText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#999999',
     textAlign: 'center',
   },
