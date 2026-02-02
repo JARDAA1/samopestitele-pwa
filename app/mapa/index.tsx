@@ -520,181 +520,19 @@ export default function MapaScreen() {
                 ))}
               </View>
 
-              {/* Tlačítko Zavřít / Hledat */}
+              {/* Tlačítko Pokračovat */}
               <TouchableOpacity
                 style={styles.produktySubmitBtn}
-                onPress={() => {/* TODO: další krok */}}
+                onPress={() => {/* TODO: další krok - přidat lokaci */}}
               >
                 <Text style={styles.produktySubmitText}>
-                  {selectedProdukty.length > 0 ? `Hledat (${selectedProdukty.length})` : 'Pokračovat'}
+                  {selectedProdukty.length > 0 ? `Pokračovat (${selectedProdukty.length})` : 'Přeskočit'}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Pravý panel - výsledky */}
-          <View style={[styles.resultsPanel, isDesktop && styles.resultsPanelDesktop]}>
-            {/* Výsledky - farmáři */}
-            {!filtering && (selectedDistance !== null || selectedProdukty.length > 0 || searchQuery.length > 0) && (
-              <View style={[styles.resultsSection, isDesktop && styles.resultsSectionDesktop]}>
-                <Text style={styles.resultsSectionTitle}>
-                  Nalezeno {filteredPestitele.length} farmářů
-                </Text>
-
-                {/* Match filter - zobrazit jen pokud byly vybrány produkty */}
-                {selectedProdukty.length > 0 && (
-                  <View style={styles.matchFilterContainer}>
-                    <TouchableOpacity
-                      style={[styles.matchFilterBtn, matchFilter === 'all' && styles.matchFilterBtnActive]}
-                      onPress={() => setMatchFilter('all')}>
-                      <Text style={[styles.matchFilterText, matchFilter === 'all' && styles.matchFilterTextActive]}>
-                        Všichni ({filteredPestitele.length})
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.matchFilterBtn, matchFilter === 'complete' && styles.matchFilterBtnActive]}
-                      onPress={() => setMatchFilter('complete')}>
-                      <Text style={[styles.matchFilterText, matchFilter === 'complete' && styles.matchFilterTextActive]}>
-                        Má vše ({filteredPestitele.filter(p => p.hasCompleteMatch).length})
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.matchFilterBtn, matchFilter === 'partial' && styles.matchFilterBtnActive]}
-                      onPress={() => setMatchFilter('partial')}>
-                      <Text style={[styles.matchFilterText, matchFilter === 'partial' && styles.matchFilterTextActive]}>
-                        Částečná ({filteredPestitele.filter(p => !p.hasCompleteMatch && p.matchScore > 0).length})
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            )}
-
-            {/* Seznam farmářů */}
-            {!filtering && filteredPestitele.length > 0 && (
-              <>
-                {filteredPestitele.slice(0, 3).map((item) => {
-                  const hasSelectedProducts = selectedProdukty.length > 0;
-                  const isExpanded = expandedFarmers[item.id] || false;
-
-                  return (
-                    <View key={item.id} style={styles.farmerCardWrapper}>
-                      <TouchableOpacity
-                        style={[styles.farmerCard, isDesktop && styles.farmerCardDesktop]}
-                        onPress={() => router.push(`/pestitele/${item.id}`)}
-                      >
-                        <View style={styles.farmerAvatar}>
-                          <Text style={styles.farmerAvatarText}>
-                            {item.nazev_farmy.charAt(0).toUpperCase()}
-                          </Text>
-                        </View>
-                        <View style={styles.farmerInfo}>
-                          <Text style={styles.farmerName}>{item.nazev_farmy}</Text>
-                          <View style={styles.farmerMeta}>
-                            <Text style={styles.farmerDistance}>
-                              📍 {item.distance !== undefined ? `${item.distance.toFixed(1)} km` : item.mesto}
-                            </Text>
-                            <Text style={styles.farmerRating}>⭐ 4.9</Text>
-                          </View>
-
-                          {/* Match indicator - zobrazit jen pokud byly vybrány produkty */}
-                          {hasSelectedProducts && (
-                            <View style={styles.matchIndicator}>
-                              {item.hasCompleteMatch ? (
-                                <View style={styles.matchBadgeComplete}>
-                                  <Text style={styles.matchBadgeText}>✓ Má vše</Text>
-                                </View>
-                              ) : (
-                                <View style={styles.matchBadgePartial}>
-                                  <Text style={styles.matchBadgeTextPartial}>
-                                    {item.matchScore}/{selectedProdukty.length} produktů
-                                  </Text>
-                                </View>
-                              )}
-                            </View>
-                          )}
-                        </View>
-                        <Text style={styles.farmerArrow}>›</Text>
-                      </TouchableOpacity>
-
-                      {/* Expandable sekce pro chybějící produkty */}
-                      {hasSelectedProducts && !item.hasCompleteMatch && item.missingProducts.length > 0 && (
-                        <>
-                          <TouchableOpacity
-                            style={[styles.expandButton, isDesktop && styles.expandButtonDesktop]}
-                            onPress={() => setExpandedFarmers({
-                              ...expandedFarmers,
-                              [item.id]: !isExpanded
-                            })}
-                          >
-                            <Text style={styles.expandButtonText}>
-                              {isExpanded ? '▼' : '▶'} {isExpanded ? 'Skrýt' : 'Zobrazit'} chybějící produkty
-                            </Text>
-                          </TouchableOpacity>
-
-                          {isExpanded && (
-                            <View style={[styles.expandedSection, isDesktop && styles.expandedSectionDesktop]}>
-                              <Text style={styles.expandedTitle}>Má tyto produkty:</Text>
-                              {item.matchedProducts.map((prod: string, idx: number) => (
-                                <Text key={idx} style={styles.productItemMatched}>
-                                  ✓ {prod}
-                                </Text>
-                              ))}
-
-                              <Text style={styles.expandedTitle}>Chybí:</Text>
-                              {item.missingProducts.map((prod: string, idx: number) => (
-                                <Text key={idx} style={styles.productItemMissing}>
-                                  ✗ {prod}
-                                </Text>
-                              ))}
-                            </View>
-                          )}
-                        </>
-                      )}
-                    </View>
-                  );
-                })}
-
-                <TouchableOpacity style={[styles.showResultsButton, isDesktop && styles.showResultsButtonDesktop]}>
-                  <Text style={styles.showResultsButtonText}>
-                    Zobrazit výsledky
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-
-            {/* Indikátor filtrování */}
-            {filtering && (
-              <View style={styles.filteringIndicator}>
-                <ActivityIndicator size="large" color="#222222" />
-                <Text style={styles.filteringText}>Vyhledávám...</Text>
-              </View>
-            )}
-
-            {/* Empty state */}
-            {!filtering && filteredPestitele.length === 0 && (selectedDistance !== null || searchQuery.length > 0) && (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyIcon}>😕</Text>
-                <Text style={styles.emptyTitle}>Bohužel nikoho jsme nenašli</Text>
-                <Text style={styles.emptyText}>
-                  Zkuste změnit vzdálenost nebo vyhledat jiný produkt
-                </Text>
-              </View>
-            )}
-          </View>
         </View>
       </ScrollView>
-
-      {/* Plovoucí tlačítko pro zavření seznamu produktů */}
-      {showProduktyFilter && (
-        <TouchableOpacity
-          style={styles.floatingCloseButton}
-          onPress={() => setShowProduktyFilter(false)}
-        >
-          <Text style={styles.floatingCloseButtonIcon}>✕</Text>
-          <Text style={styles.floatingCloseButtonText}>Zavřít seznam</Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }
