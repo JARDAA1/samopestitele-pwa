@@ -489,117 +489,40 @@ export default function MapaScreen() {
         <View style={[styles.mainLayout, isDesktop && styles.mainLayoutDesktop]}>
           {/* Levý panel - filtry */}
           <View style={[styles.filtersPanel, isDesktop && styles.filtersPanelDesktop]}>
-            {/* Kompaktní filtr karta */}
-            <View style={[styles.compactFilterCard, isDesktop && styles.compactFilterCardDesktop]}>
-              {/* Vyhledávání */}
-              <View style={styles.searchRow}>
-                <TextInput
-                  style={styles.searchInputCompact}
-                  placeholder="🔍 Hledat produkt..."
-                  placeholderTextColor="#999"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  autoCorrect={false}
-                  autoCapitalize="none"
-                />
-                <TouchableOpacity
-                  style={[styles.filterToggleBtn, showProduktyFilter && styles.filterToggleBtnActive]}
-                  onPress={() => setShowProduktyFilter(!showProduktyFilter)}
-                >
-                  <Text style={styles.filterToggleBtnText}>☰</Text>
-                </TouchableOpacity>
-              </View>
+            {/* Vyhledávání a produkty */}
+            <View style={[styles.searchCard, isDesktop && styles.searchCardDesktop]}>
+              {/* Vyhledávací pole */}
+              <TextInput
+                style={styles.searchInputMain}
+                placeholder="Co hledáte? (např. jablka, med...)"
+                placeholderTextColor="#999"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                autoCorrect={false}
+                autoCapitalize="none"
+              />
 
-              {/* Produkty chips - jen když je otevřené */}
-              {showProduktyFilter && (
-                <View style={styles.chipGridCompact}>
-                  {produkty.map((produkt) => (
-                    <TouchableOpacity
-                      key={produkt.id}
-                      style={[
-                        styles.chipCompact,
-                        selectedProdukty.includes(produkt.id) && styles.chipCompactActive
-                      ]}
-                      onPress={() => toggleProdukt(produkt.id)}
-                    >
-                      <Text style={styles.chipEmojiCompact}>{produkt.emoji}</Text>
-                      <Text style={[
-                        styles.chipTextCompact,
-                        selectedProdukty.includes(produkt.id) && styles.chipTextCompactActive
-                      ]}>
-                        {produkt.nazev}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-
-              {/* Lokalita - inline */}
-              <View style={styles.locationRow}>
-                <TouchableOpacity
-                  style={styles.locationBtnCompact}
-                  onPress={useMyLocation}
-                >
-                  <Text style={styles.locationBtnIcon}>📍</Text>
-                  <Text style={styles.locationBtnText} numberOfLines={1}>
-                    {locationLabel || 'Načítám polohu...'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Vzdálenost - inline */}
-              <View style={styles.distanceRow}>
-                <Text style={styles.distanceLabel}>Vzdálenost:</Text>
-                <View style={styles.distanceBtnsInline}>
-                  {[5, 15, 30, null].map((dist) => (
-                    <TouchableOpacity
-                      key={dist || 'all'}
-                      style={[styles.distBtnInline, selectedDistance === dist && styles.distBtnInlineActive]}
-                      onPress={() => handleDistanceChange(dist)}
-                    >
-                      <Text style={[styles.distBtnInlineText, selectedDistance === dist && styles.distBtnInlineTextActive]}>
-                        {dist ? `${dist}km` : '50+'}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {/* Jiná adresa - collapsible */}
-              <TouchableOpacity
-                style={styles.customAddressToggle}
-                onPress={() => setAddressInput(addressInput ? '' : ' ')}
-              >
-                <Text style={styles.customAddressToggleText}>
-                  {addressInput.trim() ? '✕ Zrušit vlastní adresu' : '+ Zadat jinou adresu'}
-                </Text>
-              </TouchableOpacity>
-
-              {addressInput.trim() !== '' && (
-                <View style={styles.customAddressRow}>
-                  <TextInput
-                    style={styles.addressInputCompact}
-                    placeholder="Město, ulice..."
-                    placeholderTextColor="#999"
-                    value={addressInput.trim() === '' ? '' : addressInput}
-                    onChangeText={setAddressInput}
-                    autoCorrect={false}
-                    autoCapitalize="words"
-                    onSubmitEditing={() => geocodeAddress(addressInput)}
-                  />
+              {/* Seznam produktů */}
+              <View style={styles.produktyGrid}>
+                {produkty.map((produkt) => (
                   <TouchableOpacity
-                    style={[styles.geocodeBtnCompact, geocoding && styles.geocodeBtnCompactDisabled]}
-                    onPress={() => geocodeAddress(addressInput)}
-                    disabled={geocoding}
+                    key={produkt.id}
+                    style={[
+                      styles.produktChip,
+                      selectedProdukty.includes(produkt.id) && styles.produktChipActive
+                    ]}
+                    onPress={() => toggleProdukt(produkt.id)}
                   >
-                    {geocoding ? (
-                      <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                      <Text style={styles.geocodeBtnCompactText}>OK</Text>
-                    )}
+                    <Text style={styles.produktEmoji}>{produkt.emoji}</Text>
+                    <Text style={[
+                      styles.produktText,
+                      selectedProdukty.includes(produkt.id) && styles.produktTextActive
+                    ]}>
+                      {produkt.nazev}
+                    </Text>
                   </TouchableOpacity>
-                </View>
-              )}
+                ))}
+              </View>
             </View>
           </View>
 
@@ -802,183 +725,60 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
 
-  // === KOMPAKTNÍ FILTR KARTA ===
-  compactFilterCard: {
+  // === HLAVNÍ VYHLEDÁVACÍ KARTA ===
+  searchCard: {
     backgroundColor: '#ffffff',
-    marginHorizontal: 8,
-    marginTop: 6,
-    marginBottom: 4,
-    borderRadius: 8,
-    padding: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  compactFilterCardDesktop: {
-    marginHorizontal: 0,
-    padding: 16,
-  },
-
-  // Search row
-  searchRow: {
-    flexDirection: 'row',
-    gap: 6,
+    marginHorizontal: 12,
+    marginTop: 12,
     marginBottom: 8,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  searchInputCompact: {
-    flex: 1,
+  searchCardDesktop: {
+    marginHorizontal: 0,
+    padding: 20,
+  },
+  searchInputMain: {
     backgroundColor: '#f5f5f5',
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    fontSize: 14,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    fontSize: 16,
     color: '#222',
+    marginBottom: 16,
   },
-  filterToggleBtn: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 6,
-    width: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterToggleBtnActive: {
-    backgroundColor: '#222',
-  },
-  filterToggleBtnText: {
-    fontSize: 18,
-    color: '#222',
-  },
-
-  // Chips compact
-  chipGridCompact: {
+  produktyGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
-    marginBottom: 8,
-    paddingTop: 2,
-  },
-  chipCompact: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 3,
-  },
-  chipCompactActive: {
-    backgroundColor: '#222',
-  },
-  chipEmojiCompact: {
-    fontSize: 12,
-  },
-  chipTextCompact: {
-    fontSize: 11,
-    color: '#333',
-    fontWeight: '500',
-  },
-  chipTextCompactActive: {
-    color: '#fff',
-  },
-
-  // Location row
-  locationRow: {
-    marginBottom: 6,
-  },
-  locationBtnCompact: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    gap: 6,
-  },
-  locationBtnIcon: {
-    fontSize: 14,
-  },
-  locationBtnText: {
-    fontSize: 13,
-    color: '#333',
-    fontWeight: '500',
-    flex: 1,
-  },
-
-  // Distance row
-  distanceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
     gap: 8,
   },
-  distanceLabel: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
-  },
-  distanceBtnsInline: {
-    flex: 1,
+  produktChip: {
     flexDirection: 'row',
-    gap: 4,
-  },
-  distBtnInline: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    paddingVertical: 6,
-    borderRadius: 4,
     alignItems: 'center',
-  },
-  distBtnInlineActive: {
-    backgroundColor: '#222',
-  },
-  distBtnInlineText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#333',
-  },
-  distBtnInlineTextActive: {
-    color: '#fff',
-  },
-
-  // Custom address
-  customAddressToggle: {
-    paddingVertical: 4,
-  },
-  customAddressToggleText: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
-  },
-  customAddressRow: {
-    flexDirection: 'row',
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 20,
     gap: 6,
-    marginTop: 4,
   },
-  addressInputCompact: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    fontSize: 13,
-    color: '#222',
-  },
-  geocodeBtnCompact: {
+  produktChipActive: {
     backgroundColor: '#222',
-    borderRadius: 6,
-    paddingHorizontal: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  geocodeBtnCompactDisabled: {
-    opacity: 0.5,
+  produktEmoji: {
+    fontSize: 16,
   },
-  geocodeBtnCompactText: {
+  produktText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+  },
+  produktTextActive: {
     color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
   },
   sectionContainer: {
     marginBottom: 16,
