@@ -102,7 +102,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#6A1B9A',
   },
   contentContainer: {
     flexGrow: 1,
@@ -113,7 +113,6 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 24,
     paddingHorizontal: 20,
-    backgroundColor: '#ffffff',
   },
   heroDesktop: {
     paddingTop: 100,
@@ -124,7 +123,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#222222',
+    color: '#ffffff',
     lineHeight: 32,
     marginBottom: 8,
   },
@@ -135,7 +134,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
-    color: '#666666',
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 20,
   },
   subtitleDesktop: {
@@ -158,10 +157,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#ffffff',
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#dddddd',
     paddingHorizontal: 12,
     height: 48,
   },
@@ -180,7 +177,7 @@ const styles = StyleSheet.create({
     }),
   },
   searchButton: {
-    backgroundColor: '#222222',
+    backgroundColor: '#FF9800',
     borderRadius: 10,
     height: 48,
     paddingHorizontal: 20,
@@ -210,16 +207,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   pathCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#eeeeee',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   pathCardDesktop: {
     flex: 1,
@@ -240,16 +232,16 @@ const styles = StyleSheet.create({
   pathTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#222222',
+    color: '#ffffff',
     marginBottom: 2,
   },
   pathDescription: {
     fontSize: 13,
-    color: '#666666',
+    color: 'rgba(255,255,255,0.7)',
   },
   pathArrow: {
     fontSize: 18,
-    color: '#999999',
+    color: '#FF9800',
     marginLeft: 8,
   },
 
@@ -258,12 +250,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: '#eeeeee',
+    borderTopColor: 'rgba(255,255,255,0.1)',
     marginTop: 'auto',
   },
   footerText: {
     fontSize: 12,
-    color: '#999999',
+    color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
   },
 });
