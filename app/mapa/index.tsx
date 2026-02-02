@@ -489,46 +489,43 @@ export default function MapaScreen() {
         <View style={[styles.mainLayout, isDesktop && styles.mainLayoutDesktop]}>
           {/* Levý panel - filtry */}
           <View style={[styles.filtersPanel, isDesktop && styles.filtersPanelDesktop]}>
-            {/* Co sháníte? - Nadpis + Vyhledávání */}
-            <View style={[styles.searchSection, isDesktop && styles.searchSectionDesktop]}>
-              <Text style={styles.sectionMainTitle}>Co sháníte?</Text>
-              <Text style={styles.sectionSubtitle}>Najděte čerstvé zboží přímo od farmářů</Text>
-
-              <View style={styles.searchCard}>
+            {/* Kompaktní filtr karta */}
+            <View style={[styles.compactFilterCard, isDesktop && styles.compactFilterCardDesktop]}>
+              {/* Vyhledávání */}
+              <View style={styles.searchRow}>
                 <TextInput
-                  style={styles.searchInput}
-                  placeholder="Brambory, med, vajíčka..."
+                  style={styles.searchInputCompact}
+                  placeholder="🔍 Hledat produkt..."
                   placeholderTextColor="#999"
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   autoCorrect={false}
                   autoCapitalize="none"
                 />
+                <TouchableOpacity
+                  style={[styles.filterToggleBtn, showProduktyFilter && styles.filterToggleBtnActive]}
+                  onPress={() => setShowProduktyFilter(!showProduktyFilter)}
+                >
+                  <Text style={styles.filterToggleBtnText}>☰</Text>
+                </TouchableOpacity>
               </View>
 
-              <TouchableOpacity
-                style={styles.productListButton}
-                onPress={() => setShowProduktyFilter(!showProduktyFilter)}
-              >
-                <Text style={styles.productListButtonIcon}>☰</Text>
-                <Text style={styles.productListButtonText}>Vybrat ze seznamu produktů</Text>
-              </TouchableOpacity>
-
+              {/* Produkty chips - jen když je otevřené */}
               {showProduktyFilter && (
-                <View style={styles.chipGrid}>
+                <View style={styles.chipGridCompact}>
                   {produkty.map((produkt) => (
                     <TouchableOpacity
                       key={produkt.id}
                       style={[
-                        styles.chip,
-                        selectedProdukty.includes(produkt.id) && styles.chipActive
+                        styles.chipCompact,
+                        selectedProdukty.includes(produkt.id) && styles.chipCompactActive
                       ]}
                       onPress={() => toggleProdukt(produkt.id)}
                     >
-                      <Text style={styles.chipEmoji}>{produkt.emoji}</Text>
+                      <Text style={styles.chipEmojiCompact}>{produkt.emoji}</Text>
                       <Text style={[
-                        styles.chipText,
-                        selectedProdukty.includes(produkt.id) && styles.chipTextActive
+                        styles.chipTextCompact,
+                        selectedProdukty.includes(produkt.id) && styles.chipTextCompactActive
                       ]}>
                         {produkt.nazev}
                       </Text>
@@ -536,107 +533,73 @@ export default function MapaScreen() {
                   ))}
                 </View>
               )}
-            </View>
 
-            {/* Kde vyzvednout? */}
-            <View style={[styles.locationSection, isDesktop && styles.locationSectionDesktop]}>
-              <View style={styles.sectionHeaderWithIcon}>
-                <Text style={styles.locationIcon}>📍</Text>
-                <Text style={styles.sectionMainTitle}>Kde vyzvednout?</Text>
+              {/* Lokalita - inline */}
+              <View style={styles.locationRow}>
+                <TouchableOpacity
+                  style={styles.locationBtnCompact}
+                  onPress={useMyLocation}
+                >
+                  <Text style={styles.locationBtnIcon}>📍</Text>
+                  <Text style={styles.locationBtnText} numberOfLines={1}>
+                    {locationLabel || 'Načítám polohu...'}
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <Text style={styles.sectionSubtitle}>Zvolte lokalitu a maximální dojezdovou vzdálenost</Text>
 
-              <View style={styles.filtersCard}>
+              {/* Vzdálenost - inline */}
+              <View style={styles.distanceRow}>
+                <Text style={styles.distanceLabel}>Vzdálenost:</Text>
+                <View style={styles.distanceBtnsInline}>
+                  {[5, 15, 30, null].map((dist) => (
+                    <TouchableOpacity
+                      key={dist || 'all'}
+                      style={[styles.distBtnInline, selectedDistance === dist && styles.distBtnInlineActive]}
+                      onPress={() => handleDistanceChange(dist)}
+                    >
+                      <Text style={[styles.distBtnInlineText, selectedDistance === dist && styles.distBtnInlineTextActive]}>
+                        {dist ? `${dist}km` : '50+'}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
 
-              {/* Výchozí místo */}
-              <Text style={styles.inputLabel}>Výchozí místo</Text>
-
+              {/* Jiná adresa - collapsible */}
               <TouchableOpacity
-                style={styles.locationInputButton}
-                onPress={useMyLocation}
+                style={styles.customAddressToggle}
+                onPress={() => setAddressInput(addressInput ? '' : ' ')}
               >
-                <Text style={styles.locationInputIcon}>✈️</Text>
-                <Text style={[
-                  styles.locationInputText,
-                  !locationSource && styles.locationInputPlaceholder
-                ]}>
-                  {locationLabel || 'Brno-střed'}
+                <Text style={styles.customAddressToggleText}>
+                  {addressInput.trim() ? '✕ Zrušit vlastní adresu' : '+ Zadat jinou adresu'}
                 </Text>
               </TouchableOpacity>
 
-              {locationSource === 'address' && (
-                <TouchableOpacity
-                  style={styles.gpsButton}
-                  onPress={useMyLocation}
-                >
-                  <Text style={styles.gpsButtonIcon}>🎯</Text>
-                  <Text style={styles.gpsButtonText}>Použít aktuální GPS polohu</Text>
-                </TouchableOpacity>
+              {addressInput.trim() !== '' && (
+                <View style={styles.customAddressRow}>
+                  <TextInput
+                    style={styles.addressInputCompact}
+                    placeholder="Město, ulice..."
+                    placeholderTextColor="#999"
+                    value={addressInput.trim() === '' ? '' : addressInput}
+                    onChangeText={setAddressInput}
+                    autoCorrect={false}
+                    autoCapitalize="words"
+                    onSubmitEditing={() => geocodeAddress(addressInput)}
+                  />
+                  <TouchableOpacity
+                    style={[styles.geocodeBtnCompact, geocoding && styles.geocodeBtnCompactDisabled]}
+                    onPress={() => geocodeAddress(addressInput)}
+                    disabled={geocoding}
+                  >
+                    {geocoding ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.geocodeBtnCompactText}>OK</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
               )}
-
-              {/* Jiný start než má poloha */}
-              <Text style={[styles.inputLabel, { marginTop: 12 }]}>Jiný start než má poloha</Text>
-              <TextInput
-                style={styles.addressInput}
-                placeholder="např. Hlavní 123, Praha"
-                placeholderTextColor="#999"
-                value={addressInput}
-                onChangeText={setAddressInput}
-                autoCorrect={false}
-                autoCapitalize="words"
-                onSubmitEditing={() => geocodeAddress(addressInput)}
-              />
-              <TouchableOpacity
-                style={[styles.geocodeButtonFull, geocoding && styles.geocodeButtonDisabled]}
-                onPress={() => geocodeAddress(addressInput)}
-                disabled={geocoding}
-              >
-                {geocoding ? (
-                  <ActivityIndicator size="small" color="#222222" />
-                ) : (
-                  <Text style={styles.geocodeButtonText}>Hledat</Text>
-                )}
-              </TouchableOpacity>
-
-              {/* Maximální vzdálenost */}
-              <Text style={styles.inputLabel}>Maximální vzdálenost</Text>
-              <Text style={styles.distanceValue}>{selectedDistance || 15} km</Text>
-
-              <View style={styles.distanceButtonsRow}>
-                <TouchableOpacity
-                  style={[styles.distanceButtonSmall, selectedDistance === 5 && styles.distanceButtonSmallActive]}
-                  onPress={() => handleDistanceChange(5)}
-                >
-                  <Text style={[styles.distanceButtonSmallText, selectedDistance === 5 && styles.distanceButtonSmallTextActive]}>
-                    5 km
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.distanceButtonSmall, selectedDistance === 15 && styles.distanceButtonSmallActive]}
-                  onPress={() => handleDistanceChange(15)}
-                >
-                  <Text style={[styles.distanceButtonSmallText, selectedDistance === 15 && styles.distanceButtonSmallTextActive]}>
-                    15 km
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.distanceButtonSmall, selectedDistance === 30 && styles.distanceButtonSmallActive]}
-                  onPress={() => handleDistanceChange(30)}
-                >
-                  <Text style={[styles.distanceButtonSmallText, selectedDistance === 30 && styles.distanceButtonSmallTextActive]}>
-                    30 km
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.distanceButtonSmall, selectedDistance === null && styles.distanceButtonSmallActive]}
-                  onPress={() => handleDistanceChange(null)}
-                >
-                  <Text style={[styles.distanceButtonSmallText, selectedDistance === null && styles.distanceButtonSmallTextActive]}>
-                    50+ km
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              </View>
             </View>
           </View>
 
@@ -810,19 +773,19 @@ export default function MapaScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#eeeeee' },
   scrollContainer: { flex: 1 },
-  scrollContent: { paddingBottom: 40 },
+  scrollContent: { paddingBottom: 30 },
   scrollContentDesktop: { paddingHorizontal: 24 },
   mainLayout: { flex: 1 },
   mainLayoutDesktop: { flexDirection: 'row', gap: 24 },
-  filtersPanel: { flex: 1 },
+  filtersPanel: { flex: 0 },
   filtersPanelDesktop: { width: 380, maxWidth: 420, flexShrink: 0, flex: 0 },
   resultsPanel: { flex: 1 },
   resultsPanelDesktop: { flex: 1 },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   header: {
-    paddingTop: 6,
-    paddingBottom: 8,
+    paddingTop: 4,
+    paddingBottom: 6,
     paddingHorizontal: 12,
     backgroundColor: '#ffffff',
     flexDirection: 'row',
@@ -834,9 +797,188 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   menuIcon: {
-    fontSize: 24,
+    fontSize: 22,
     color: '#222222',
     fontWeight: '400',
+  },
+
+  // === KOMPAKTNÍ FILTR KARTA ===
+  compactFilterCard: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 10,
+    marginTop: 8,
+    marginBottom: 6,
+    borderRadius: 10,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  compactFilterCardDesktop: {
+    marginHorizontal: 0,
+    padding: 16,
+  },
+
+  // Search row
+  searchRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 10,
+  },
+  searchInputCompact: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: '#222',
+  },
+  filterToggleBtn: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    width: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterToggleBtnActive: {
+    backgroundColor: '#222',
+  },
+  filterToggleBtnText: {
+    fontSize: 18,
+    color: '#222',
+  },
+
+  // Chips compact
+  chipGridCompact: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 10,
+    paddingTop: 4,
+  },
+  chipCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+  },
+  chipCompactActive: {
+    backgroundColor: '#222',
+  },
+  chipEmojiCompact: {
+    fontSize: 14,
+  },
+  chipTextCompact: {
+    fontSize: 12,
+    color: '#333',
+    fontWeight: '500',
+  },
+  chipTextCompactActive: {
+    color: '#fff',
+  },
+
+  // Location row
+  locationRow: {
+    marginBottom: 8,
+  },
+  locationBtnCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  locationBtnIcon: {
+    fontSize: 16,
+  },
+  locationBtnText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+    flex: 1,
+  },
+
+  // Distance row
+  distanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 10,
+  },
+  distanceLabel: {
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '500',
+  },
+  distanceBtnsInline: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 6,
+  },
+  distBtnInline: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  distBtnInlineActive: {
+    backgroundColor: '#222',
+  },
+  distBtnInlineText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333',
+  },
+  distBtnInlineTextActive: {
+    color: '#fff',
+  },
+
+  // Custom address
+  customAddressToggle: {
+    paddingVertical: 6,
+  },
+  customAddressToggleText: {
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '500',
+  },
+  customAddressRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+  },
+  addressInputCompact: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: '#222',
+  },
+  geocodeBtnCompact: {
+    backgroundColor: '#222',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  geocodeBtnCompactDisabled: {
+    opacity: 0.5,
+  },
+  geocodeBtnCompactText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   sectionContainer: {
     marginBottom: 16,
@@ -1116,7 +1258,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#222222',
     fontWeight: '600',
     flex: 1,
@@ -1397,11 +1539,11 @@ const styles = StyleSheet.create({
   },
   resultsSection: {
     backgroundColor: '#ffffff',
-    marginHorizontal: 12,
-    marginTop: 16,
-    marginBottom: 8,
+    marginHorizontal: 10,
+    marginTop: 6,
+    marginBottom: 6,
     borderRadius: 8,
-    padding: 16,
+    padding: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -1413,16 +1555,16 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   resultsSectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#333',
   },
   farmerCard: {
     backgroundColor: '#ffffff',
-    marginHorizontal: 12,
-    marginVertical: 6,
+    marginHorizontal: 10,
+    marginVertical: 4,
     borderRadius: 8,
-    padding: 16,
+    padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
@@ -1474,22 +1616,20 @@ const styles = StyleSheet.create({
     color: '#CCC',
   },
   showResultsButton: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#222222',
     marginHorizontal: 10,
-    marginVertical: 10,
+    marginVertical: 8,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#dddddd',
   },
   showResultsButtonDesktop: {
     marginHorizontal: 0,
   },
   showResultsButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#222222',
+    color: '#ffffff',
   },
   matchFilterContainer: {
     flexDirection: 'row',
