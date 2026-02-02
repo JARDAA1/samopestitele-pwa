@@ -487,20 +487,16 @@ export default function MapaScreen() {
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={[styles.scrollContent, isDesktop && styles.scrollContentDesktop]}>
         <View style={[styles.mainLayout, isDesktop && styles.mainLayoutDesktop]}>
-          {/* Levý panel - filtry */}
+          {/* Panel produktů */}
           <View style={[styles.filtersPanel, isDesktop && styles.filtersPanelDesktop]}>
-            {/* Vyhledávání a produkty */}
-            <View style={[styles.searchCard, isDesktop && styles.searchCardDesktop]}>
-              {/* Vyhledávací pole */}
-              <TextInput
-                style={styles.searchInputMain}
-                placeholder="Co hledáte? (např. jablka, med...)"
-                placeholderTextColor="#999"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                autoCorrect={false}
-                autoCapitalize="none"
-              />
+            <View style={[styles.produktyCard, isDesktop && styles.produktyCardDesktop]}>
+              {/* Hlavička */}
+              <View style={styles.produktyHeader}>
+                <Text style={styles.produktyTitle}>Co hledáte?</Text>
+                {selectedProdukty.length > 0 && (
+                  <Text style={styles.produktyCount}>{selectedProdukty.length} vybráno</Text>
+                )}
+              </View>
 
               {/* Seznam produktů */}
               <View style={styles.produktyGrid}>
@@ -523,6 +519,16 @@ export default function MapaScreen() {
                   </TouchableOpacity>
                 ))}
               </View>
+
+              {/* Tlačítko Zavřít / Hledat */}
+              <TouchableOpacity
+                style={styles.produktySubmitBtn}
+                onPress={() => {/* TODO: další krok */}}
+              >
+                <Text style={styles.produktySubmitText}>
+                  {selectedProdukty.length > 0 ? `Hledat (${selectedProdukty.length})` : 'Pokračovat'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -725,60 +731,79 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
 
-  // === HLAVNÍ VYHLEDÁVACÍ KARTA ===
-  searchCard: {
+  // === KARTA PRODUKTŮ ===
+  produktyCard: {
     backgroundColor: '#ffffff',
     marginHorizontal: 12,
     marginTop: 12,
-    marginBottom: 8,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  searchCardDesktop: {
+  produktyCardDesktop: {
     marginHorizontal: 0,
-    padding: 20,
+    padding: 24,
+    maxWidth: 600,
   },
-  searchInputMain: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#222',
+  produktyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
+  },
+  produktyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#222',
+  },
+  produktyCount: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
   },
   produktyGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
+    marginBottom: 20,
   },
   produktChip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 20,
-    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 24,
+    gap: 8,
   },
   produktChipActive: {
     backgroundColor: '#222',
   },
   produktEmoji: {
-    fontSize: 16,
+    fontSize: 18,
   },
   produktText: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#333',
     fontWeight: '500',
   },
   produktTextActive: {
     color: '#fff',
+  },
+  produktySubmitBtn: {
+    backgroundColor: '#222',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  produktySubmitText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   sectionContainer: {
     marginBottom: 16,
