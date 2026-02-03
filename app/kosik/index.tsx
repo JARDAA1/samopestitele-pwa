@@ -244,7 +244,7 @@ export default function KosikScreen() {
             value={jmeno}
             onChangeText={setJmeno}
             placeholder="Jan Novák"
-            placeholderTextColor="#999"
+            placeholderTextColor="rgba(255,255,255,0.5)"
           />
 
           <Text style={styles.label}>Telefon *</Text>
@@ -253,7 +253,7 @@ export default function KosikScreen() {
             value={telefon}
             onChangeText={setTelefon}
             placeholder="+420 123 456 789"
-            placeholderTextColor="#999"
+            placeholderTextColor="rgba(255,255,255,0.5)"
             keyboardType="phone-pad"
           />
 
@@ -263,7 +263,7 @@ export default function KosikScreen() {
             value={poznamka}
             onChangeText={setPoznamka}
             placeholder="Např. preferovaný čas vyzvednutí..."
-            placeholderTextColor="#999"
+            placeholderTextColor="rgba(255,255,255,0.5)"
             multiline
             numberOfLines={3}
           />
@@ -287,66 +287,65 @@ export default function KosikScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
+  container: { flex: 1, backgroundColor: '#6A1B9A' },
 
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 15,
-    backgroundColor: '#7B1FA2',
+    paddingTop: 44,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+    backgroundColor: '#6A1B9A',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
-  menuButton: { marginRight: 15, padding: 8 },
-  menuIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '400' },
-  headerTitle: { flex: 1, fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
+  menuButton: { marginRight: 12, padding: 6 },
+  menuIcon: { fontSize: 24, color: '#FFFFFF', fontWeight: '400' },
+  headerTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
 
   content: { flex: 1 },
 
   infoBanner: {
-    backgroundColor: '#F3E5F5',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    backgroundColor: 'rgba(255,152,0,0.2)',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#DDD',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
-  infoBannerText: { fontSize: 15, color: '#6A1B9A', fontWeight: '600', textAlign: 'center' },
+  infoBannerText: { fontSize: 14, color: '#FF9800', fontWeight: '600', textAlign: 'center' },
 
-  itemsContainer: { padding: 15 },
+  itemsContainer: { padding: 12 },
 
   cartItem: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
-  cartItemInfo: { marginBottom: 12 },
-  cartItemName: { fontSize: 16, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 4 },
-  cartItemPrice: { fontSize: 14, color: '#666' },
+  cartItemInfo: { marginBottom: 10 },
+  cartItemName: { fontSize: 15, fontWeight: '600', color: '#ffffff', marginBottom: 4 },
+  cartItemPrice: { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
   cartItemActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   quantityButton: {
-    backgroundColor: '#E0E0E0',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  quantityButtonText: { fontSize: 20, color: '#333', fontWeight: 'bold' },
+  quantityButtonText: { fontSize: 18, color: '#ffffff', fontWeight: 'bold' },
   quantityText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
-    color: '#6A1B9A',
-    marginHorizontal: 20,
+    color: '#ffffff',
+    marginHorizontal: 16,
     minWidth: 30,
     textAlign: 'center',
   },
@@ -355,53 +354,47 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    paddingTop: 12,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+    paddingTop: 10,
   },
-  cartItemTotalText: { fontSize: 18, fontWeight: 'bold', color: '#FF9800' },
-  removeButton: { padding: 8 },
-  removeButtonText: { fontSize: 20 },
+  cartItemTotalText: { fontSize: 17, fontWeight: 'bold', color: '#FF9800' },
+  removeButton: { padding: 6 },
+  removeButtonText: { fontSize: 18 },
 
   totalContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    marginHorizontal: 15,
-    marginBottom: 20,
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    padding: 16,
+    marginHorizontal: 12,
+    marginBottom: 16,
+    borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
-  totalLabel: { fontSize: 20, fontWeight: 'bold', color: '#6A1B9A' },
-  totalPrice: { fontSize: 24, fontWeight: 'bold', color: '#FF9800' },
+  totalLabel: { fontSize: 18, fontWeight: 'bold', color: '#ffffff' },
+  totalPrice: { fontSize: 22, fontWeight: 'bold', color: '#FF9800' },
 
   formContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    marginHorizontal: 15,
-    borderRadius: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  formTitle: { fontSize: 18, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 16 },
-  label: { fontSize: 14, fontWeight: '600', color: '#6A1B9A', marginBottom: 6, marginTop: 12 },
-  input: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    padding: 16,
+    marginHorizontal: 12,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  formTitle: { fontSize: 16, fontWeight: '600', color: '#ffffff', marginBottom: 12 },
+  label: { fontSize: 13, fontWeight: '600', color: '#ffffff', marginBottom: 6, marginTop: 10 },
+  input: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
     borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#333',
+    paddingHorizontal: 14,
+    fontSize: 15,
+    color: '#ffffff',
   },
   textArea: {
     height: 80,
@@ -411,25 +404,20 @@ const styles = StyleSheet.create({
   submitButton: {
     position: 'absolute',
     bottom: 20,
-    left: 20,
-    right: 20,
-    backgroundColor: '#7B1FA2',
-    paddingVertical: 18,
-    borderRadius: 12,
+    left: 12,
+    right: 12,
+    backgroundColor: '#FF9800',
+    paddingVertical: 16,
+    borderRadius: 10,
     alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
   },
-  submitButtonDisabled: { backgroundColor: '#9E9E9E' },
-  submitButtonText: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },
+  submitButtonDisabled: { opacity: 0.6 },
+  submitButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: '600' },
 
-  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
-  emptyIcon: { fontSize: 80, marginBottom: 20 },
-  emptyTitle: { fontSize: 24, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 10 },
-  emptyText: { fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 30 },
-  continueButton: { backgroundColor: '#7B1FA2', paddingVertical: 14, paddingHorizontal: 30, borderRadius: 10 },
+  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
+  emptyIcon: { fontSize: 64, marginBottom: 16 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#ffffff', marginBottom: 8 },
+  emptyText: { fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginBottom: 24, lineHeight: 20 },
+  continueButton: { backgroundColor: '#FF9800', paddingVertical: 14, paddingHorizontal: 28, borderRadius: 10 },
   continueButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 });

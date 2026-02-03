@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 
 export default function PrihlaseniScreen() {
@@ -12,30 +12,36 @@ export default function PrihlaseniScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <View style={styles.sectionsContainer}>
           {/* PROFIL */}
           <TouchableOpacity
-            style={[styles.sectionCard, styles.sectionCardPrimary]}
+            style={styles.sectionCard}
             onPress={() => router.push('/prihlaseni/profil')}
           >
+            <Text style={styles.sectionEmoji}>👤</Text>
             <Text style={styles.sectionTitle}>Profil</Text>
+            <Text style={styles.sectionArrow}>›</Text>
           </TouchableOpacity>
 
           {/* MOJE PRODEJNA */}
           <TouchableOpacity
-            style={[styles.sectionCard, styles.sectionCardSecondary]}
+            style={styles.sectionCard}
             onPress={() => router.push('/prihlaseni/prodejna')}
           >
+            <Text style={styles.sectionEmoji}>🏪</Text>
             <Text style={styles.sectionTitle}>Moje prodejna</Text>
+            <Text style={styles.sectionArrow}>›</Text>
           </TouchableOpacity>
 
           {/* MOJE STÁNKY */}
           <TouchableOpacity
-            style={[styles.sectionCard, styles.sectionCardTertiary]}
+            style={styles.sectionCard}
             onPress={() => router.push('/prihlaseni/stanky')}
           >
+            <Text style={styles.sectionEmoji}>🏕️</Text>
             <Text style={styles.sectionTitle}>Moje stánky</Text>
+            <Text style={styles.sectionArrow}>›</Text>
           </TouchableOpacity>
         </View>
 
@@ -46,14 +52,18 @@ export default function PrihlaseniScreen() {
         </View>
 
         <TouchableOpacity
-          style={styles.registerLink}
+          style={styles.registerButton}
           onPress={() => router.push('/registrace')}
         >
-          <Text style={styles.registerLinkText}>
-            Ještě nemám účet - Zaregistrovat se
+          <Text style={styles.registerButtonText}>
+            Zaregistrovat se
           </Text>
         </TouchableOpacity>
-      </View>
+
+        <Text style={styles.registerHint}>
+          Ještě nemáte účet? Registrace je zdarma.
+        </Text>
+      </ScrollView>
     </View>
   );
 }
@@ -61,97 +71,100 @@ export default function PrihlaseniScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#6A1B9A',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 50,
-    paddingBottom: 12,
-    paddingHorizontal: 15,
-    backgroundColor: '#FFFFFF',
+    paddingTop: 44,
+    paddingBottom: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#6A1B9A',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   backButton: {
-    padding: 8,
+    padding: 6,
   },
   backIcon: {
-    fontSize: 24,
-    color: '#6A1B9A',
+    fontSize: 22,
+    color: '#ffffff',
     fontWeight: '600',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#ffffff',
   },
   headerSpacer: {
     width: 40,
   },
-  content: {
+  scrollContainer: {
     flex: 1,
-    padding: 20,
+  },
+  scrollContent: {
+    padding: 12,
+    paddingBottom: 30,
   },
   sectionsContainer: {
-    gap: 16,
-    marginTop: 20,
+    gap: 10,
+    marginTop: 8,
   },
   sectionCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderLeftWidth: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
-  sectionCardPrimary: {
-    borderLeftColor: '#1976D2',
-  },
-  sectionCardSecondary: {
-    borderLeftColor: '#7B1FA2',
-  },
-  sectionCardTertiary: {
-    borderLeftColor: '#FF9800',
+  sectionEmoji: {
+    fontSize: 24,
+    marginRight: 14,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#6A1B9A',
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  sectionArrow: {
+    fontSize: 22,
+    color: '#FF9800',
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 32,
+    marginVertical: 24,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   dividerText: {
     marginHorizontal: 12,
     fontSize: 12,
-    color: '#999',
+    color: 'rgba(255,255,255,0.6)',
     fontWeight: '600',
   },
-  registerLink: {
-    padding: 16,
+  registerButton: {
+    backgroundColor: '#FF9800',
+    borderRadius: 10,
+    padding: 14,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#7B1FA2',
   },
-  registerLinkText: {
-    color: '#7B1FA2',
+  registerButtonText: {
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  registerHint: {
+    textAlign: 'center',
+    marginTop: 12,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
   },
 });

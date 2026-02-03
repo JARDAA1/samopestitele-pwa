@@ -142,7 +142,7 @@ export default function DetailObjednavkyScreen() {
           <Text style={styles.headerTitle}>Detail objednávky</Text>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#7B1FA2" />
+          <ActivityIndicator size="large" color="#ffffff" />
           <Text style={styles.loadingText}>Načítám...</Text>
         </View>
       </View>
@@ -269,36 +269,35 @@ export default function DetailObjednavkyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5'
+    backgroundColor: '#6A1B9A'
   },
   stickyHeader: {
-    backgroundColor: '#7B1FA2',
-    paddingTop: 60,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
-    borderBottomWidth: 3,
-    borderBottomColor: '#388E3C'
+    backgroundColor: '#6A1B9A',
+    paddingTop: 44,
+    paddingBottom: 12,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)'
   },
   backButton: {
-    marginBottom: 10
+    marginBottom: 8
   },
   backButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600'
   },
   customerHeader: {
     gap: 4
   },
   customerHeaderName: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#FFFFFF'
   },
   customerHeaderPhone: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    opacity: 0.95
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)'
   },
   loadingContainer: {
     flex: 1,
@@ -307,43 +306,40 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 10,
-    fontSize: 16,
-    color: '#666'
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.7)'
   },
   content: {
     flex: 1
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    margin: 15,
-    padding: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    margin: 12,
+    padding: 16,
     borderRadius: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15
+    marginBottom: 12
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#6A1B9A',
-    marginBottom: 15
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 12
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 6
   },
   statusText: {
-    fontSize: 13,
-    fontWeight: 'bold'
+    fontSize: 12,
+    fontWeight: '600'
   },
   statusButtons: {
     flexDirection: 'row',
@@ -352,104 +348,106 @@ const styles = StyleSheet.create({
   },
   statusButton: {
     flex: 1,
-    minWidth: 100,
+    minWidth: 90,
     paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     borderRadius: 8,
     alignItems: 'center'
   },
   statusButtonText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600'
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10
+    marginBottom: 8
   },
   infoLabel: {
-    fontSize: 14,
-    color: '#666'
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)'
   },
   infoValue: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: 13,
+    color: '#ffffff',
     fontWeight: '500'
   },
   noteBox: {
     marginTop: 10,
     padding: 12,
-    backgroundColor: '#FFF3CD',
+    backgroundColor: 'rgba(255,152,0,0.2)',
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#FFE082'
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF9800'
   },
   noteLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#F57C00',
+    color: '#FF9800',
     marginBottom: 4
   },
   noteText: {
-    fontSize: 14,
-    color: '#333',
-    lineHeight: 20
+    fontSize: 13,
+    color: '#ffffff',
+    lineHeight: 18
   },
   productItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0'
+    borderBottomColor: 'rgba(255,255,255,0.1)'
   },
   productInfo: {
     flex: 1,
     gap: 4
   },
   productName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#333'
+    color: '#ffffff'
   },
   productQuantity: {
-    fontSize: 13,
-    color: '#888'
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)'
   },
   productTotal: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#7B1FA2'
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FF9800'
   },
   totalBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 15,
-    paddingTop: 15,
-    borderTopWidth: 2,
-    borderTopColor: '#7B1FA2'
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.2)'
   },
   totalLabel: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333'
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffffff'
   },
   totalPrice: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#7B1FA2'
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FF9800'
   },
   header: {
-    backgroundColor: '#7B1FA2',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20
+    backgroundColor: '#6A1B9A',
+    paddingTop: 44,
+    paddingBottom: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#FFFFFF'
   }
 });

@@ -218,7 +218,7 @@ export default function PridatProduktScreen() {
       >
         {loadingProducts ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#7B1FA2" />
+            <ActivityIndicator size="large" color="#ffffff" />
             <Text style={styles.loadingText}>Načítám produkty...</Text>
           </View>
         ) : (
@@ -376,43 +376,42 @@ export default function PridatProduktScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5'
+    backgroundColor: '#6A1B9A'
   },
   header: {
-    backgroundColor: '#7B1FA2',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20
+    backgroundColor: '#6A1B9A',
+    paddingTop: 44,
+    paddingBottom: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   backButton: {
-    marginBottom: 10
+    marginBottom: 8
   },
   backButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600'
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#FFFFFF'
   },
   scrollView: {
     flex: 1
   },
   content: {
-    padding: 20,
+    padding: 12,
     paddingBottom: 40
   },
   form: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 12,
-    padding: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   loadingContainer: {
     flex: 1,
@@ -422,116 +421,117 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 16,
-    color: '#666'
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.7)'
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#ffffff',
     marginBottom: 8
   },
   hint: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 20,
-    lineHeight: 20
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+    marginBottom: 16,
+    lineHeight: 18
   },
   selectedProductBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3E5F5',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
+    backgroundColor: 'rgba(255,152,0,0.2)',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 16,
     borderWidth: 2,
-    borderColor: '#7B1FA2'
+    borderColor: '#FF9800'
   },
   selectedEmoji: {
-    fontSize: 48,
-    marginRight: 16
+    fontSize: 40,
+    marginRight: 14
   },
   selectedInfo: {
     flex: 1
   },
   selectedName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffffff',
     marginBottom: 4
   },
   selectedCategory: {
-    fontSize: 14,
-    color: '#7B1FA2',
+    fontSize: 13,
+    color: '#FF9800',
     fontWeight: '600'
   },
   changeButton: {
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#FF9800',
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     borderRadius: 8
   },
   changeButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600'
   },
   productList: {
     maxHeight: 500,
-    marginBottom: 20
+    marginBottom: 16
   },
   categoryHeader: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#7B1FA2',
-    marginTop: 16,
-    marginBottom: 12,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FF9800',
+    marginTop: 14,
+    marginBottom: 10,
     paddingHorizontal: 4
   },
   productGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
     marginBottom: 8
   },
   productCard: {
     width: '30%',
-    minWidth: 100,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    padding: 12,
+    minWidth: 90,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    padding: 10,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E0E0E0'
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)'
   },
   productEmoji: {
-    fontSize: 36,
-    marginBottom: 8
+    fontSize: 32,
+    marginBottom: 6
   },
   productName: {
-    fontSize: 13,
-    color: '#333',
+    fontSize: 12,
+    color: '#ffffff',
     textAlign: 'center',
     fontWeight: '500'
   },
   label: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-    marginTop: 15
+    color: '#ffffff',
+    marginBottom: 6,
+    marginTop: 12
   },
   input: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    padding: 15,
-    fontSize: 16,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 15,
+    color: '#ffffff',
     borderWidth: 1,
-    borderColor: '#E0E0E0'
+    borderColor: 'rgba(255,255,255,0.3)'
   },
   textArea: {
     height: 100,
-    paddingTop: 15
+    paddingTop: 12
   },
   row: {
     flexDirection: 'row',
@@ -542,34 +542,34 @@ const styles = StyleSheet.create({
     flex: 1
   },
   currency: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#666'
+    color: '#ffffff'
   },
   unitButtons: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
     flexWrap: 'wrap'
   },
   unitButton: {
-    backgroundColor: '#F5F5F5',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#E0E0E0'
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)'
   },
   unitButtonActive: {
-    backgroundColor: '#F3E5F5',
-    borderColor: '#7B1FA2'
+    backgroundColor: 'rgba(255,152,0,0.3)',
+    borderColor: '#FF9800'
   },
   unitButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#666'
+    color: 'rgba(255,255,255,0.7)'
   },
   unitButtonTextActive: {
-    color: '#7B1FA2'
+    color: '#FF9800'
   },
   availabilityButtons: {
     flexDirection: 'row',
@@ -577,50 +577,45 @@ const styles = StyleSheet.create({
   },
   availabilityButton: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
-    paddingVertical: 15,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E0E0E0'
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)'
   },
   availabilityButtonActive: {
-    backgroundColor: '#F3E5F5',
-    borderColor: '#7B1FA2'
+    backgroundColor: 'rgba(76,175,80,0.3)',
+    borderColor: '#4CAF50'
   },
   availabilityButtonUnavailable: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: 'rgba(244,67,54,0.3)',
     borderColor: '#F44336'
   },
   availabilityButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#666'
+    color: 'rgba(255,255,255,0.7)'
   },
   availabilityButtonTextActive: {
-    color: '#7B1FA2'
+    color: '#4CAF50'
   },
   availabilityButtonTextUnavailable: {
     color: '#F44336'
   },
   submitButton: {
-    backgroundColor: '#7B1FA2',
-    paddingVertical: 18,
+    backgroundColor: '#FF9800',
+    paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 30,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4
+    marginTop: 24,
   },
   submitButtonDisabled: {
     opacity: 0.6
   },
   submitButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold'
+    fontSize: 16,
+    fontWeight: '600'
   }
 });

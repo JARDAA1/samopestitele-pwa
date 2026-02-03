@@ -168,9 +168,10 @@ export default function RegistraceScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => krok > 1 ? setKrok(krok - 1) : router.back()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>← Zpět</Text>
+          <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Registrace pěstitele</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Progress bar */}
@@ -182,11 +183,14 @@ export default function RegistraceScreen() {
         </View>
       )}
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         {/* KROK 1: Základní informace */}
         {krok === 1 && (
-          <View style={styles.step}>
-            <Text style={styles.stepTitle}>🌾 O vás a vaší farmě</Text>
+          <View style={styles.card}>
+            <View style={styles.iconContainer}>
+              <Text style={styles.iconText}>🌾</Text>
+            </View>
+            <Text style={styles.stepTitle}>O vás a vaší farmě</Text>
             <Text style={styles.stepSubtitle}>Krok 1 z 3</Text>
             <Text style={styles.infoText}>
               Pár základních informací, aby vás zákazníci mohli najít.
@@ -196,6 +200,7 @@ export default function RegistraceScreen() {
             <TextInput
               style={styles.input}
               placeholder="vas@email.cz"
+              placeholderTextColor="rgba(255,255,255,0.5)"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -208,6 +213,7 @@ export default function RegistraceScreen() {
             <TextInput
               style={styles.input}
               placeholder="např. Jan Novák"
+              placeholderTextColor="rgba(255,255,255,0.5)"
               value={jmeno}
               onChangeText={setJmeno}
             />
@@ -216,23 +222,27 @@ export default function RegistraceScreen() {
             <TextInput
               style={styles.input}
               placeholder="např. Farma U Nováků"
+              placeholderTextColor="rgba(255,255,255,0.5)"
               value={nazevFarmy}
               onChangeText={setNazevFarmy}
             />
 
             <TouchableOpacity
-              style={styles.buttonPrimary}
+              style={styles.primaryButton}
               onPress={validovatInfo}
             >
-              <Text style={styles.buttonText}>Pokračovat →</Text>
+              <Text style={styles.primaryButtonText}>Pokračovat →</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {/* KROK 2: Vytvoření PINu */}
         {krok === 2 && (
-          <View style={styles.step}>
-            <Text style={styles.stepTitle}>🔐 Vytvořte PIN</Text>
+          <View style={styles.card}>
+            <View style={styles.iconContainer}>
+              <Text style={styles.iconText}>🔐</Text>
+            </View>
+            <Text style={styles.stepTitle}>Vytvořte PIN</Text>
             <Text style={styles.stepSubtitle}>Krok 2 z 3</Text>
             <Text style={styles.infoText}>
               PIN budete používat společně s kódem farmy pro rychlé přihlášení.
@@ -240,40 +250,42 @@ export default function RegistraceScreen() {
 
             <Text style={styles.label}>PIN (4-6 číslic) *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, styles.pinInput]}
               placeholder="••••"
+              placeholderTextColor="rgba(255,255,255,0.5)"
               value={heslo}
               onChangeText={setHeslo}
               secureTextEntry
-              keyboardType="numeric"
+              keyboardType="number-pad"
               maxLength={6}
               autoFocus
             />
 
             <Text style={styles.label}>Potvrďte PIN *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, styles.pinInput]}
               placeholder="••••"
+              placeholderTextColor="rgba(255,255,255,0.5)"
               value={hesloPotvrdit}
               onChangeText={setHesloPotvrdit}
               secureTextEntry
-              keyboardType="numeric"
+              keyboardType="number-pad"
               maxLength={6}
             />
 
             <View style={styles.buttonRow}>
               <TouchableOpacity
-                style={styles.buttonSecondary}
+                style={styles.secondaryButton}
                 onPress={() => setKrok(1)}
               >
-                <Text style={styles.buttonSecondaryText}>← Zpět</Text>
+                <Text style={styles.secondaryButtonText}>← Zpět</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.buttonPrimary, { flex: 1 }]}
+                style={[styles.primaryButton, { flex: 1, marginTop: 0 }]}
                 onPress={validovatHeslo}
               >
-                <Text style={styles.buttonText}>Pokračovat →</Text>
+                <Text style={styles.primaryButtonText}>Pokračovat →</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -281,55 +293,58 @@ export default function RegistraceScreen() {
 
         {/* KROK 4: Úspěšná registrace */}
         {krok === 4 && registrationSuccess && (
-          <View style={styles.step}>
-            <View style={styles.successContainer}>
-              <Text style={styles.successIcon}>✅</Text>
-              <Text style={styles.successTitle}>Registrace úspěšná!</Text>
-              <Text style={styles.successSubtitle}>
-                Váš účet byl vytvořen. Uložte si prosím své přihlašovací údaje:
-              </Text>
-
-              <View style={styles.credentialsBox}>
-                <Text style={styles.credentialsTitle}>🔑 Vaše přihlašovací údaje:</Text>
-
-                <View style={styles.credentialItem}>
-                  <Text style={styles.credentialLabel}>Kód farmy:</Text>
-                  <View style={styles.credentialValue}>
-                    <Text style={styles.credentialValueText}>{farmNumber}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.credentialItem}>
-                  <Text style={styles.credentialLabel}>PIN:</Text>
-                  <View style={styles.credentialValue}>
-                    <Text style={styles.credentialValueText}>{heslo}</Text>
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.warningBox}>
-                <Text style={styles.warningTitle}>⚠️ Důležité</Text>
-                <Text style={styles.warningText}>
-                  • Uložte si tyto údaje na bezpečné místo{'\n'}
-                  • Budete je potřebovat pro přihlášení{'\n'}
-                  • Pokud zapomenete, lze je obnovit přes email na "Zapomenuté údaje"
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.buttonPrimary}
-                onPress={() => router.replace('/prihlaseni/prodejna')}
-              >
-                <Text style={styles.buttonText}>Přihlásit se →</Text>
-              </TouchableOpacity>
+          <View style={styles.card}>
+            <View style={styles.successIconContainer}>
+              <Text style={styles.successIconText}>✅</Text>
             </View>
+            <Text style={styles.successTitle}>Registrace úspěšná!</Text>
+            <Text style={styles.successSubtitle}>
+              Váš účet byl vytvořen. Uložte si prosím své přihlašovací údaje:
+            </Text>
+
+            <View style={styles.credentialsBox}>
+              <Text style={styles.credentialsTitle}>Vaše přihlašovací údaje:</Text>
+
+              <View style={styles.credentialItem}>
+                <Text style={styles.credentialLabel}>Kód farmy:</Text>
+                <View style={styles.credentialValue}>
+                  <Text style={styles.credentialValueText}>{farmNumber}</Text>
+                </View>
+              </View>
+
+              <View style={styles.credentialItem}>
+                <Text style={styles.credentialLabel}>PIN:</Text>
+                <View style={styles.credentialValue}>
+                  <Text style={styles.credentialValueText}>{heslo}</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.warningBox}>
+              <Text style={styles.warningTitle}>Důležité</Text>
+              <Text style={styles.warningText}>
+                • Uložte si tyto údaje na bezpečné místo{'\n'}
+                • Budete je potřebovat pro přihlášení{'\n'}
+                • Pokud zapomenete, lze je obnovit přes email na "Zapomenuté údaje"
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => router.replace('/prihlaseni/prodejna')}
+            >
+              <Text style={styles.primaryButtonText}>Přihlásit se →</Text>
+            </TouchableOpacity>
           </View>
         )}
 
         {/* KROK 3: Shrnutí a souhlas */}
         {krok === 3 && (
-          <View style={styles.step}>
-            <Text style={styles.stepTitle}>✓ Dokončení</Text>
+          <View style={styles.card}>
+            <View style={styles.iconContainer}>
+              <Text style={styles.iconText}>✓</Text>
+            </View>
+            <Text style={styles.stepTitle}>Dokončení</Text>
             <Text style={styles.stepSubtitle}>Krok 3 z 3</Text>
 
             <View style={styles.summary}>
@@ -380,18 +395,18 @@ export default function RegistraceScreen() {
 
             <View style={styles.buttonRow}>
               <TouchableOpacity
-                style={styles.buttonSecondary}
+                style={styles.secondaryButton}
                 onPress={() => setKrok(2)}
               >
-                <Text style={styles.buttonSecondaryText}>← Zpět</Text>
+                <Text style={styles.secondaryButtonText}>← Zpět</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.buttonPrimary, { flex: 1 }, loading && styles.buttonDisabled]}
+                style={[styles.primaryButton, { flex: 1, marginTop: 0 }, loading && styles.primaryButtonDisabled]}
                 onPress={registrovat}
                 disabled={loading}
               >
-                <Text style={styles.buttonText}>
+                <Text style={styles.primaryButtonText}>
                   {loading ? 'Registruji...' : 'Zaregistrovat se ✓'}
                 </Text>
               </TouchableOpacity>
@@ -404,113 +419,290 @@ export default function RegistraceScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  container: {
+    flex: 1,
+    backgroundColor: '#6A1B9A',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 15,
+    justifyContent: 'space-between',
+    paddingTop: 44,
+    paddingBottom: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#6A1B9A',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0'
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
-  backButton: { marginRight: 15 },
-  backButtonText: { fontSize: 16, color: '#7B1FA2', fontWeight: '600' },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#6A1B9A' },
-  progressBar: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 20, gap: 10 },
-  progressStep: { flex: 1, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2 },
-  progressStepActive: { backgroundColor: '#7B1FA2' },
-  content: { padding: 20 },
-  step: { flex: 1 },
-  stepTitle: { fontSize: 24, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 5 },
-  stepSubtitle: { fontSize: 14, color: '#666', marginBottom: 15 },
-  infoText: { fontSize: 15, color: '#666', marginBottom: 25, lineHeight: 22 },
-  label: { fontSize: 15, fontWeight: '600', color: '#333', marginBottom: 8, marginTop: 15 },
+  backButton: {
+    padding: 6,
+  },
+  backIcon: {
+    fontSize: 22,
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  progressBar: {
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingVertical: 16,
+    gap: 8,
+  },
+  progressStep: {
+    flex: 1,
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 2,
+  },
+  progressStepActive: {
+    backgroundColor: '#FF9800',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 12,
+    paddingBottom: 30,
+  },
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  iconContainer: {
+    alignSelf: 'center',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,152,0,0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  iconText: {
+    fontSize: 28,
+  },
+  stepTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  stepSubtitle: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  infoText: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 8,
+    marginTop: 12,
+  },
   input: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    padding: 15,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    padding: 14,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0'
+    borderColor: 'rgba(255,255,255,0.3)',
+    color: '#ffffff',
   },
-  buttonRow: { flexDirection: 'row', gap: 10, marginTop: 30 },
-  buttonPrimary: {
-    backgroundColor: '#7B1FA2',
+  pinInput: {
+    fontSize: 20,
+    textAlign: 'center',
+    letterSpacing: 6,
+    fontWeight: '700',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 24,
+  },
+  primaryButton: {
+    backgroundColor: '#FF9800',
+    borderRadius: 10,
+    padding: 14,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  primaryButtonDisabled: {
+    opacity: 0.6,
+  },
+  primaryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  secondaryButton: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    padding: 14,
+    alignItems: 'center',
+    minWidth: 100,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  secondaryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  summary: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
     padding: 16,
     borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 30
+    marginBottom: 20,
   },
-  buttonSecondary: {
-    backgroundColor: '#F5F5F5',
-    padding: 16,
-    borderRadius: 10,
-    alignItems: 'center',
-    minWidth: 100
+  summaryTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#ffffff',
   },
-  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  buttonSecondaryText: { color: '#666', fontSize: 16, fontWeight: '600' },
-  buttonDisabled: { opacity: 0.5 },
-  summary: { backgroundColor: '#F3E5F5', padding: 20, borderRadius: 10, marginBottom: 20 },
-  summaryTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#6A1B9A' },
-  summaryItem: { fontSize: 15, marginBottom: 5, color: '#333' },
-  checkbox: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 20 },
+  summaryItem: {
+    fontSize: 14,
+    marginBottom: 6,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  checkbox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
   checkboxBox: {
-    width: 24,
-    height: 24,
+    width: 22,
+    height: 22,
     borderWidth: 2,
-    borderColor: '#7B1FA2',
+    borderColor: '#FF9800',
     borderRadius: 4,
     marginRight: 10,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
-  checkboxBoxChecked: { backgroundColor: '#7B1FA2' },
-  checkboxCheck: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
-  checkboxText: { flex: 1, fontSize: 13, color: '#666', lineHeight: 18 },
-  checkboxLink: { color: '#7B1FA2', fontWeight: '600', textDecorationLine: 'underline' },
+  checkboxBoxChecked: {
+    backgroundColor: '#FF9800',
+  },
+  checkboxCheck: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  checkboxText: {
+    flex: 1,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
+    lineHeight: 18,
+  },
+  checkboxLink: {
+    color: '#FF9800',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
 
   // Úspěšná registrace
-  successContainer: { alignItems: 'center', paddingVertical: 20 },
-  successIcon: { fontSize: 80, marginBottom: 20 },
-  successTitle: { fontSize: 28, fontWeight: 'bold', color: '#4CAF50', marginBottom: 10, textAlign: 'center' },
-  successSubtitle: { fontSize: 16, color: '#666', marginBottom: 30, textAlign: 'center', lineHeight: 24 },
-  credentialsBox: {
-    backgroundColor: '#F3E5F5',
-    padding: 24,
-    borderRadius: 12,
-    width: '100%',
-    marginBottom: 20,
-    borderWidth: 2,
-    borderColor: '#7B1FA2'
+  successIconContainer: {
+    alignSelf: 'center',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(76, 175, 80, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
-  credentialsTitle: { fontSize: 18, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 20, textAlign: 'center' },
-  credentialItem: { marginBottom: 16 },
-  credentialLabel: { fontSize: 14, color: '#666', marginBottom: 6, fontWeight: '600' },
-  credentialValue: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 8,
+  successIconText: {
+    fontSize: 40,
+  },
+  successTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#a5d6a7',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  successSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  credentialsBox: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 16,
     borderWidth: 2,
-    borderColor: '#7B1FA2',
+    borderColor: '#FF9800',
+  },
+  credentialsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF9800',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  credentialItem: {
+    marginBottom: 12,
+  },
+  credentialLabel: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+    marginBottom: 6,
+    fontWeight: '600',
+  },
+  credentialValue: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    padding: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   credentialValueText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#6A1B9A',
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#ffffff',
     textAlign: 'center',
     letterSpacing: 4,
   },
   warningBox: {
-    backgroundColor: '#FFF3E0',
-    padding: 16,
-    borderRadius: 8,
-    width: '100%',
-    marginBottom: 30,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF9800'
+    backgroundColor: 'rgba(255,152,0,0.2)',
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF9800',
   },
-  warningTitle: { fontSize: 16, fontWeight: 'bold', color: '#E65100', marginBottom: 8 },
-  warningText: { fontSize: 13, color: '#666', lineHeight: 20 },
+  warningTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FF9800',
+    marginBottom: 6,
+  },
+  warningText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+    lineHeight: 18,
+  },
 });

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
@@ -41,7 +41,7 @@ export default function ZapomenuteUdajeScreen() {
         alert('Odkaz pro obnovení byl odeslán na ' + cleanEmail + '\n\nZkontrolujte svou emailovou schránku a klikněte na odkaz.');
       } else {
         Alert.alert(
-          'Email odeslán ✓',
+          'Email odeslán',
           'Zkontrolujte svou emailovou schránku a klikněte na odkaz pro obnovení přístupu.',
           [{ text: 'OK' }]
         );
@@ -57,6 +57,7 @@ export default function ZapomenuteUdajeScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backIcon}>←</Text>
@@ -65,42 +66,31 @@ export default function ZapomenuteUdajeScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+        {/* Info karta */}
         <View style={styles.card}>
           <View style={styles.iconContainer}>
-            {Platform.OS === 'web' ? (
-              <Image
-                source={{ uri: '/assets/images/profil-icon.png' }}
-                style={styles.iconImage}
-                resizeMode="contain"
-              />
-            ) : (
-              <Image
-                source={require('../../assets/images/profil-icon.png')}
-                style={styles.iconImage}
-                resizeMode="contain"
-              />
-            )}
+            <Text style={styles.iconText}>🔐</Text>
           </View>
 
           {emailSent ? (
             <>
-              <Text style={styles.title}>✉️ Email odeslán</Text>
+              <Text style={styles.title}>Email odeslán</Text>
               <Text style={styles.subtitle}>
                 Zkontrolujte svou emailovou schránku ({email}) a klikněte na odkaz pro obnovení přístupu.
               </Text>
-              <View style={styles.emailSentBox}>
-                <Text style={styles.emailSentText}>
-                  ℹ️ Pokud email nevidíte, zkontrolujte složku spam nebo nevyžádanou poštu.
+              <View style={styles.infoBox}>
+                <Text style={styles.infoText}>
+                  Pokud email nevidíte, zkontrolujte složku spam nebo nevyžádanou poštu.
                 </Text>
               </View>
               <TouchableOpacity
-                style={styles.resendLink}
+                style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
                 onPress={handleOdeslatMagicLink}
                 disabled={loading}
               >
-                <Text style={styles.resendLinkText}>
-                  Odeslat znovu
+                <Text style={styles.primaryButtonText}>
+                  {loading ? 'Odesílám...' : 'Odeslat znovu'}
                 </Text>
               </TouchableOpacity>
             </>
@@ -111,10 +101,10 @@ export default function ZapomenuteUdajeScreen() {
                 Zadejte email, který jste použili při registraci. Pošleme vám odkaz, přes který si zobrazíte kód farmy a můžete změnit PIN.
               </Text>
 
-              <View style={styles.securityInfo}>
-                <Text style={styles.securityTitle}>🔒 Bezpečné obnovení</Text>
-                <Text style={styles.securityText}>
-                  Přihlašovací odkaz platný 1 hodinu • Po přihlášení zobrazíme váš kód farmy a umožníme změnit PIN
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>Bezpečné obnovení</Text>
+                <Text style={styles.infoText}>
+                  Přihlašovací odkaz platný 1 hodinu. Po přihlášení zobrazíme váš kód farmy a umožníme změnit PIN.
                 </Text>
               </View>
 
@@ -122,6 +112,7 @@ export default function ZapomenuteUdajeScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="vas@email.cz"
+                placeholderTextColor="rgba(255,255,255,0.5)"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -132,17 +123,17 @@ export default function ZapomenuteUdajeScreen() {
               />
 
               <TouchableOpacity
-                style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+                style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
                 onPress={handleOdeslatMagicLink}
                 disabled={loading}
               >
-                <Text style={styles.loginButtonText}>
+                <Text style={styles.primaryButtonText}>
                   {loading ? 'Odesílám...' : 'Odeslat odkaz pro obnovení'}
                 </Text>
               </TouchableOpacity>
 
               <View style={styles.helpBox}>
-                <Text style={styles.helpTitle}>💡 Nemáte přístup k emailu?</Text>
+                <Text style={styles.helpTitle}>Nemáte přístup k emailu?</Text>
                 <Text style={styles.helpText}>
                   V tom případě bohužel nelze účet obnovit. Email je jediná cesta, jak bezpečně ověřit vaši identitu.
                 </Text>
@@ -150,7 +141,7 @@ export default function ZapomenuteUdajeScreen() {
             </>
           )}
         </View>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -158,167 +149,140 @@ export default function ZapomenuteUdajeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#6A1B9A',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 50,
-    paddingBottom: 12,
-    paddingHorizontal: 15,
-    backgroundColor: '#FFFFFF',
+    paddingTop: 44,
+    paddingBottom: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#6A1B9A',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   backButton: {
-    padding: 8,
+    padding: 6,
   },
   backIcon: {
-    fontSize: 24,
-    color: '#6A1B9A',
+    fontSize: 22,
+    color: '#ffffff',
     fontWeight: '600',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#ffffff',
   },
   headerSpacer: {
     width: 40,
   },
-  content: {
+  scrollContainer: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'center',
+  },
+  scrollContent: {
+    padding: 12,
+    paddingBottom: 30,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderTopWidth: 4,
-    borderTopColor: '#FF9800',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   iconContainer: {
     alignSelf: 'center',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FFF3E0',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,152,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  iconImage: {
-    width: 80,
-    height: 80,
+  iconText: {
+    fontSize: 28,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#ffffff',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
     lineHeight: 20,
   },
-  securityInfo: {
-    backgroundColor: '#FFF3E0',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
-    borderLeftWidth: 4,
+  infoBox: {
+    backgroundColor: 'rgba(255,152,0,0.2)',
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderLeftWidth: 3,
     borderLeftColor: '#FF9800',
   },
-  securityTitle: {
+  infoTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#E65100',
+    fontWeight: '600',
+    color: '#FF9800',
     marginBottom: 4,
   },
-  securityText: {
-    fontSize: 12,
-    color: '#666',
-    lineHeight: 16,
+  infoText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.8)',
+    lineHeight: 18,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6A1B9A',
+    color: '#ffffff',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    padding: 14,
     fontSize: 16,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
     marginBottom: 16,
+    color: '#ffffff',
   },
-  loginButton: {
+  primaryButton: {
     backgroundColor: '#FF9800',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 10,
+    padding: 14,
     alignItems: 'center',
   },
-  loginButtonDisabled: {
+  primaryButtonDisabled: {
     opacity: 0.6,
   },
-  loginButtonText: {
-    color: '#FFFFFF',
+  primaryButtonText: {
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
   },
-  resendLink: {
-    padding: 12,
-    alignItems: 'center',
-  },
-  resendLinkText: {
-    color: '#FF9800',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  emailSentBox: {
-    backgroundColor: '#FFF3E0',
-    borderRadius: 12,
-    padding: 16,
-    marginVertical: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF9800',
-  },
-  emailSentText: {
-    fontSize: 13,
-    color: '#E65100',
-    lineHeight: 18,
-  },
   helpBox: {
-    backgroundColor: '#F3E5F5',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#9C27B0',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    padding: 14,
+    marginTop: 20,
   },
   helpTitle: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#6A1B9A',
-    marginBottom: 6,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: 4,
   },
   helpText: {
     fontSize: 12,
-    color: '#666',
+    color: 'rgba(255,255,255,0.7)',
     lineHeight: 16,
   },
 });

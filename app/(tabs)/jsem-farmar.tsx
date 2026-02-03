@@ -82,18 +82,20 @@ export default function JsemFarmarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5'
+    backgroundColor: '#6A1B9A'
   },
   header: {
-    backgroundColor: '#7B1FA2',
-    paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 16,
-    position: 'relative'
+    backgroundColor: '#6A1B9A',
+    paddingTop: 44,
+    paddingBottom: 12,
+    paddingHorizontal: 12,
+    position: 'relative',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)'
   },
   homeButton: {
     position: 'absolute',
-    top: 50,
+    top: 44,
     left: 12,
     flexDirection: 'row',
     alignItems: 'center',
@@ -119,12 +121,12 @@ const styles = StyleSheet.create({
     paddingTop: 0
   },
   headerEmoji: {
-    fontSize: 40,
+    fontSize: 36,
     marginBottom: 8
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 17,
+    fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 22,
@@ -132,31 +134,25 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 13,
-    color: '#FFFFFF',
-    opacity: 0.95,
+    color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
     lineHeight: 16
   },
   content: {
-    padding: 16,
+    padding: 12,
     paddingBottom: 25
   },
   registerButton: {
-    backgroundColor: '#7B1FA2',
-    paddingVertical: 15,
+    backgroundColor: '#FF9800',
+    paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 12,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4
+    marginBottom: 12
   },
   registerButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold'
+    fontWeight: '600'
   },
   divider: {
     flexDirection: 'row',
@@ -166,70 +162,67 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#DDD'
+    backgroundColor: 'rgba(255,255,255,0.2)'
   },
   dividerText: {
     marginHorizontal: 12,
     fontSize: 11,
-    color: '#999',
+    color: 'rgba(255,255,255,0.6)',
     fontWeight: '600'
   },
   loginSectionsContainer: {
-    gap: 12,
+    gap: 10,
     marginBottom: 16
   },
   loginSectionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 12,
-    padding: 18,
+    padding: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-    borderLeftWidth: 4
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    borderLeftWidth: 3
   },
   loginSectionCardPrimary: {
-    borderLeftColor: '#1976D2'
+    borderLeftColor: '#FF9800'
   },
   loginSectionCardSecondary: {
-    borderLeftColor: '#7B1FA2'
+    borderLeftColor: '#FF9800'
   },
   loginSectionCardTertiary: {
     borderLeftColor: '#FF9800'
   },
   loginSectionEmoji: {
-    fontSize: 32,
-    marginBottom: 8
+    fontSize: 28,
+    marginBottom: 6
   },
   loginSectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#ffffff',
     marginBottom: 2
   },
   loginSectionSubtitle: {
     fontSize: 12,
-    color: '#666',
+    color: 'rgba(255,255,255,0.7)',
     fontWeight: '500'
   },
   helpCard: {
-    backgroundColor: '#FFF9E6',
+    backgroundColor: 'rgba(255,152,0,0.2)',
     borderRadius: 10,
     padding: 14,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FFC107'
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF9800'
   },
   helpTitle: {
     fontSize: 13,
-    fontWeight: 'bold',
-    color: '#F57C00',
+    fontWeight: '600',
+    color: '#FF9800',
     marginBottom: 4
   },
   helpText: {
     fontSize: 12,
-    color: '#666',
+    color: 'rgba(255,255,255,0.8)',
     lineHeight: 17
   }
 });

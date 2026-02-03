@@ -82,7 +82,7 @@ function CasovaDostupnostContent() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#7B1FA2" />
+        <ActivityIndicator size="large" color="#ffffff" />
       </View>
     );
   }
@@ -113,7 +113,7 @@ function CasovaDostupnostContent() {
           <TextInput
             style={styles.textArea}
             placeholder="Např: Pondělí - Pátek: 8:00 - 18:00&#10;Sobota: 9:00 - 13:00&#10;Volejte předem na tel. číslo"
-            placeholderTextColor="#999"
+            placeholderTextColor="rgba(255,255,255,0.5)"
             value={dostupnost}
             onChangeText={setDostupnost}
             multiline
@@ -160,33 +160,35 @@ export default function CasovaDostupnostScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#6A1B9A',
   },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#7B1FA2',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+    backgroundColor: '#6A1B9A',
+    paddingTop: 44,
+    paddingBottom: 8,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   backButton: {
-    padding: 8,
-    width: 80,
+    padding: 6,
+    width: 70,
   },
   backButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#FFFFFF',
     flex: 1,
     textAlign: 'center',
@@ -195,95 +197,89 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    margin: 16,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    margin: 12,
     padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   label: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#6A1B9A',
+    color: '#ffffff',
     marginBottom: 8,
   },
   hint: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
     marginBottom: 16,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   textArea: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    padding: 14,
     fontSize: 15,
-    color: '#333',
+    color: '#ffffff',
     borderWidth: 1,
-    borderColor: '#E8EAED',
+    borderColor: 'rgba(255,255,255,0.3)',
     minHeight: 200,
   },
   helperText: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
     marginTop: 12,
     fontStyle: 'italic',
   },
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingBottom: 32,
     marginTop: 16,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    padding: 14,
+    borderRadius: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   cancelButtonText: {
-    color: '#666',
-    fontSize: 16,
+    color: '#ffffff',
+    fontSize: 15,
     fontWeight: '600',
   },
   saveButton: {
     flex: 1,
-    backgroundColor: '#7B1FA2',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: '#FF9800',
+    padding: 14,
+    borderRadius: 10,
     alignItems: 'center',
   },
   saveButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   successBanner: {
-    backgroundColor: '#7B1FA2',
-    marginHorizontal: 16,
-    marginTop: 16,
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: 'rgba(76, 175, 80, 0.3)',
+    marginHorizontal: 12,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(76, 175, 80, 0.5)',
   },
   successText: {
-    color: '#FFFFFF',
-    fontSize: 15,
+    color: '#a5d6a7',
+    fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
   },

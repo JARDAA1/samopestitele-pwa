@@ -158,6 +158,7 @@ export default function ZmenitPinScreen() {
           <TextInput
             style={styles.pinInput}
             placeholder="••••"
+            placeholderTextColor="rgba(255,255,255,0.5)"
             value={starycPin}
             onChangeText={setStarycPin}
             keyboardType="number-pad"
@@ -170,6 +171,7 @@ export default function ZmenitPinScreen() {
           <TextInput
             style={styles.pinInput}
             placeholder="••••"
+            placeholderTextColor="rgba(255,255,255,0.5)"
             value={novyPin}
             onChangeText={setNovyPin}
             keyboardType="number-pad"
@@ -181,6 +183,7 @@ export default function ZmenitPinScreen() {
           <TextInput
             style={styles.pinInput}
             placeholder="••••"
+            placeholderTextColor="rgba(255,255,255,0.5)"
             value={novyPinPotvrzeni}
             onChangeText={setNovyPinPotvrzeni}
             keyboardType="number-pad"
@@ -223,126 +226,122 @@ export default function ZmenitPinScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#6A1B9A',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 50,
-    paddingBottom: 12,
-    paddingHorizontal: 15,
-    backgroundColor: '#FFFFFF',
+    paddingTop: 44,
+    paddingBottom: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#6A1B9A',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   backButton: {
-    padding: 8,
+    padding: 6,
   },
   backIcon: {
-    fontSize: 24,
-    color: '#6A1B9A',
+    fontSize: 22,
+    color: '#ffffff',
     fontWeight: '600',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#ffffff',
   },
   headerSpacer: {
     width: 40,
   },
   content: {
     flex: 1,
-    padding: 20,
+    padding: 12,
     justifyContent: 'center',
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderTopWidth: 4,
-    borderTopColor: '#7B1FA2',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   iconContainer: {
     alignSelf: 'center',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#F3E5F5',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,152,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   icon: {
-    fontSize: 40,
+    fontSize: 28,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#ffffff',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
     lineHeight: 20,
   },
   infoBox: {
-    backgroundColor: '#E3F2FD',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
-    borderLeftWidth: 4,
-    borderLeftColor: '#2196F3',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF9800',
   },
   infoTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1976D2',
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FF9800',
     marginBottom: 8,
   },
   infoText: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 4,
     lineHeight: 18,
   },
   infoLabel: {
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6A1B9A',
+    color: '#ffffff',
     marginBottom: 8,
     marginTop: 8,
   },
   pinInput: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 24,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    marginBottom: 16,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    marginBottom: 12,
     textAlign: 'center',
     letterSpacing: 8,
     fontWeight: '700',
+    color: '#ffffff',
   },
   changeButton: {
-    backgroundColor: '#7B1FA2',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#FF9800',
+    borderRadius: 10,
+    padding: 14,
     alignItems: 'center',
     marginTop: 8,
   },
@@ -355,33 +354,33 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   helpBox: {
-    backgroundColor: '#FFF3E0',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 24,
-    borderLeftWidth: 4,
+    backgroundColor: 'rgba(255,152,0,0.2)',
+    padding: 14,
+    borderRadius: 10,
+    marginTop: 20,
+    borderLeftWidth: 3,
     borderLeftColor: '#FF9800',
   },
   helpTitle: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#E65100',
-    marginBottom: 8,
+    fontWeight: '600',
+    color: '#FF9800',
+    marginBottom: 6,
   },
   helpText: {
     fontSize: 12,
-    color: '#666',
+    color: 'rgba(255,255,255,0.8)',
     lineHeight: 18,
   },
   securityBox: {
-    backgroundColor: '#F3E5F5',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     padding: 12,
     borderRadius: 8,
     marginTop: 16,
   },
   securityText: {
     fontSize: 11,
-    color: '#6A1B9A',
+    color: 'rgba(255,255,255,0.7)',
     lineHeight: 16,
     textAlign: 'center',
   },

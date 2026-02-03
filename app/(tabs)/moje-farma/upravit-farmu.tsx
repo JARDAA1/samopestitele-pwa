@@ -349,7 +349,7 @@ export default function UpravitFarmuScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#7B1FA2" />
+        <ActivityIndicator size="large" color="#ffffff" />
         <Text style={styles.loadingText}>Načítám...</Text>
       </View>
     );
@@ -381,7 +381,7 @@ export default function UpravitFarmuScreen() {
               value={nazevFarmy}
               onChangeText={setNazevFarmy}
               placeholder="Bio Farma Svoboda"
-              placeholderTextColor="#999"
+              placeholderTextColor="rgba(255,255,255,0.5)"
             />
           </View>
 
@@ -392,7 +392,7 @@ export default function UpravitFarmuScreen() {
               value={jmeno}
               onChangeText={setJmeno}
               placeholder="Jan Svoboda"
-              placeholderTextColor="#999"
+              placeholderTextColor="rgba(255,255,255,0.5)"
             />
           </View>
 
@@ -404,7 +404,7 @@ export default function UpravitFarmuScreen() {
                 value={email}
                 onChangeText={setEmail}
                 placeholder="email@priklad.cz"
-                placeholderTextColor="#999"
+                placeholderTextColor="rgba(255,255,255,0.5)"
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
@@ -459,7 +459,7 @@ export default function UpravitFarmuScreen() {
                     <TextInput
                       style={styles.pinInput}
                       placeholder="••••"
-                      placeholderTextColor="#999"
+                      placeholderTextColor="rgba(255,255,255,0.5)"
                       value={newPin}
                       onChangeText={setNewPin}
                       keyboardType="number-pad"
@@ -473,7 +473,7 @@ export default function UpravitFarmuScreen() {
                     <TextInput
                       style={styles.pinInput}
                       placeholder="••••"
-                      placeholderTextColor="#999"
+                      placeholderTextColor="rgba(255,255,255,0.5)"
                       value={confirmPin}
                       onChangeText={setConfirmPin}
                       keyboardType="number-pad"
@@ -518,7 +518,7 @@ export default function UpravitFarmuScreen() {
                 <TextInput
                   style={styles.pinInput}
                   placeholder="••••"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="rgba(255,255,255,0.5)"
                   value={newPin}
                   onChangeText={setNewPin}
                   keyboardType="number-pad"
@@ -532,7 +532,7 @@ export default function UpravitFarmuScreen() {
                 <TextInput
                   style={styles.pinInput}
                   placeholder="••••"
-                  placeholderTextColor="#999"
+                  placeholderTextColor="rgba(255,255,255,0.5)"
                   value={confirmPin}
                   onChangeText={setConfirmPin}
                   keyboardType="number-pad"
@@ -569,7 +569,7 @@ export default function UpravitFarmuScreen() {
               value={mesto}
               onChangeText={setMesto}
               placeholder="Praha"
-              placeholderTextColor="#999"
+              placeholderTextColor="rgba(255,255,255,0.5)"
             />
           </View>
 
@@ -580,7 +580,7 @@ export default function UpravitFarmuScreen() {
               value={adresa}
               onChangeText={setAdresa}
               placeholder="Hlavní 123"
-              placeholderTextColor="#999"
+              placeholderTextColor="rgba(255,255,255,0.5)"
             />
           </View>
 
@@ -667,7 +667,7 @@ export default function UpravitFarmuScreen() {
               value={popis}
               onChangeText={setPopis}
               placeholder="Napište něco o vaší farmě..."
-              placeholderTextColor="#999"
+              placeholderTextColor="rgba(255,255,255,0.5)"
               multiline
               numberOfLines={4}
             />
@@ -694,30 +694,32 @@ export default function UpravitFarmuScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA'
+    backgroundColor: '#6A1B9A'
   },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center'
   },
   header: {
-    backgroundColor: '#7B1FA2',
-    paddingTop: 60,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
+    backgroundColor: '#6A1B9A',
+    paddingTop: 44,
+    paddingBottom: 8,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   backButton: {
     marginRight: 12
   },
   backButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#FFFFFF',
     fontWeight: '600'
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
     flex: 1
@@ -725,35 +727,32 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#666'
+    color: 'rgba(255,255,255,0.7)'
   },
   content: {
     flex: 1
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginTop: 16,
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    marginHorizontal: 12,
+    marginTop: 12,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
 
   // Section Headers
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   sectionIconCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3E5F5',
+    backgroundColor: 'rgba(255,152,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -762,89 +761,89 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#1A1A1A'
+    color: '#ffffff'
   },
   sectionSubtitle: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
   },
 
   // Input Groups
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   inputRow: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 8
+    color: '#ffffff',
+    marginBottom: 6
   },
   input: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    color: '#1A1A1A',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 15,
+    color: '#ffffff',
     borderWidth: 1,
-    borderColor: '#E8EAED',
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   inputDisabled: {
-    backgroundColor: '#F5F5F5',
-    color: '#999'
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    color: 'rgba(255,255,255,0.5)'
   },
   textArea: {
     minHeight: 100,
     textAlignVertical: 'top',
-    paddingTop: 14,
+    paddingTop: 12,
   },
   infoBox: {
-    backgroundColor: '#F3E5F5',
-    borderRadius: 8,
-    padding: 15,
-    marginTop: 15,
-    borderLeftWidth: 4,
-    borderLeftColor: '#7B1FA2',
-  },
-  infoText: { fontSize: 13, color: '#6A1B9A', lineHeight: 18 },
-  gpsInfo: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: 'rgba(255,152,0,0.2)',
     borderRadius: 8,
     padding: 12,
-    marginTop: 15,
+    marginTop: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF9800',
   },
-  gpsInfoText: { fontSize: 12, color: '#666', fontFamily: 'monospace' },
+  infoText: { fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 18 },
+  gpsInfo: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 12,
+  },
+  gpsInfoText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', fontFamily: 'monospace' },
   gpsOptionsContainer: {
-    marginTop: 20,
+    marginTop: 16,
     gap: 10,
   },
   gpsOptionsTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
     marginBottom: 10,
   },
   gpsOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#F9F9F9',
+    padding: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   radioButton: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#7B1FA2',
+    borderColor: '#FF9800',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -853,89 +852,84 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#FF9800',
   },
   gpsOptionText: {
     flex: 1,
   },
   gpsOptionTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
     marginBottom: 2,
   },
   gpsOptionDesc: {
     fontSize: 12,
-    color: '#666',
+    color: 'rgba(255,255,255,0.7)',
   },
   myLocationContainer: {
-    marginTop: 15,
-    paddingTop: 15,
+    marginTop: 12,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: 'rgba(255,255,255,0.1)',
   },
   locationButton: {
-    backgroundColor: '#7B1FA2',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    backgroundColor: '#FF9800',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 12,
   },
   locationButtonText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
   locationInfo: {
-    backgroundColor: '#F3E5F5',
+    backgroundColor: 'rgba(76,175,80,0.2)',
     borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    borderLeftWidth: 4,
-    borderLeftColor: '#7B1FA2',
+    padding: 12,
+    marginBottom: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#4CAF50',
   },
   locationInfoTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#6A1B9A',
-    marginBottom: 5,
+    color: '#4CAF50',
+    marginBottom: 4,
   },
   locationInfoCoords: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'monospace',
-    color: '#333',
+    color: '#ffffff',
   },
   saveButton: {
-    backgroundColor: '#7B1FA2',
-    margin: 15,
-    padding: 16,
+    backgroundColor: '#FF9800',
+    margin: 12,
+    padding: 14,
     borderRadius: 10,
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
   },
   saveButtonContainer: {
-    padding: 16,
+    padding: 12,
     paddingBottom: 32,
   },
   saveButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   buttonDisabled: {
-    opacity: 0.5
+    opacity: 0.6
   },
 
   // PIN Section Styles
   pinDisplayBox: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -944,60 +938,60 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pinLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#666',
+    color: 'rgba(255,255,255,0.7)',
     marginBottom: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   pinValue: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#7B1FA2',
+    color: '#FF9800',
     letterSpacing: 6,
   },
   changeButton: {
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#FF9800',
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     borderRadius: 10,
   },
   changeButtonText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   pinChangeForm: {
-    marginTop: 20,
-    paddingTop: 20,
+    marginTop: 16,
+    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#E8EAED',
+    borderTopColor: 'rgba(255,255,255,0.1)',
   },
   pinInput: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 24,
-    color: '#1A1A1A',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 22,
+    color: '#ffffff',
     borderWidth: 1,
-    borderColor: '#E8EAED',
+    borderColor: 'rgba(255,255,255,0.3)',
     textAlign: 'center',
     letterSpacing: 8,
     fontWeight: '700',
   },
   alertBox: {
-    backgroundColor: '#FFF3E0',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    borderLeftWidth: 4,
+    backgroundColor: 'rgba(255,152,0,0.2)',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 16,
+    borderLeftWidth: 3,
     borderLeftColor: '#FF9800',
   },
   alertText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#E65100',
+    color: '#FF9800',
   },
 
   // Buttons
@@ -1008,30 +1002,30 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     flex: 1,
-    backgroundColor: '#7B1FA2',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    backgroundColor: '#FF9800',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
     alignItems: 'center',
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E8EAED',
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   cancelButtonText: {
-    color: '#666',
-    fontSize: 15,
+    color: '#ffffff',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

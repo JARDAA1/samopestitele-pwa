@@ -163,6 +163,7 @@ export default function NastaveniUctuScreen() {
                 <TextInput
                   style={styles.input}
                   placeholder="••••"
+                  placeholderTextColor="rgba(255,255,255,0.5)"
                   value={newPin}
                   onChangeText={setNewPin}
                   keyboardType="number-pad"
@@ -174,6 +175,7 @@ export default function NastaveniUctuScreen() {
                 <TextInput
                   style={styles.input}
                   placeholder="••••"
+                  placeholderTextColor="rgba(255,255,255,0.5)"
                   value={newPinConfirm}
                   onChangeText={setNewPinConfirm}
                   keyboardType="number-pad"
@@ -240,53 +242,50 @@ export default function NastaveniUctuScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#6A1B9A',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 50,
-    paddingBottom: 12,
-    paddingHorizontal: 15,
-    backgroundColor: '#FFFFFF',
+    paddingTop: 44,
+    paddingBottom: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#6A1B9A',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   backButton: {
-    padding: 8,
+    padding: 6,
   },
   backIcon: {
-    fontSize: 24,
-    color: '#6A1B9A',
+    fontSize: 22,
+    color: '#ffffff',
     fontWeight: '600',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#ffffff',
   },
   headerSpacer: {
     width: 40,
   },
   content: {
-    padding: 20,
+    padding: 12,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
     padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#ffffff',
     marginBottom: 16,
   },
   infoSection: {
@@ -295,43 +294,43 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6A1B9A',
+    color: '#ffffff',
     marginBottom: 8,
     marginTop: 8,
   },
   farmNumberBox: {
-    backgroundColor: '#F3E5F5',
+    backgroundColor: 'rgba(255,152,0,0.2)',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#9C27B0',
+    borderColor: '#FF9800',
   },
   farmNumberText: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#ffffff',
     letterSpacing: 4,
   },
   hint: {
     fontSize: 12,
-    color: '#666',
+    color: 'rgba(255,255,255,0.7)',
     marginTop: 8,
     lineHeight: 16,
   },
   divider: {
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     marginVertical: 16,
   },
   pinStatus: {
     fontSize: 16,
-    color: '#666',
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 12,
   },
   changeButton: {
-    backgroundColor: '#9C27B0',
-    borderRadius: 12,
+    backgroundColor: '#FF9800',
+    borderRadius: 10,
     padding: 14,
     alignItems: 'center',
     marginBottom: 8,
@@ -342,16 +341,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   input: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
     padding: 16,
     fontSize: 24,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
     marginBottom: 12,
     textAlign: 'center',
     letterSpacing: 8,
     fontWeight: '700',
+    color: '#ffffff',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -360,22 +360,22 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
     padding: 14,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   cancelButtonText: {
-    color: '#666',
+    color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
   },
   saveButton: {
     flex: 1,
-    backgroundColor: '#4CAF50',
-    borderRadius: 12,
+    backgroundColor: '#FF9800',
+    borderRadius: 10,
     padding: 14,
     alignItems: 'center',
   },
@@ -389,30 +389,30 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
-    color: '#333',
+    color: '#ffffff',
     marginBottom: 8,
   },
   infoBold: {
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#FF9800',
   },
   securityBox: {
-    backgroundColor: '#FFF3E0',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: 'rgba(255,152,0,0.2)',
+    borderRadius: 10,
+    padding: 14,
     marginTop: 8,
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     borderLeftColor: '#FF9800',
   },
   securityTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#E65100',
+    fontWeight: '600',
+    color: '#FF9800',
     marginBottom: 8,
   },
   securityText: {
     fontSize: 12,
-    color: '#666',
+    color: 'rgba(255,255,255,0.8)',
     lineHeight: 18,
   },
 });

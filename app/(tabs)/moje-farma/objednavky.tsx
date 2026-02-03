@@ -103,7 +103,7 @@ export default function ObjednavkyScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#7B1FA2" />
+          <ActivityIndicator size="large" color="#ffffff" />
           <Text style={styles.loadingText}>Načítám objednávky...</Text>
         </View>
       ) : (
@@ -180,25 +180,27 @@ export default function ObjednavkyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5'
+    backgroundColor: '#6A1B9A'
   },
   header: {
-    backgroundColor: '#7B1FA2',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20
+    backgroundColor: '#6A1B9A',
+    paddingTop: 44,
+    paddingBottom: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)'
   },
   backButton: {
-    marginBottom: 10
+    marginBottom: 8
   },
   backButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600'
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#FFFFFF'
   },
   loadingContainer: {
@@ -208,97 +210,94 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 10,
-    fontSize: 16,
-    color: '#666'
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.7)'
   },
   content: {
     flex: 1,
-    padding: 15
+    padding: 12
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 80
+    paddingTop: 60
   },
   emptyIcon: {
-    fontSize: 80,
-    marginBottom: 20
+    fontSize: 64,
+    marginBottom: 16
   },
   emptyText: {
-    fontSize: 18,
-    color: '#999',
-    marginBottom: 10,
+    fontSize: 16,
+    color: '#ffffff',
+    marginBottom: 8,
     textAlign: 'center',
     fontWeight: '600'
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#BBB',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
     textAlign: 'center'
   },
   orderCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)'
   },
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
-    gap: 10
+    marginBottom: 10,
+    gap: 8
   },
   customerInfo: {
     flex: 1,
     gap: 4
   },
   customerName: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#333'
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#ffffff'
   },
   customerPhone: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
     fontWeight: '500'
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 6
   },
   statusText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold'
   },
   orderFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 12,
+    paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0'
+    borderTopColor: 'rgba(255,255,255,0.1)'
   },
   orderDate: {
-    fontSize: 13,
-    color: '#888'
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)'
   },
   orderPrice: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
-    color: '#7B1FA2'
+    color: '#FF9800'
   },
   orderNote: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
     marginTop: 8,
     fontStyle: 'italic',
-    lineHeight: 18
+    lineHeight: 17
   }
 });

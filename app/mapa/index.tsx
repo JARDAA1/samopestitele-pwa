@@ -463,7 +463,7 @@ export default function MapaScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#222222" />
+        <ActivityIndicator size="large" color="#ffffff" />
         <Text style={styles.loadingText}>Načítám farmáře...</Text>
       </View>
     );
@@ -580,7 +580,7 @@ export default function MapaScreen() {
                   <TextInput
                     style={styles.locationAddressInput}
                     placeholder="Město nebo obec..."
-                    placeholderTextColor="#999"
+                    placeholderTextColor="rgba(255,255,255,0.5)"
                     value={addressInput}
                     onChangeText={setAddressInput}
                     onSubmitEditing={() => geocodeAddress(addressInput)}
@@ -657,7 +657,7 @@ export default function MapaScreen() {
 
               {filtering ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color="#222" />
+                  <ActivityIndicator size="small" color="#ffffff" />
                 </View>
               ) : filteredPestitele.length === 0 ? (
                 <View style={styles.emptyResultsContainer}>
@@ -712,7 +712,7 @@ export default function MapaScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#eeeeee' },
+  container: { flex: 1, backgroundColor: '#6A1B9A' },
   scrollContainer: { flex: 1 },
   scrollContent: { paddingBottom: 20 },
   scrollContentDesktop: { paddingHorizontal: 24 },
@@ -723,41 +723,38 @@ const styles = StyleSheet.create({
   resultsPanel: { flex: 1 },
   resultsPanelDesktop: { flex: 1 },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
-  loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
+  loadingText: { marginTop: 10, fontSize: 16, color: 'rgba(255,255,255,0.8)' },
   header: {
-    paddingTop: 4,
-    paddingBottom: 6,
+    paddingTop: 44,
+    paddingBottom: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#6A1B9A',
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#dddddd',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   menuButton: {
-    padding: 4,
+    padding: 6,
   },
   menuIcon: {
     fontSize: 22,
-    color: '#222222',
+    color: '#ffffff',
     fontWeight: '400',
   },
 
   // === ROZBALOVACÍ TOGGLE ===
   produktyToggle: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     marginHorizontal: 12,
     marginTop: 12,
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   produktyToggleLeft: {
     flexDirection: 'row',
@@ -765,31 +762,33 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   produktyToggleIcon: {
-    fontSize: 28,
+    fontSize: 24,
   },
   produktyToggleTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#222',
+    color: '#ffffff',
   },
   produktyToggleSubtitle: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
   },
   produktyToggleArrow: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255,255,255,0.7)',
   },
 
   // === KARTA PRODUKTŮ ===
   produktyCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     marginHorizontal: 12,
     marginTop: 8,
     borderRadius: 12,
-    padding: 16,
+    padding: 14,
     paddingBottom: 80,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   produktyCardDesktop: {
     marginHorizontal: 0,
@@ -799,30 +798,30 @@ const styles = StyleSheet.create({
   produktyGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
   },
   produktChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 24,
-    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 6,
   },
   produktChipActive: {
-    backgroundColor: '#222',
+    backgroundColor: '#FF9800',
   },
   produktEmoji: {
-    fontSize: 18,
+    fontSize: 16,
   },
   produktText: {
-    fontSize: 15,
-    color: '#333',
+    fontSize: 14,
+    color: '#ffffff',
     fontWeight: '500',
   },
   produktTextActive: {
-    color: '#fff',
+    color: '#ffffff',
   },
 
   // === PLOVOUCÍ TLAČÍTKO ===
@@ -831,9 +830,9 @@ const styles = StyleSheet.create({
     bottom: 24,
     left: 16,
     right: 16,
-    backgroundColor: '#222',
-    borderRadius: 12,
-    paddingVertical: 16,
+    backgroundColor: '#FF9800',
+    borderRadius: 10,
+    paddingVertical: 14,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -842,63 +841,60 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   floatingCloseBtnText: {
-    color: '#fff',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
   },
 
   // === SEKCE KDE HLEDAT ===
   locationCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     marginHorizontal: 12,
     marginTop: 12,
     borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   locationCardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#222',
+    color: '#ffffff',
     marginBottom: 4,
   },
   locationCardSubtitle: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
     marginBottom: 12,
   },
   locationToggleRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
   locationToggleBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    gap: 6,
   },
   locationToggleBtnActive: {
-    backgroundColor: '#222',
+    backgroundColor: '#FF9800',
   },
   locationToggleBtnIcon: {
-    fontSize: 16,
+    fontSize: 14,
   },
   locationToggleBtnText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
   },
   locationToggleBtnTextActive: {
-    color: '#fff',
+    color: '#ffffff',
   },
   addressInputContainer: {
     flexDirection: 'row',
@@ -907,17 +903,19 @@ const styles = StyleSheet.create({
   },
   locationAddressInput: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#222',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#ffffff',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   addressSearchBtn: {
-    backgroundColor: '#222',
-    borderRadius: 10,
-    paddingHorizontal: 16,
+    backgroundColor: '#FF9800',
+    borderRadius: 8,
+    paddingHorizontal: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -925,8 +923,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   addressSearchBtnText: {
-    color: '#fff',
-    fontSize: 14,
+    color: '#ffffff',
+    fontSize: 13,
     fontWeight: '600',
   },
   currentLocationInfo: {
@@ -935,40 +933,37 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: 'rgba(255,255,255,0.1)',
     gap: 8,
   },
   currentLocationIcon: {
     fontSize: 14,
   },
   currentLocationLabel: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.8)',
     flex: 1,
   },
 
   // === SEKCE PERIMETR ===
   perimeterCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     marginHorizontal: 12,
     marginTop: 12,
     borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   perimeterCardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#222',
-    marginBottom: 4,
+    color: '#ffffff',
+    marginBottom: 10,
   },
   perimeterCardSubtitle: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
     marginBottom: 12,
   },
   perimeterRow: {
@@ -977,73 +972,70 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   perimeterBtn: {
-    backgroundColor: '#f5f5f5',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 16,
   },
   perimeterBtnActive: {
-    backgroundColor: '#222',
+    backgroundColor: '#FF9800',
   },
   perimeterBtnText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
   },
   perimeterBtnTextActive: {
-    color: '#fff',
+    color: '#ffffff',
   },
   perimeterBtnAll: {
-    backgroundColor: '#f5f5f5',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 16,
     marginTop: 8,
     alignItems: 'center',
   },
   perimeterBtnAllActive: {
-    backgroundColor: '#222',
+    backgroundColor: '#FF9800',
   },
   perimeterBtnAllText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
   },
   perimeterBtnAllTextActive: {
-    color: '#fff',
+    color: '#ffffff',
   },
 
   // === SEKCE VÝSLEDKY ===
   resultsCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     marginHorizontal: 12,
     marginTop: 12,
     marginBottom: 20,
     borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   resultsCardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#222',
-    marginBottom: 12,
+    color: '#ffffff',
+    marginBottom: 10,
   },
   loadingContainer: {
-    paddingVertical: 20,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   emptyResultsContainer: {
-    paddingVertical: 20,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   emptyResultsText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
   },
   farmersList: {
@@ -1053,22 +1045,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   farmerRowInfo: {
     flex: 1,
   },
   farmerRowName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#222',
+    color: '#ffffff',
     marginBottom: 2,
   },
   farmerRowMesto: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
   },
   farmerRowRight: {
     flexDirection: 'row',
@@ -1076,13 +1068,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   farmerRowDistance: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
-    color: '#666',
+    color: '#FF9800',
   },
   farmerRowArrow: {
-    fontSize: 22,
-    color: '#ccc',
+    fontSize: 20,
+    color: '#FF9800',
     fontWeight: '300',
   },
   sectionContainer: {
@@ -1364,7 +1356,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 16,
-    color: '#222222',
+    color: '#ffffff',
     fontWeight: '600',
     flex: 1,
     textAlign: 'center',

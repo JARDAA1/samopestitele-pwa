@@ -82,7 +82,7 @@ export default function SeznamProduktScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#7B1FA2" />
+          <ActivityIndicator size="large" color="#ffffff" />
           <Text style={styles.loadingText}>Načítám produkty...</Text>
         </View>
       ) : (
@@ -137,25 +137,27 @@ export default function SeznamProduktScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5'
+    backgroundColor: '#6A1B9A'
   },
   header: {
-    backgroundColor: '#7B1FA2',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20
+    backgroundColor: '#6A1B9A',
+    paddingTop: 44,
+    paddingBottom: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   backButton: {
-    marginBottom: 10
+    marginBottom: 8
   },
   backButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600'
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#FFFFFF'
   },
   loadingContainer: {
@@ -165,48 +167,49 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 10,
-    fontSize: 16,
-    color: '#666'
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.7)'
   },
   content: {
     flex: 1,
-    padding: 15
+    padding: 12
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 80
+    paddingTop: 60
   },
   emptyIcon: {
-    fontSize: 80,
-    marginBottom: 20
+    fontSize: 64,
+    marginBottom: 16
   },
   emptyText: {
-    fontSize: 18,
-    color: '#999',
-    marginBottom: 30,
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.7)',
+    marginBottom: 24,
     textAlign: 'center'
   },
   addButton: {
-    backgroundColor: '#7B1FA2',
-    paddingHorizontal: 24,
+    backgroundColor: '#FF9800',
+    paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 10
   },
   addButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600'
   },
   productItem: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    marginBottom: 2,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0'
+    padding: 14,
+    marginBottom: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   productLeft: {
     flexDirection: 'row',
@@ -215,40 +218,40 @@ const styles = StyleSheet.create({
     gap: 12
   },
   productEmoji: {
-    fontSize: 36,
-    minWidth: 50,
+    fontSize: 32,
+    minWidth: 44,
     textAlign: 'center'
   },
   productInfo: {
     flex: 1
   },
   productName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: '#ffffff',
     marginBottom: 4
   },
   productPrice: {
-    fontSize: 14,
-    color: '#7B1FA2',
+    fontSize: 13,
+    color: '#FF9800',
     fontWeight: '500'
   },
   availabilityBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center'
   },
   availableBadge: {
-    backgroundColor: '#F3E5F5'
+    backgroundColor: 'rgba(76,175,80,0.3)'
   },
   unavailableBadge: {
-    backgroundColor: '#FFEBEE'
+    backgroundColor: 'rgba(244,67,54,0.3)'
   },
   availabilityText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333'
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff'
   }
 });
