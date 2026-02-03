@@ -608,6 +608,47 @@ export default function MapaScreen() {
                 </View>
               )}
             </View>
+
+            {/* Sekce Perimetr */}
+            <View style={styles.perimeterCard}>
+              <Text style={styles.perimeterCardTitle}>Perimetr</Text>
+              <Text style={styles.perimeterCardSubtitle}>Maximální vzdálenost od výchozí pozice</Text>
+
+              <View style={styles.perimeterRow}>
+                {[5, 10, 20, 30, 50].map((km) => (
+                  <TouchableOpacity
+                    key={km}
+                    style={[
+                      styles.perimeterBtn,
+                      selectedDistance === km && styles.perimeterBtnActive
+                    ]}
+                    onPress={() => handleDistanceChange(km)}
+                  >
+                    <Text style={[
+                      styles.perimeterBtnText,
+                      selectedDistance === km && styles.perimeterBtnTextActive
+                    ]}>
+                      {km} km
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.perimeterBtnAll,
+                  selectedDistance === null && styles.perimeterBtnAllActive
+                ]}
+                onPress={() => handleDistanceChange(null)}
+              >
+                <Text style={[
+                  styles.perimeterBtnAllText,
+                  selectedDistance === null && styles.perimeterBtnAllTextActive
+                ]}>
+                  Bez omezení
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -861,6 +902,72 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     flex: 1,
+  },
+
+  // === SEKCE PERIMETR ===
+  perimeterCard: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 12,
+    marginTop: 12,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  perimeterCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#222',
+    marginBottom: 4,
+  },
+  perimeterCardSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 12,
+  },
+  perimeterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  perimeterBtn: {
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+  },
+  perimeterBtnActive: {
+    backgroundColor: '#222',
+  },
+  perimeterBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  perimeterBtnTextActive: {
+    color: '#fff',
+  },
+  perimeterBtnAll: {
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  perimeterBtnAllActive: {
+    backgroundColor: '#222',
+  },
+  perimeterBtnAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  perimeterBtnAllTextActive: {
+    color: '#fff',
   },
   sectionContainer: {
     marginBottom: 16,
