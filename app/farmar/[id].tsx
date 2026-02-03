@@ -100,7 +100,7 @@ export default function FarmarDetailScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#222" />
+        <ActivityIndicator size="large" color="#ffffff" />
         <Text style={styles.loadingText}>Načítám...</Text>
       </View>
     );
@@ -198,7 +198,12 @@ export default function FarmarDetailScreen() {
                         produkt.dostupnost === 'na_objednavku' && styles.dostupnostObjednavka,
                         produkt.dostupnost === 'nedostupne' && styles.dostupnostNedostupne,
                       ]}>
-                        <Text style={styles.dostupnostText}>
+                        <Text style={[
+                          styles.dostupnostText,
+                          produkt.dostupnost === 'skladem' && styles.dostupnostTextSkladem,
+                          produkt.dostupnost === 'na_objednavku' && styles.dostupnostTextObjednavka,
+                          produkt.dostupnost === 'nedostupne' && styles.dostupnostTextNedostupne,
+                        ]}>
                           {produkt.dostupnost === 'skladem' ? 'Skladem' :
                            produkt.dostupnost === 'na_objednavku' ? 'Na objednávku' :
                            produkt.dostupnost === 'nedostupne' ? 'Nedostupné' : produkt.dostupnost}
@@ -231,7 +236,7 @@ export default function FarmarDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#eeeeee',
+    backgroundColor: '#6A1B9A',
   },
   centerContent: {
     justifyContent: 'center',
@@ -240,21 +245,21 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#666',
+    color: 'rgba(255,255,255,0.8)',
   },
   errorText: {
     fontSize: 16,
-    color: '#666',
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 16,
   },
   backBtn: {
-    backgroundColor: '#222',
+    backgroundColor: '#FF9800',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
   },
   backBtnText: {
-    color: '#fff',
+    color: '#ffffff',
     fontSize: 15,
     fontWeight: '600',
   },
@@ -266,23 +271,23 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#6A1B9A',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   headerBackBtn: {
     padding: 8,
   },
   headerBackIcon: {
     fontSize: 24,
-    color: '#222',
+    color: '#ffffff',
     fontWeight: '600',
   },
   headerTitle: {
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
-    color: '#222',
+    color: '#ffffff',
     textAlign: 'center',
     marginHorizontal: 8,
   },
@@ -298,15 +303,12 @@ const styles = StyleSheet.create({
 
   // Info karta
   infoCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   farmaHeader: {
     flexDirection: 'row',
@@ -317,7 +319,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#FF9800',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -333,21 +335,21 @@ const styles = StyleSheet.create({
   farmaName: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#222',
+    color: '#ffffff',
     marginBottom: 4,
   },
   farmaMesto: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255,255,255,0.7)',
   },
   farmaPopis: {
     fontSize: 14,
-    color: '#444',
+    color: 'rgba(255,255,255,0.8)',
     lineHeight: 20,
     marginBottom: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: 'rgba(255,255,255,0.1)',
   },
   contactRow: {
     flexDirection: 'row',
@@ -358,7 +360,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FF9800',
     paddingVertical: 12,
     borderRadius: 10,
     gap: 6,
@@ -369,24 +371,21 @@ const styles = StyleSheet.create({
   contactBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#222',
+    color: '#ffffff',
   },
 
   // Produkty karta
   produktyCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   produktyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#222',
+    color: '#ffffff',
     marginBottom: 16,
   },
   emptyProdukty: {
@@ -395,7 +394,7 @@ const styles = StyleSheet.create({
   },
   emptyProduktyText: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
   },
   produktyList: {
@@ -407,7 +406,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   produktInfo: {
     flex: 1,
@@ -416,12 +415,12 @@ const styles = StyleSheet.create({
   produktName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#222',
+    color: '#ffffff',
     marginBottom: 4,
   },
   produktPopis: {
     fontSize: 13,
-    color: '#666',
+    color: 'rgba(255,255,255,0.7)',
     lineHeight: 18,
     marginBottom: 6,
   },
@@ -430,21 +429,30 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 4,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   dostupnostSkladem: {
-    backgroundColor: '#e8f5e9',
+    backgroundColor: 'rgba(76, 175, 80, 0.3)',
   },
   dostupnostObjednavka: {
-    backgroundColor: '#fff3e0',
+    backgroundColor: 'rgba(255, 152, 0, 0.3)',
   },
   dostupnostNedostupne: {
-    backgroundColor: '#ffebee',
+    backgroundColor: 'rgba(244, 67, 54, 0.3)',
   },
   dostupnostText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#666',
+    color: 'rgba(255,255,255,0.8)',
+  },
+  dostupnostTextSkladem: {
+    color: '#a5d6a7',
+  },
+  dostupnostTextObjednavka: {
+    color: '#ffcc80',
+  },
+  dostupnostTextNedostupne: {
+    color: '#ef9a9a',
   },
   produktCena: {
     alignItems: 'flex-end',
@@ -452,10 +460,10 @@ const styles = StyleSheet.create({
   produktCenaText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#222',
+    color: '#FF9800',
   },
   produktJednotka: {
     fontSize: 12,
-    color: '#666',
+    color: 'rgba(255,255,255,0.6)',
   },
 });
