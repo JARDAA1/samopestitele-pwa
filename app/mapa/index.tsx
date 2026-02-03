@@ -489,50 +489,65 @@ export default function MapaScreen() {
         <View style={[styles.mainLayout, isDesktop && styles.mainLayoutDesktop]}>
           {/* Panel produktů */}
           <View style={[styles.filtersPanel, isDesktop && styles.filtersPanelDesktop]}>
-            <View style={[styles.produktyCard, isDesktop && styles.produktyCardDesktop]}>
-              {/* Hlavička */}
-              <View style={styles.produktyHeader}>
-                <Text style={styles.produktyTitle}>Co hledáte?</Text>
-                {selectedProdukty.length > 0 && (
-                  <Text style={styles.produktyCount}>{selectedProdukty.length} vybráno</Text>
-                )}
+            {/* Rozbalovací tlačítko */}
+            <TouchableOpacity
+              style={styles.produktyToggle}
+              onPress={() => setShowProduktyFilter(!showProduktyFilter)}
+            >
+              <View style={styles.produktyToggleLeft}>
+                <Text style={styles.produktyToggleIcon}>🛒</Text>
+                <View>
+                  <Text style={styles.produktyToggleTitle}>Co hledáte?</Text>
+                  <Text style={styles.produktyToggleSubtitle}>
+                    {selectedProdukty.length > 0
+                      ? `Vybráno: ${selectedProdukty.length} produktů`
+                      : 'Vyberte produkty'}
+                  </Text>
+                </View>
               </View>
+              <Text style={styles.produktyToggleArrow}>{showProduktyFilter ? '▲' : '▼'}</Text>
+            </TouchableOpacity>
 
-              {/* Seznam produktů */}
-              <View style={styles.produktyGrid}>
-                {produkty.map((produkt) => (
-                  <TouchableOpacity
-                    key={produkt.id}
-                    style={[
-                      styles.produktChip,
-                      selectedProdukty.includes(produkt.id) && styles.produktChipActive
-                    ]}
-                    onPress={() => toggleProdukt(produkt.id)}
-                  >
-                    <Text style={styles.produktEmoji}>{produkt.emoji}</Text>
-                    <Text style={[
-                      styles.produktText,
-                      selectedProdukty.includes(produkt.id) && styles.produktTextActive
-                    ]}>
-                      {produkt.nazev}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+            {/* Seznam produktů - rozbalený */}
+            {showProduktyFilter && (
+              <View style={[styles.produktyCard, isDesktop && styles.produktyCardDesktop]}>
+                <View style={styles.produktyGrid}>
+                  {produkty.map((produkt) => (
+                    <TouchableOpacity
+                      key={produkt.id}
+                      style={[
+                        styles.produktChip,
+                        selectedProdukty.includes(produkt.id) && styles.produktChipActive
+                      ]}
+                      onPress={() => toggleProdukt(produkt.id)}
+                    >
+                      <Text style={styles.produktEmoji}>{produkt.emoji}</Text>
+                      <Text style={[
+                        styles.produktText,
+                        selectedProdukty.includes(produkt.id) && styles.produktTextActive
+                      ]}>
+                        {produkt.nazev}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-
-              {/* Tlačítko Pokračovat */}
-              <TouchableOpacity
-                style={styles.produktySubmitBtn}
-                onPress={() => {/* TODO: další krok - přidat lokaci */}}
-              >
-                <Text style={styles.produktySubmitText}>
-                  {selectedProdukty.length > 0 ? `Pokračovat (${selectedProdukty.length})` : 'Přeskočit'}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            )}
           </View>
         </View>
       </ScrollView>
+
+      {/* Plovoucí tlačítko Zavřít */}
+      {showProduktyFilter && (
+        <TouchableOpacity
+          style={styles.floatingCloseBtn}
+          onPress={() => setShowProduktyFilter(false)}
+        >
+          <Text style={styles.floatingCloseBtnText}>
+            {selectedProdukty.length > 0 ? `Zavřít (${selectedProdukty.length})` : 'Zavřít'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -569,45 +584,63 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
 
+  // === ROZBALOVACÍ TOGGLE ===
+  produktyToggle: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 12,
+    marginTop: 12,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  produktyToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  produktyToggleIcon: {
+    fontSize: 28,
+  },
+  produktyToggleTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#222',
+  },
+  produktyToggleSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 2,
+  },
+  produktyToggleArrow: {
+    fontSize: 14,
+    color: '#666',
+  },
+
   // === KARTA PRODUKTŮ ===
   produktyCard: {
     backgroundColor: '#ffffff',
     marginHorizontal: 12,
-    marginTop: 12,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: 8,
+    borderRadius: 12,
+    padding: 16,
+    paddingBottom: 80,
   },
   produktyCardDesktop: {
     marginHorizontal: 0,
-    padding: 24,
+    padding: 20,
     maxWidth: 600,
-  },
-  produktyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  produktyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#222',
-  },
-  produktyCount: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
   },
   produktyGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: 20,
   },
   produktChip: {
     flexDirection: 'row',
@@ -632,13 +665,24 @@ const styles = StyleSheet.create({
   produktTextActive: {
     color: '#fff',
   },
-  produktySubmitBtn: {
+
+  // === PLOVOUCÍ TLAČÍTKO ===
+  floatingCloseBtn: {
+    position: 'absolute',
+    bottom: 24,
+    left: 16,
+    right: 16,
     backgroundColor: '#222',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  produktySubmitText: {
+  floatingCloseBtnText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
