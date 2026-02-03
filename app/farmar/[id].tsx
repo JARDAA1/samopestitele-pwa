@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Linking, Platform, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Farmar {
   id: string;
@@ -23,17 +24,84 @@ interface Produkt {
   dostupnost: string | null;
 }
 
+interface SeznamItem {
+  produktId: string;
+  produktNazev: string;
+  farmarId: string;
+  farmarNazev: string;
+  cena: number | null;
+  jednotka: string | null;
+}
+
 export default function FarmarDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [farmar, setFarmar] = useState<Farmar | null>(null);
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [loading, setLoading] = useState(true);
+  const [seznam, setSeznam] = useState<SeznamItem[]>([]);
 
   useEffect(() => {
     if (id) {
       loadFarmarDetail();
+      loadSeznam();
     }
   }, [id]);
+
+  const loadSeznam = async () => {
+    try {
+      const stored = await AsyncStorage.getItem('nakupni_seznam');
+      if (stored) {
+        setSeznam(JSON.parse(stored));
+      }
+    } catch (error) {
+      console.error('Chyba při načítání seznamu:', error);
+    }
+  };
+
+  const saveSeznam = async (newSeznam: SeznamItem[]) => {
+    try {
+      await AsyncStorage.setItem('nakupni_seznam', JSON.stringify(newSeznam));
+      setSeznam(newSeznam);
+    } catch (error) {
+      console.error('Chyba při ukládání seznamu:', error);
+    }
+  };
+
+  const isInSeznam = (produktId: string) => {
+    return seznam.some(item => item.produktId === produktId);
+  };
+
+  const toggleSeznam = (produkt: Produkt) => {
+    if (!farmar) return;
+
+    if (isInSeznam(produkt.id)) {
+      // Odebrat ze seznamu
+      const newSeznam = seznam.filter(item => item.produktId !== produkt.id);
+      saveSeznam(newSeznam);
+      if (Platform.OS === 'web') {
+        alert(`${produkt.nazev} odebráno ze seznamu`);
+      } else {
+        Alert.alert('Odebráno', `${produkt.nazev} odebráno ze seznamu`);
+      }
+    } else {
+      // Přidat do seznamu
+      const newItem: SeznamItem = {
+        produktId: produkt.id,
+        produktNazev: produkt.nazev,
+        farmarId: farmar.id,
+        farmarNazev: farmar.nazev_farmy,
+        cena: produkt.cena,
+        jednotka: produkt.jednotka,
+      };
+      const newSeznam = [...seznam, newItem];
+      saveSeznam(newSeznam);
+      if (Platform.OS === 'web') {
+        alert(`${produkt.nazev} přidáno do seznamu`);
+      } else {
+        Alert.alert('Přidáno', `${produkt.nazev} přidáno do seznamu`);
+      }
+    }
+  };
 
   const loadFarmarDetail = async () => {
     try {
@@ -211,23 +279,48 @@ export default function FarmarDetailScreen() {
                       </View>
                     )}
                   </View>
-                  {produkt.cena !== null && (
-                    <View style={styles.produktCena}>
-                      <Text style={styles.produktCenaText}>
-                        {produkt.cena} Kč
-                      </Text>
-                      {produkt.jednotka && (
-                        <Text style={styles.produktJednotka}>
-                          / {produkt.jednotka}
+                  <View style={styles.produktActions}>
+                    {produkt.cena !== null && (
+                      <View style={styles.produktCena}>
+                        <Text style={styles.produktCenaText}>
+                          {produkt.cena} Kč
                         </Text>
-                      )}
-                    </View>
-                  )}
+                        {produkt.jednotka && (
+                          <Text style={styles.produktJednotka}>
+                            / {produkt.jednotka}
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                    <TouchableOpacity
+                      style={[
+                        styles.addToListBtn,
+                        isInSeznam(produkt.id) && styles.addToListBtnActive
+                      ]}
+                      onPress={() => toggleSeznam(produkt)}
+                    >
+                      <Text style={styles.addToListBtnText}>
+                        {isInSeznam(produkt.id) ? '✓' : '+'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))}
             </View>
           )}
         </View>
+
+        {/* Plovoucí tlačítko - Zobrazit seznam */}
+        {seznam.length > 0 && (
+          <TouchableOpacity
+            style={styles.floatingSeznamBtn}
+            onPress={() => router.push('/nakupni-seznam')}
+          >
+            <Text style={styles.floatingSeznamBtnText}>
+              Zobrazit seznam ({seznam.length})
+            </Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -454,6 +547,10 @@ const styles = StyleSheet.create({
   dostupnostTextNedostupne: {
     color: '#ef9a9a',
   },
+  produktActions: {
+    alignItems: 'flex-end',
+    gap: 8,
+  },
   produktCena: {
     alignItems: 'flex-end',
   },
@@ -465,5 +562,35 @@ const styles = StyleSheet.create({
   produktJednotka: {
     fontSize: 12,
     color: 'rgba(255,255,255,0.6)',
+  },
+  addToListBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FF9800',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addToListBtnActive: {
+    backgroundColor: 'rgba(76, 175, 80, 0.8)',
+  },
+  addToListBtnText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  floatingSeznamBtn: {
+    backgroundColor: '#FF9800',
+    marginHorizontal: 12,
+    marginTop: 16,
+    marginBottom: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  floatingSeznamBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 });
