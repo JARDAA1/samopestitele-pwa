@@ -533,6 +533,81 @@ export default function MapaScreen() {
                 </View>
               </View>
             )}
+
+            {/* Sekce Kde hledat */}
+            <View style={styles.locationCard}>
+              <Text style={styles.locationCardTitle}>Kde hledat</Text>
+              <Text style={styles.locationCardSubtitle}>Výchozí pozice</Text>
+
+              {/* Toggle tlačítka */}
+              <View style={styles.locationToggleRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.locationToggleBtn,
+                    locationSource === 'gps' && styles.locationToggleBtnActive
+                  ]}
+                  onPress={useMyLocation}
+                >
+                  <Text style={styles.locationToggleBtnIcon}>📍</Text>
+                  <Text style={[
+                    styles.locationToggleBtnText,
+                    locationSource === 'gps' && styles.locationToggleBtnTextActive
+                  ]}>
+                    Moje poloha
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.locationToggleBtn,
+                    locationSource === 'address' && styles.locationToggleBtnActive
+                  ]}
+                  onPress={() => setLocationSource('address')}
+                >
+                  <Text style={styles.locationToggleBtnIcon}>🔍</Text>
+                  <Text style={[
+                    styles.locationToggleBtnText,
+                    locationSource === 'address' && styles.locationToggleBtnTextActive
+                  ]}>
+                    Jiný start
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Input pro zadání adresy - pouze pokud je vybrán "Jiný start" */}
+              {locationSource === 'address' && (
+                <View style={styles.addressInputContainer}>
+                  <TextInput
+                    style={styles.locationAddressInput}
+                    placeholder="Město nebo obec..."
+                    placeholderTextColor="#999"
+                    value={addressInput}
+                    onChangeText={setAddressInput}
+                    onSubmitEditing={() => geocodeAddress(addressInput)}
+                    returnKeyType="search"
+                  />
+                  <TouchableOpacity
+                    style={[styles.addressSearchBtn, geocoding && styles.addressSearchBtnDisabled]}
+                    onPress={() => geocodeAddress(addressInput)}
+                    disabled={geocoding}
+                  >
+                    <Text style={styles.addressSearchBtnText}>
+                      {geocoding ? '...' : 'Najít'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Zobrazení aktuální polohy */}
+              {locationLabel && (
+                <View style={styles.currentLocationInfo}>
+                  <Text style={styles.currentLocationIcon}>
+                    {locationSource === 'gps' ? '📍' : '🔍'}
+                  </Text>
+                  <Text style={styles.currentLocationLabel}>{locationLabel}</Text>
+                </View>
+              )}
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -686,6 +761,106 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+
+  // === SEKCE KDE HLEDAT ===
+  locationCard: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 12,
+    marginTop: 12,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  locationCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#222',
+    marginBottom: 4,
+  },
+  locationCardSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 12,
+  },
+  locationToggleRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  locationToggleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    gap: 8,
+  },
+  locationToggleBtnActive: {
+    backgroundColor: '#222',
+  },
+  locationToggleBtnIcon: {
+    fontSize: 16,
+  },
+  locationToggleBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  locationToggleBtnTextActive: {
+    color: '#fff',
+  },
+  addressInputContainer: {
+    flexDirection: 'row',
+    marginTop: 12,
+    gap: 8,
+  },
+  locationAddressInput: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#222',
+  },
+  addressSearchBtn: {
+    backgroundColor: '#222',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addressSearchBtnDisabled: {
+    opacity: 0.5,
+  },
+  addressSearchBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  currentLocationInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    gap: 8,
+  },
+  currentLocationIcon: {
+    fontSize: 14,
+  },
+  currentLocationLabel: {
+    fontSize: 14,
+    color: '#666',
+    flex: 1,
   },
   sectionContainer: {
     marginBottom: 16,
