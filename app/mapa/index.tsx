@@ -648,6 +648,50 @@ export default function MapaScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {/* Sekce Výsledky - Nalezení farmáři */}
+            <View style={styles.resultsCard}>
+              <Text style={styles.resultsCardTitle}>
+                {filtering ? 'Hledám...' : `Nalezeno ${filteredPestitele.length} farmářů`}
+              </Text>
+
+              {filtering ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#222" />
+                </View>
+              ) : filteredPestitele.length === 0 ? (
+                <View style={styles.emptyResultsContainer}>
+                  <Text style={styles.emptyResultsText}>
+                    Žádní farmáři nenalezeni. Zkuste změnit filtry.
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.farmersList}>
+                  {filteredPestitele.map((farmer: any) => (
+                    <TouchableOpacity
+                      key={farmer.id}
+                      style={styles.farmerRow}
+                      onPress={() => router.push(`/farmar/${farmer.id}`)}
+                    >
+                      <View style={styles.farmerRowInfo}>
+                        <Text style={styles.farmerRowName}>{farmer.nazev_farmy}</Text>
+                        <Text style={styles.farmerRowMesto}>{farmer.mesto}</Text>
+                      </View>
+                      <View style={styles.farmerRowRight}>
+                        {farmer.distance !== undefined && (
+                          <Text style={styles.farmerRowDistance}>
+                            {farmer.distance < 1
+                              ? `${Math.round(farmer.distance * 1000)} m`
+                              : `${farmer.distance.toFixed(1)} km`}
+                          </Text>
+                        )}
+                        <Text style={styles.farmerRowArrow}>›</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -967,6 +1011,79 @@ const styles = StyleSheet.create({
   },
   perimeterBtnAllTextActive: {
     color: '#fff',
+  },
+
+  // === SEKCE VÝSLEDKY ===
+  resultsCard: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 12,
+    marginTop: 12,
+    marginBottom: 20,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  resultsCardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#222',
+    marginBottom: 12,
+  },
+  loadingContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  emptyResultsContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  emptyResultsText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  farmersList: {
+    gap: 0,
+  },
+  farmerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  farmerRowInfo: {
+    flex: 1,
+  },
+  farmerRowName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#222',
+    marginBottom: 2,
+  },
+  farmerRowMesto: {
+    fontSize: 13,
+    color: '#666',
+  },
+  farmerRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  farmerRowDistance: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#666',
+  },
+  farmerRowArrow: {
+    fontSize: 22,
+    color: '#ccc',
+    fontWeight: '300',
   },
   sectionContainer: {
     marginBottom: 16,
