@@ -611,8 +611,7 @@ export default function MapaScreen() {
 
             {/* Sekce Perimetr */}
             <View style={styles.perimeterCard}>
-              <Text style={styles.perimeterCardTitle}>Perimetr</Text>
-              <Text style={styles.perimeterCardSubtitle}>Maximální vzdálenost od výchozí pozice</Text>
+              <Text style={styles.perimeterCardTitle}>Maximální vzdálenost od výchozí pozice</Text>
 
               <View style={styles.perimeterRow}>
                 {[5, 10, 20, 30, 50].map((km) => (
