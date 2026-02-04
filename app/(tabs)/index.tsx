@@ -76,13 +76,13 @@ const styles = StyleSheet.create({
 
   // Hero sekce
   hero: {
-    paddingTop: 60,
-    paddingBottom: 24,
+    paddingTop: 44,
+    paddingBottom: 16,
     paddingHorizontal: 20,
   },
   heroDesktop: {
-    paddingTop: 100,
-    paddingBottom: 60,
+    paddingTop: 60,
+    paddingBottom: 32,
     paddingHorizontal: 80,
     alignItems: 'center',
   },
@@ -111,9 +111,8 @@ const styles = StyleSheet.create({
 
   // Cesty (karty) - kompaktní horizontální layout pro mobil
   pathsContainer: {
-    flex: 1,
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 8,
     gap: 12,
   },
   pathsContainerDesktop: {
