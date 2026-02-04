@@ -1,30 +1,16 @@
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const [isMounted, setIsMounted] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   const isDesktop = isMounted && width >= 768;
-
-  const handleSearch = () => {
-    router.push({
-      pathname: '/mapa',
-      params: searchQuery ? { lokalita: searchQuery } : {}
-    });
-  };
-
-  const handleKeyPress = (e: any) => {
-    if (e.nativeEvent.key === 'Enter') {
-      handleSearch();
-    }
-  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -36,26 +22,6 @@ export default function HomeScreen() {
         <Text style={[styles.subtitle, isDesktop && styles.subtitleDesktop]}>
           Najděte lokální farmáře ve vašem okolí
         </Text>
-
-        {/* Vyhledávací pole */}
-        <View style={[styles.searchContainer, isDesktop && styles.searchContainerDesktop]}>
-          <View style={styles.searchInputWrapper}>
-            <Text style={styles.searchIcon}>📍</Text>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Město nebo obec..."
-              placeholderTextColor="#999"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmitEditing={handleSearch}
-              onKeyPress={handleKeyPress}
-              returnKeyType="search"
-            />
-          </View>
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Text style={styles.searchButtonText}>Hledat</Text>
-          </TouchableOpacity>
-        </View>
       </View>
 
       {/* Dvě cesty */}
@@ -141,53 +107,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     marginBottom: 32,
-  },
-
-  // Vyhledávání
-  searchContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    width: '100%',
-    maxWidth: 500,
-  },
-  searchContainerDesktop: {
-    gap: 0,
-  },
-  searchInputWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    height: 48,
-  },
-  searchIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: '#222222',
-    ...Platform.select({
-      web: {
-        outlineStyle: 'none',
-      },
-    }),
-  },
-  searchButton: {
-    backgroundColor: '#FF9800',
-    borderRadius: 10,
-    height: 48,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  searchButtonText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '600',
   },
 
   // Cesty (karty) - kompaktní horizontální layout pro mobil
