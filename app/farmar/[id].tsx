@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   contactBtnText: {
-    fontSize: 11,
+    fontSize: 8,
     fontWeight: '600',
     color: '#ffffff',
   },
