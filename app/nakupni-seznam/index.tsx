@@ -110,12 +110,13 @@ export default function NakupniSeznamScreen() {
       });
       smsText += `\nDěkuji za odpověď.`;
 
-      // Debug log
-      console.log('Telefon z DB:', telefon);
+      // Detekce iOS zařízení (i na webu/PWA)
+      const isIOS = Platform.OS === 'ios' ||
+        (Platform.OS === 'web' && /iPad|iPhone|iPod/.test(navigator.userAgent));
 
       let smsUrl: string;
-      if (Platform.OS === 'ios') {
-        // iOS formát: sms:CISLO&body=TEXT nebo sms://CISLO&body=TEXT
+      if (isIOS) {
+        // iOS formát: sms:CISLO&body=TEXT
         smsUrl = telefon
           ? `sms:${telefon}&body=${encodeURIComponent(smsText)}`
           : `sms:&body=${encodeURIComponent(smsText)}`;
@@ -126,8 +127,7 @@ export default function NakupniSeznamScreen() {
           : `sms:?body=${encodeURIComponent(smsText)}`;
       }
 
-      console.log('SMS URL:', smsUrl);
-      Linking.openURL(smsUrl);
+      window.location.href = smsUrl;
     } else {
       // Více farmářů - vytvořit jeden dlouhý text bez čísla
       let fullText = `Nákupní seznam:\n\n`;
@@ -143,15 +143,14 @@ export default function NakupniSeznamScreen() {
         fullText += `\n`;
       });
 
-      const smsUrl = Platform.select({
-        ios: `sms:&body=${encodeURIComponent(fullText)}`,
-        android: `sms:?body=${encodeURIComponent(fullText)}`,
-        default: `sms:?body=${encodeURIComponent(fullText)}`,
-      });
+      const isIOS = Platform.OS === 'ios' ||
+        (Platform.OS === 'web' && /iPad|iPhone|iPod/.test(navigator.userAgent));
 
-      if (smsUrl) {
-        Linking.openURL(smsUrl);
-      }
+      const smsUrl = isIOS
+        ? `sms:&body=${encodeURIComponent(fullText)}`
+        : `sms:?body=${encodeURIComponent(fullText)}`;
+
+      window.location.href = smsUrl;
     }
   };
 
