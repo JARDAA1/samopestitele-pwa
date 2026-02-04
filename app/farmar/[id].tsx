@@ -216,21 +216,24 @@ export default function FarmarDetailScreen() {
             <Text style={styles.farmaPopis}>{farmar.popis}</Text>
           )}
 
-          {/* Kontaktní tlačítka - pouze ikony */}
+          {/* Kontaktní tlačítka */}
           <View style={styles.contactRow}>
             {farmar.telefon && (
               <TouchableOpacity style={styles.contactBtn} onPress={handleCall}>
-                <Ionicons name="call" size={20} color="#ffffff" />
+                <Ionicons name="call" size={14} color="#ffffff" />
+                <Text style={styles.contactBtnText}>Zavolat</Text>
               </TouchableOpacity>
             )}
             {farmar.email && (
               <TouchableOpacity style={styles.contactBtn} onPress={handleEmail}>
-                <Ionicons name="mail" size={20} color="#ffffff" />
+                <Ionicons name="mail" size={14} color="#ffffff" />
+                <Text style={styles.contactBtnText}>Email</Text>
               </TouchableOpacity>
             )}
             {farmar.gps_lat && farmar.gps_lng && (
               <TouchableOpacity style={styles.contactBtn} onPress={handleNavigate}>
-                <Ionicons name="navigate" size={20} color="#ffffff" />
+                <Ionicons name="navigate" size={14} color="#ffffff" />
+                <Text style={styles.contactBtnText}>Navigovat</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -447,12 +450,20 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   contactBtn: {
-    width: 44,
-    height: 44,
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FF9800',
-    borderRadius: 22,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 6,
+    gap: 3,
+  },
+  contactBtnText: {
+    fontSize: 8,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 
   // Produkty karta
