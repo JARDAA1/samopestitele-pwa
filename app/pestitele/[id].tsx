@@ -397,7 +397,7 @@ export default function PestitelDetailScreen() {
         {/* Seznam produktů */}
         <View style={styles.productsContainer}>
           <Text style={styles.productsTitle}>
-            🛒 Nabídka produktů ({produkty.length})
+            🧺 Nabídka produktů ({produkty.length})
           </Text>
 
           {produkty.length === 0 ? (

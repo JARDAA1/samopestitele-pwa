@@ -240,7 +240,7 @@ export default function DetailObjednavkyScreen() {
 
         {/* Objednané produkty */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🛒 Objednané produkty ({polozky.length})</Text>
+          <Text style={styles.cardTitle}>🧺 Objednané produkty ({polozky.length})</Text>
 
           {polozky.map((polozka) => (
             <View key={polozka.id} style={styles.productItem}>

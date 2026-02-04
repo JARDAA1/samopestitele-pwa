@@ -146,11 +146,11 @@ export default function KosikScreen() {
           <TouchableOpacity onPress={openMenu} style={styles.menuButton}>
             <Text style={styles.menuIcon}>☰</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>🛒 Košík</Text>
+          <Text style={styles.headerTitle}>🧺 Košík</Text>
         </View>
 
         <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>🛒</Text>
+          <Text style={styles.emptyIcon}>🧺</Text>
           <Text style={styles.emptyTitle}>Košík je prázdný</Text>
           <Text style={styles.emptyText}>
             Zatím jste nepřidali žádné produkty do košíku
@@ -173,7 +173,7 @@ export default function KosikScreen() {
         <TouchableOpacity onPress={openMenu} style={styles.menuButton}>
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>🛒 Košík ({itemCount})</Text>
+        <Text style={styles.headerTitle}>🧺 Košík ({itemCount})</Text>
       </View>
 
       <ScrollView style={styles.content}>

@@ -172,7 +172,7 @@ export default function NakupniSeznamScreen() {
 
       {seznam.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>🛒</Text>
+          <Text style={styles.emptyIcon}>🧺</Text>
           <Text style={styles.emptyTitle}>Seznam je prázdný</Text>
           <Text style={styles.emptyText}>
             Přidejte produkty od farmářů kliknutím na tlačítko + u produktu.

@@ -490,7 +490,7 @@ export default function MapaScreen() {
               onPress={() => setShowProduktyFilter(!showProduktyFilter)}
             >
               <View style={styles.produktyToggleLeft}>
-                <Text style={styles.produktyToggleIcon}>🛒</Text>
+                <Text style={styles.produktyToggleIcon}>🧺</Text>
                 <View>
                   <Text style={styles.produktyToggleTitle}>Co hledáte?</Text>
                   <Text style={styles.produktyToggleSubtitle}>
