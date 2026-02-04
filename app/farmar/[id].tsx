@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Linking, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Linking, Platform, Alert, Modal, TextInput } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -32,7 +32,11 @@ interface SeznamItem {
   farmarNazev: string;
   cena: number | null;
   jednotka: string | null;
+  mnozstvi: number;
+  mnozstviJednotka: string;
 }
+
+const JEDNOTKY = ['ks', 'kg', 'l', 'g', 'ml'];
 
 export default function FarmarDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -40,6 +44,12 @@ export default function FarmarDetailScreen() {
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [loading, setLoading] = useState(true);
   const [seznam, setSeznam] = useState<SeznamItem[]>([]);
+
+  // Modal pro výběr množství
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedProdukt, setSelectedProdukt] = useState<Produkt | null>(null);
+  const [mnozstvi, setMnozstvi] = useState('1');
+  const [vybranaJednotka, setVybranaJednotka] = useState('ks');
 
   useEffect(() => {
     if (id) {
@@ -72,9 +82,7 @@ export default function FarmarDetailScreen() {
     return seznam.some(item => item.produktId === produktId);
   };
 
-  const toggleSeznam = (produkt: Produkt) => {
-    if (!farmar) return;
-
+  const openMnozstviModal = (produkt: Produkt) => {
     if (isInSeznam(produkt.id)) {
       // Odebrat ze seznamu
       const newSeznam = seznam.filter(item => item.produktId !== produkt.id);
@@ -85,22 +93,45 @@ export default function FarmarDetailScreen() {
         Alert.alert('Odebráno', `${produkt.nazev} odebráno ze seznamu`);
       }
     } else {
-      // Přidat do seznamu
-      const newItem: SeznamItem = {
-        produktId: produkt.id,
-        produktNazev: produkt.nazev,
-        farmarId: farmar.id,
-        farmarNazev: farmar.nazev_farmy,
-        cena: produkt.cena,
-        jednotka: produkt.jednotka,
-      };
-      const newSeznam = [...seznam, newItem];
-      saveSeznam(newSeznam);
-      if (Platform.OS === 'web') {
-        alert(`${produkt.nazev} přidáno do seznamu`);
+      // Otevřít modal pro výběr množství
+      setSelectedProdukt(produkt);
+      setMnozstvi('1');
+      // Nastavit výchozí jednotku podle produktu
+      if (produkt.jednotka) {
+        setVybranaJednotka(produkt.jednotka);
       } else {
-        Alert.alert('Přidáno', `${produkt.nazev} přidáno do seznamu`);
+        setVybranaJednotka('ks');
       }
+      setModalVisible(true);
+    }
+  };
+
+  const pridatDoSeznamu = () => {
+    if (!farmar || !selectedProdukt) return;
+
+    const mnozstviNum = parseFloat(mnozstvi) || 1;
+
+    const newItem: SeznamItem = {
+      produktId: selectedProdukt.id,
+      produktNazev: selectedProdukt.nazev,
+      farmarId: farmar.id,
+      farmarNazev: farmar.nazev_farmy,
+      cena: selectedProdukt.cena,
+      jednotka: selectedProdukt.jednotka,
+      mnozstvi: mnozstviNum,
+      mnozstviJednotka: vybranaJednotka,
+    };
+
+    const newSeznam = [...seznam, newItem];
+    saveSeznam(newSeznam);
+
+    setModalVisible(false);
+    setSelectedProdukt(null);
+
+    if (Platform.OS === 'web') {
+      alert(`${selectedProdukt.nazev} (${mnozstviNum} ${vybranaJednotka}) přidáno do seznamu`);
+    } else {
+      Alert.alert('Přidáno', `${selectedProdukt.nazev} (${mnozstviNum} ${vybranaJednotka}) přidáno do seznamu`);
     }
   };
 
@@ -298,7 +329,7 @@ export default function FarmarDetailScreen() {
                         styles.addToListBtn,
                         isInSeznam(produkt.id) && styles.addToListBtnActive
                       ]}
-                      onPress={() => toggleSeznam(produkt)}
+                      onPress={() => openMnozstviModal(produkt)}
                     >
                       <Text style={styles.addToListBtnText}>
                         {isInSeznam(produkt.id) ? '✓' : '+'}
@@ -323,6 +354,90 @@ export default function FarmarDetailScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
+
+      {/* Modal pro výběr množství */}
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {selectedProdukt?.nazev}
+            </Text>
+
+            <Text style={styles.modalLabel}>Množství:</Text>
+            <View style={styles.mnozstviRow}>
+              <TouchableOpacity
+                style={styles.mnozstviBtn}
+                onPress={() => {
+                  const num = parseFloat(mnozstvi) || 1;
+                  if (num > 1) setMnozstvi(String(num - 1));
+                }}
+              >
+                <Text style={styles.mnozstviBtnText}>-</Text>
+              </TouchableOpacity>
+
+              <TextInput
+                style={styles.mnozstviInput}
+                value={mnozstvi}
+                onChangeText={setMnozstvi}
+                keyboardType="numeric"
+                selectTextOnFocus
+              />
+
+              <TouchableOpacity
+                style={styles.mnozstviBtn}
+                onPress={() => {
+                  const num = parseFloat(mnozstvi) || 0;
+                  setMnozstvi(String(num + 1));
+                }}
+              >
+                <Text style={styles.mnozstviBtnText}>+</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalLabel}>Jednotka:</Text>
+            <View style={styles.jednotkyRow}>
+              {JEDNOTKY.map((j) => (
+                <TouchableOpacity
+                  key={j}
+                  style={[
+                    styles.jednotkaBtn,
+                    vybranaJednotka === j && styles.jednotkaBtnActive
+                  ]}
+                  onPress={() => setVybranaJednotka(j)}
+                >
+                  <Text style={[
+                    styles.jednotkaBtnText,
+                    vybranaJednotka === j && styles.jednotkaBtnTextActive
+                  ]}>
+                    {j}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.modalCancelBtnText}>Zrušit</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalConfirmBtn}
+                onPress={pridatDoSeznamu}
+              >
+                <Text style={styles.modalConfirmBtnText}>Přidat</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -589,6 +704,120 @@ const styles = StyleSheet.create({
   },
   floatingSeznamBtnText: {
     fontSize: 13,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+
+  // Modal styly
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 20,
+    width: '100%',
+    maxWidth: 320,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#6A1B9A',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  modalLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  mnozstviRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    gap: 12,
+  },
+  mnozstviBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#6A1B9A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mnozstviBtnText: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  mnozstviInput: {
+    width: 80,
+    height: 44,
+    borderWidth: 2,
+    borderColor: '#6A1B9A',
+    borderRadius: 8,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  jednotkyRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 20,
+  },
+  jednotkaBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: '#f0f0f0',
+    borderWidth: 2,
+    borderColor: '#f0f0f0',
+  },
+  jednotkaBtnActive: {
+    backgroundColor: '#6A1B9A',
+    borderColor: '#6A1B9A',
+  },
+  jednotkaBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  jednotkaBtnTextActive: {
+    color: '#ffffff',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#e0e0e0',
+    alignItems: 'center',
+  },
+  modalCancelBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#666',
+  },
+  modalConfirmBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#FF9800',
+    alignItems: 'center',
+  },
+  modalConfirmBtnText: {
+    fontSize: 15,
     fontWeight: '600',
     color: '#ffffff',
   },
