@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 
@@ -13,9 +14,10 @@ export default function HomeScreen() {
   const isDesktop = isMounted && width >= 768;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Hero sekce */}
-      <View style={[styles.hero, isDesktop && styles.heroDesktop]}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+        {/* Hero sekce */}
+        <View style={[styles.hero, isDesktop && styles.heroDesktop]}>
         <Text style={[styles.title, isDesktop && styles.titleDesktop]}>
           Čerstvé produkty{'\n'}od pěstitelů
         </Text>
@@ -55,17 +57,22 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Footer info */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          Spojujeme pěstitele s lidmi, kteří chtějí jíst zdravě a lokálně
-        </Text>
-      </View>
-    </ScrollView>
+        {/* Footer info */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Spojujeme pěstitele s lidmi, kteří chtějí jíst zdravě a lokálně
+          </Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#6A1B9A',
+  },
   container: {
     flex: 1,
     backgroundColor: '#6A1B9A',
@@ -76,12 +83,12 @@ const styles = StyleSheet.create({
 
   // Hero sekce
   hero: {
-    paddingTop: 44,
+    paddingTop: 20,
     paddingBottom: 16,
     paddingHorizontal: 20,
   },
   heroDesktop: {
-    paddingTop: 60,
+    paddingTop: 40,
     paddingBottom: 32,
     paddingHorizontal: 80,
     alignItems: 'center',
