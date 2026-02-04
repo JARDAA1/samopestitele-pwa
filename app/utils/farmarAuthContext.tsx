@@ -288,6 +288,8 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
           username: data.username,
           heslo_hash: passwordHash,
           farm_number: farmNumber,
+          gps_lat: 0,
+          gps_lng: 0,
         })
         .select()
         .single();
