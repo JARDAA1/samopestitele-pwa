@@ -40,3 +40,7 @@ yarn-error.*
 /ios
 /android
 dist/
+
+# Local Netlify folder
+.netlify
+.vercel

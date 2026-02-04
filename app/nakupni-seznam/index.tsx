@@ -3,12 +3,14 @@ import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../../lib/supabase';
 
 interface SeznamItem {
   produktId: string;
   produktNazev: string;
   farmarId: string;
   farmarNazev: string;
+  farmarTelefon?: string;
   cena: number | null;
   jednotka: string | null;
   mnozstvi?: number;
@@ -82,68 +84,57 @@ export default function NakupniSeznamScreen() {
     return sum + (item.cena || 0) * mnozstvi;
   }, 0);
 
-  // Vytvoření textu pro SMS
-  const createSmsText = (farmarId: string) => {
-    const group = groupedByFarmar[farmarId];
-    if (!group) return '';
-
-    let text = `Dobrý den,\nmám zájem o:\n\n`;
-
-    group.items.forEach((item) => {
-      const mnozstvi = item.mnozstvi || 1;
-      const jednotka = item.mnozstviJednotka || item.jednotka || 'ks';
-      text += `• ${item.produktNazev} - ${mnozstvi} ${jednotka}\n`;
-    });
-
-    text += `\nDěkuji za odpověď.`;
-
-    return text;
-  };
-
-  // Odeslání SMS farmáři
-  const sendSmsToFarmar = async (farmarId: string, farmarTelefon?: string) => {
-    const smsText = createSmsText(farmarId);
-
-    // Pokud nemáme telefon, načteme ho z DB
-    let telefon = farmarTelefon;
-    if (!telefon) {
-      // Pro jednoduchost otevřeme SMS bez čísla - uživatel ho zadá sám
-      const smsUrl = Platform.select({
-        ios: `sms:&body=${encodeURIComponent(smsText)}`,
-        android: `sms:?body=${encodeURIComponent(smsText)}`,
-        default: `sms:?body=${encodeURIComponent(smsText)}`,
-      });
-
-      if (smsUrl) {
-        Linking.openURL(smsUrl);
-      }
-      return;
-    }
-
-    const smsUrl = Platform.select({
-      ios: `sms:${telefon}&body=${encodeURIComponent(smsText)}`,
-      android: `sms:${telefon}?body=${encodeURIComponent(smsText)}`,
-      default: `sms:${telefon}?body=${encodeURIComponent(smsText)}`,
-    });
-
-    if (smsUrl) {
-      Linking.openURL(smsUrl);
-    }
-  };
-
-  // Odeslání všech SMS
-  const sendAllSms = () => {
+  // Odeslání SMS - načte telefony z DB a otevře SMS
+  const sendSms = async () => {
     const farmarIds = Object.keys(groupedByFarmar);
 
     if (farmarIds.length === 1) {
-      sendSmsToFarmar(farmarIds[0]);
+      // Jeden farmář - načíst jeho telefon a poslat SMS
+      const farmarId = farmarIds[0];
+      const group = groupedByFarmar[farmarId];
+
+      // Načíst telefon z databáze
+      const { data } = await supabase
+        .from('pestitele')
+        .select('telefon')
+        .eq('id', Number(farmarId))
+        .single();
+
+      const telefon = data?.telefon || '';
+
+      let smsText = `Dobrý den,\nmám zájem o:\n\n`;
+      group.items.forEach((item) => {
+        const mnozstvi = item.mnozstvi || 1;
+        const jednotka = item.mnozstviJednotka || item.jednotka || 'ks';
+        smsText += `• ${item.produktNazev} - ${mnozstvi} ${jednotka}\n`;
+      });
+      smsText += `\nDěkuji za odpověď.`;
+
+      // Debug log
+      console.log('Telefon z DB:', telefon);
+
+      let smsUrl: string;
+      if (Platform.OS === 'ios') {
+        // iOS formát: sms:CISLO&body=TEXT nebo sms://CISLO&body=TEXT
+        smsUrl = telefon
+          ? `sms:${telefon}&body=${encodeURIComponent(smsText)}`
+          : `sms:&body=${encodeURIComponent(smsText)}`;
+      } else {
+        // Android formát: sms:CISLO?body=TEXT
+        smsUrl = telefon
+          ? `sms:${telefon}?body=${encodeURIComponent(smsText)}`
+          : `sms:?body=${encodeURIComponent(smsText)}`;
+      }
+
+      console.log('SMS URL:', smsUrl);
+      Linking.openURL(smsUrl);
     } else {
-      // Více farmářů - vytvořit jeden dlouhý text
+      // Více farmářů - vytvořit jeden dlouhý text bez čísla
       let fullText = `Nákupní seznam:\n\n`;
 
       farmarIds.forEach((farmarId) => {
         const group = groupedByFarmar[farmarId];
-        fullText += `📍 ${group.farmarNazev}:\n`;
+        fullText += `${group.farmarNazev}:\n`;
         group.items.forEach((item) => {
           const mnozstvi = item.mnozstvi || 1;
           const jednotka = item.mnozstviJednotka || item.jednotka || 'ks';
@@ -195,81 +186,76 @@ export default function NakupniSeznamScreen() {
           </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-          {/* Souhrn */}
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Položek celkem:</Text>
-              <Text style={styles.summaryValue}>{totalItems}</Text>
-            </View>
-            {totalPrice > 0 && (
+        <View style={styles.contentWrapper}>
+          <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+            {/* Souhrn */}
+            <View style={styles.summaryCard}>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Orientační cena:</Text>
-                <Text style={styles.summaryPrice}>{totalPrice.toFixed(0)} Kč</Text>
+                <Text style={styles.summaryLabel}>Položek celkem:</Text>
+                <Text style={styles.summaryValue}>{totalItems}</Text>
               </View>
-            )}
+              {totalPrice > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Orientační cena:</Text>
+                  <Text style={styles.summaryPrice}>{totalPrice.toFixed(0)} Kč</Text>
+                </View>
+              )}
+            </View>
 
-            {/* Hlavní tlačítko odeslat SMS */}
+            {/* Seznam podle farmářů */}
+            {Object.entries(groupedByFarmar).map(([farmarId, group]) => (
+              <View key={farmarId} style={styles.farmarCard}>
+                <TouchableOpacity
+                  style={styles.farmarHeader}
+                  onPress={() => router.push(`/farmar/${farmarId}`)}
+                >
+                  <Text style={styles.farmarName}>{group.farmarNazev}</Text>
+                  <Text style={styles.farmarArrow}>›</Text>
+                </TouchableOpacity>
+
+                {group.items.map((item) => (
+                  <View key={item.produktId} style={styles.produktRow}>
+                    <View style={styles.produktInfo}>
+                      <Text style={styles.produktName}>
+                        {item.produktNazev}
+                        {item.mnozstvi && (
+                          <Text style={styles.produktMnozstvi}>
+                            {' '}({item.mnozstvi} {item.mnozstviJednotka || item.jednotka || 'ks'})
+                          </Text>
+                        )}
+                      </Text>
+                      {item.cena !== null && (
+                        <Text style={styles.produktCena}>
+                          {item.cena} Kč{item.jednotka ? ` / ${item.jednotka}` : ''}
+                          {item.mnozstvi && item.mnozstvi > 1 && (
+                            <Text> = {(item.cena * item.mnozstvi).toFixed(0)} Kč</Text>
+                          )}
+                        </Text>
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      style={styles.removeBtn}
+                      onPress={() => removeItem(item.produktId)}
+                    >
+                      <Text style={styles.removeBtnText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* Jedno oranžové tlačítko dole */}
+          <View style={styles.bottomButtonContainer}>
             <TouchableOpacity
               style={styles.sendSmsBtn}
-              onPress={sendAllSms}
+              onPress={sendSms}
             >
               <Ionicons name="chatbubble" size={20} color="#ffffff" />
               <Text style={styles.sendSmsBtnText}>Odeslat objednávku SMS</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Seznam podle farmářů */}
-          {Object.entries(groupedByFarmar).map(([farmarId, group]) => (
-            <View key={farmarId} style={styles.farmarCard}>
-              <TouchableOpacity
-                style={styles.farmarHeader}
-                onPress={() => router.push(`/farmar/${farmarId}`)}
-              >
-                <Text style={styles.farmarName}>{group.farmarNazev}</Text>
-                <Text style={styles.farmarArrow}>›</Text>
-              </TouchableOpacity>
-
-              {group.items.map((item) => (
-                <View key={item.produktId} style={styles.produktRow}>
-                  <View style={styles.produktInfo}>
-                    <Text style={styles.produktName}>
-                      {item.produktNazev}
-                      {item.mnozstvi && (
-                        <Text style={styles.produktMnozstvi}>
-                          {' '}({item.mnozstvi} {item.mnozstviJednotka || item.jednotka || 'ks'})
-                        </Text>
-                      )}
-                    </Text>
-                    {item.cena !== null && (
-                      <Text style={styles.produktCena}>
-                        {item.cena} Kč{item.jednotka ? ` / ${item.jednotka}` : ''}
-                        {item.mnozstvi && item.mnozstvi > 1 && (
-                          <Text> = {(item.cena * item.mnozstvi).toFixed(0)} Kč</Text>
-                        )}
-                      </Text>
-                    )}
-                  </View>
-                  <TouchableOpacity
-                    style={styles.removeBtn}
-                    onPress={() => removeItem(item.produktId)}
-                  >
-                    <Text style={styles.removeBtnText}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-
-              {/* Tlačítko SMS pro tohoto farmáře */}
-              <TouchableOpacity
-                style={styles.smsFarmarBtn}
-                onPress={() => sendSmsToFarmar(farmarId)}
-              >
-                <Ionicons name="chatbubble-outline" size={16} color="#ffffff" />
-                <Text style={styles.smsFarmarBtnText}>Poslat SMS</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </ScrollView>
+        </View>
       )}
     </View>
   );
@@ -352,13 +338,18 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 
+  // Content wrapper
+  contentWrapper: {
+    flex: 1,
+  },
+
   // Scroll
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     padding: 12,
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
 
   // Summary
@@ -459,36 +450,24 @@ const styles = StyleSheet.create({
     color: '#FF9800',
   },
 
-  // SMS tlačítka
+  // Bottom button
+  bottomButtonContainer: {
+    padding: 16,
+    paddingBottom: 32,
+    backgroundColor: '#6A1B9A',
+  },
   sendSmsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FF9800',
-    paddingVertical: 14,
-    borderRadius: 10,
-    marginTop: 12,
-    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 10,
   },
   sendSmsBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  smsFarmarBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#6A1B9A',
-    paddingVertical: 10,
-    margin: 10,
-    marginTop: 0,
-    borderRadius: 8,
-    gap: 6,
-  },
-  smsFarmarBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     color: '#ffffff',
   },
 });

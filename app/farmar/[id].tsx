@@ -30,6 +30,7 @@ interface SeznamItem {
   produktNazev: string;
   farmarId: string;
   farmarNazev: string;
+  farmarTelefon: string;
   cena: number | null;
   jednotka: string | null;
   mnozstvi: number;
@@ -116,6 +117,7 @@ export default function FarmarDetailScreen() {
       produktNazev: selectedProdukt.nazev,
       farmarId: farmar.id,
       farmarNazev: farmar.nazev_farmy,
+      farmarTelefon: farmar.telefon || '',
       cena: selectedProdukt.cena,
       jednotka: selectedProdukt.jednotka,
       mnozstvi: mnozstviNum,
