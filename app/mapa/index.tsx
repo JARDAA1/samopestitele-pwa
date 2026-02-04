@@ -3,8 +3,6 @@ import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import * as Location from 'expo-location';
-import { DrawerMenu } from '../utils/DrawerMenu';
-import { useDrawerMenu } from '../utils/useDrawerMenu';
 
 interface Pestitel {
   id: string;
@@ -43,7 +41,6 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 }
 
 export default function MapaScreen() {
-  const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
   const { width } = useWindowDimensions();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -471,15 +468,13 @@ export default function MapaScreen() {
 
   return (
     <View style={styles.container}>
-      <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
-
-      {/* Minimalistický header */}
+      {/* Header se šipkou zpět */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.menuButton}
-          onPress={openMenu}
+          onPress={() => router.back()}
         >
-          <Text style={styles.menuIcon}>☰</Text>
+          <Text style={styles.menuIcon}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Hledat produkty</Text>
         <View style={{ width: 36 }} />
