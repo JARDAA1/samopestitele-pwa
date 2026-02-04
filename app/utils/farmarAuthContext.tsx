@@ -31,6 +31,7 @@ interface FarmarAuthContextType {
     jmeno: string;
     email?: string;
     pin: string;
+    username?: string;
   }) => Promise<{ success: boolean; error?: string; farmNumber?: string }>;
   verifyPhone: (telefon: string, kod: string) => Promise<boolean>;
   sendSMSCode: (telefon: string) => Promise<boolean>;
@@ -238,81 +239,68 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     jmeno: string;
     email?: string;
     pin: string;
+    username?: string;
   }): Promise<{ success: boolean; error?: string; farmNumber?: string }> => {
     try {
-      // Pro WEB - mock registrace
-      if (Platform.OS === 'web') {
-        console.log('WEB: Mock registrace farmáře', data);
-
-        // Simulace zpoždění
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Vygenerujeme náhodný farm_number (mock)
-        const mockFarmNumber = generateMockFarmNumber();
-
-        // Vytvoříme mock farmáře
-        const newFarmar: Farmar = {
-          id: `farmar-${Date.now()}`,
-          telefon: data.telefon,
-          nazev_farmy: data.nazev_farmy,
-          jmeno: data.jmeno,
-          email: data.email,
-          farm_number: mockFarmNumber,
-        };
-
-        // Uložíme PIN a farmáře do AsyncStorage
-        await AsyncStorage.setItem('farmar_pin', data.pin);
-        await AsyncStorage.setItem(`farmar_pin_${mockFarmNumber}`, data.pin); // Pro přihlášení pomocí farm_number
-        await AsyncStorage.setItem('farmar_data', JSON.stringify(newFarmar));
-
-        // NEBUDEME automaticky přihlašovat - uživatel se musí přihlásit přes PIN
-        // await AsyncStorage.setItem('farmar_session', JSON.stringify(newFarmar));
-        // await AsyncStorage.setItem('auth_level', 'pin');
-        // setFarmar(newFarmar);
-        // setAuthLevel('pin');
-
-        return { success: true, farmNumber: mockFarmNumber };
-      }
-
-      // Pro NATIVE - reálná registrace přes Supabase
       const { supabase } = require('../../lib/supabase');
 
-      // 1. Zkontrolovat, jestli telefon už existuje
-      const { data: existing, error: checkError } = await supabase
-        .from('pestitele')
-        .select('id')
-        .eq('telefon', data.telefon)
-        .maybeSingle();
+      // 1. Zkontrolovat, jestli username už existuje
+      if (data.username) {
+        const { data: existingUsername } = await supabase
+          .from('pestitele')
+          .select('id')
+          .eq('username', data.username)
+          .maybeSingle();
 
-      if (existing) {
-        return { success: false, error: 'Tento telefon je již registrován' };
+        if (existingUsername) {
+          return { success: false, error: 'Toto uživatelské jméno je již obsazeno' };
+        }
       }
 
-      // 2. Zahashovat PIN
-      const pinHash = await hashPin(data.pin);
+      // 2. Zkontrolovat, jestli email už existuje (pokud je zadán)
+      if (data.email) {
+        const { data: existingEmail } = await supabase
+          .from('pestitele')
+          .select('id')
+          .eq('email', data.email)
+          .maybeSingle();
 
-      // 3. Vytvořit nového farmáře
+        if (existingEmail) {
+          return { success: false, error: 'Tento email je již registrován' };
+        }
+      }
+
+      // 3. Zahashovat heslo pomocí bcrypt
+      const passwordHash = await hashPin(data.pin);
+
+      // 4. Vygenerovat farm_number
+      const farmNumber = generateMockFarmNumber();
+
+      // 5. Vytvořit nového farmáře
       const { data: newFarmar, error: insertError } = await supabase
         .from('pestitele')
         .insert({
-          telefon: data.telefon,
+          telefon: data.telefon || '',
           nazev_farmy: data.nazev_farmy,
           jmeno: data.jmeno,
           email: data.email,
-          pin_hash: pinHash, // Zahashovaný PIN
+          username: data.username,
+          heslo_hash: passwordHash,
+          farm_number: farmNumber,
           phone_verified: false,
         })
         .select()
         .single();
 
       if (insertError) {
+        console.error('Insert error:', insertError);
         return { success: false, error: insertError.message };
       }
 
-      // 4. Uložit data lokálně (PIN NEukládáme, pouze hash v databázi)
+      // 6. Uložit data lokálně
       await AsyncStorage.setItem('farmar_data', JSON.stringify(newFarmar));
 
-      // 5. Vrátit farm_number který se automaticky vygeneroval triggerem v databázi
+      // 7. Vrátit farm_number
       return { success: true, farmNumber: newFarmar.farm_number };
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -320,21 +308,20 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
-  const loginWithPin = async (farmNumber: string, pin: string): Promise<{ success: boolean; error?: string; remainingAttempts?: number }> => {
+  const loginWithPin = async (usernameOrFarmNumber: string, password: string): Promise<{ success: boolean; error?: string; remainingAttempts?: number }> => {
     try {
-      console.log('🔐 loginWithPin called with farm_number:', farmNumber);
+      console.log('🔐 loginWithPin called with username/farm_number:', usernameOrFarmNumber);
 
-      // 1. Validace farm_number
-      if (!farmNumber || farmNumber.trim() === '') {
+      // 1. Validace vstupu
+      if (!usernameOrFarmNumber || usernameOrFarmNumber.trim() === '') {
         return {
           success: false,
-          error: 'Číslo farmy je povinné',
+          error: 'Uživatelské jméno je povinné',
         };
       }
 
       // 2. RATE LIMITING - Zkontrolovat, jestli není účet uzamčen
-      // Použijeme farm_number jako identifier pro rate limiting
-      const rateLimitCheck = await checkRateLimiting(`pin_login_${farmNumber}`);
+      const rateLimitCheck = await checkRateLimiting(`login_${usernameOrFarmNumber}`);
       if (rateLimitCheck.isLocked) {
         console.log('🔒 Účet je uzamčen kvůli příliš mnoha pokusům');
         return {
@@ -346,49 +333,48 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
       // 3. Pro WEB i NATIVE - kontrola proti Supabase databázi
       const { supabase } = require('../../lib/supabase');
 
-      console.log('🔑 Vyhledávám farmáře podle farm_number...');
+      console.log('🔑 Vyhledávám farmáře podle username nebo farm_number...');
 
-      // BEZPEČNOSTNÍ VYLEPŠENÍ: Načteme POUZE farmáře s konkrétním farm_number
-      // Tím se eliminuje problém s kolizí PINů!
+      // Hledáme podle username NEBO farm_number (zpětná kompatibilita)
       const { data: farmers, error } = await supabase
         .from('pestitele')
         .select('*')
-        .eq('farm_number', farmNumber)
+        .or(`username.eq.${usernameOrFarmNumber},farm_number.eq.${usernameOrFarmNumber}`)
         .not('heslo_hash', 'is', null);
 
       console.log('📊 Nalezeno farmářů:', farmers?.length || 0);
 
       if (error || !farmers || farmers.length === 0) {
-        console.log('❌ Farmář s tímto číslem farmy nenalezen');
+        console.log('❌ Farmář s tímto username/farm_number nenalezen');
         // Zaznamenat neúspěšný pokus
-        const result = await recordFailedAttempt(`pin_login_${farmNumber}`);
+        const result = await recordFailedAttempt(`login_${usernameOrFarmNumber}`);
         return {
           success: false,
-          error: 'Nesprávné číslo farmy nebo PIN',
+          error: 'Nesprávné uživatelské jméno nebo heslo',
           remainingAttempts: result.remainingAttempts,
         };
       }
 
-      // 4. HASHOVÁNÍ - Porovnat PIN s hashem
-      const farmer = farmers[0]; // Měl by být jen jeden (farm_number je UNIQUE)
-      const pinHash = farmer.heslo_hash;
+      // 4. HASHOVÁNÍ - Porovnat heslo s hashem
+      const farmer = farmers[0];
+      const passwordHash = farmer.heslo_hash;
 
       let isMatch = false;
 
-      // Pokud je to starý plain text PIN (pro zpětnou kompatibilitu)
-      if (pinHash === pin) {
-        console.log('⚠️ Nalezen plain text PIN - měl by být zahashován!');
+      // Pokud je to starý plain text (pro zpětnou kompatibilitu)
+      if (passwordHash === password) {
+        console.log('⚠️ Nalezen plain text heslo - mělo by být zahashováno!');
         isMatch = true;
       }
       // Pokud je to hash, porovnáme s bcrypt
-      else if (pinHash.startsWith('$2a$') || pinHash.startsWith('$2b$')) {
-        isMatch = await comparePin(pin, pinHash);
+      else if (passwordHash.startsWith('$2a$') || passwordHash.startsWith('$2b$')) {
+        isMatch = await comparePin(password, passwordHash);
       }
 
       if (!isMatch) {
-        console.log('❌ PIN nesouhlasí');
+        console.log('❌ Heslo nesouhlasí');
         // Zaznamenat neúspěšný pokus
-        const result = await recordFailedAttempt(`pin_login_${farmNumber}`);
+        const result = await recordFailedAttempt(`login_${usernameOrFarmNumber}`);
 
         if (result.isLocked) {
           return {
@@ -399,16 +385,16 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
 
         return {
           success: false,
-          error: 'Nesprávné číslo farmy nebo PIN',
+          error: 'Nesprávné uživatelské jméno nebo heslo',
           remainingAttempts: result.remainingAttempts,
         };
       }
 
       // 5. Úspěšné přihlášení
-      console.log('✅ PIN match! Logging in farmer:', farmer.nazev_farmy);
+      console.log('✅ Password match! Logging in farmer:', farmer.nazev_farmy);
 
       // Resetovat neúspěšné pokusy
-      await resetFailedAttempts(`pin_login_${farmNumber}`);
+      await resetFailedAttempts(`login_${usernameOrFarmNumber}`);
 
       // Nastavit session
       console.log('💾 Saving session for farmer:', farmer.nazev_farmy, 'ID:', farmer.id);
@@ -423,7 +409,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
       console.log('✅ Login successful!');
       return { success: true };
     } catch (error) {
-      console.error('❌ PIN login error:', error);
+      console.error('❌ Login error:', error);
       return {
         success: false,
         error: 'Chyba při přihlašování',

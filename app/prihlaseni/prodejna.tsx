@@ -6,8 +6,8 @@ import { useFarmarAuth } from '../utils/farmarAuthContext';
 export default function ProdejnaLoginScreen() {
   const { loginWithPin, isAuthenticated, authLevel } = useFarmarAuth();
 
-  const [farmNumber, setFarmNumber] = useState('');
-  const [pin, setPin] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showMagicLinkOption, setShowMagicLinkOption] = useState(false);
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
@@ -18,55 +18,27 @@ export default function ProdejnaLoginScreen() {
     }
   }, [isAuthenticated, authLevel]);
 
-  const handlePinLogin = async () => {
-    if (!farmNumber || farmNumber.trim() === '') {
+  const handleLogin = async () => {
+    if (!username || username.trim() === '') {
       if (Platform.OS === 'web') {
-        alert('Zadejte číslo farmy');
+        alert('Zadejte uživatelské jméno');
       } else {
-        Alert.alert('Chyba', 'Zadejte číslo farmy');
+        Alert.alert('Chyba', 'Zadejte uživatelské jméno');
       }
       return;
     }
 
-    if (pin.length < 4) {
+    if (!password || password.length < 8) {
       if (Platform.OS === 'web') {
-        alert('PIN musí mít minimálně 4 číslice');
+        alert('Heslo musí mít minimálně 8 znaků');
       } else {
-        Alert.alert('Chyba', 'PIN musí mít minimálně 4 číslice');
-      }
-      return;
-    }
-
-    if (!/^\d+$/.test(pin)) {
-      if (Platform.OS === 'web') {
-        alert('PIN může obsahovat pouze číslice');
-      } else {
-        Alert.alert('Chyba', 'PIN může obsahovat pouze číslice');
-      }
-      return;
-    }
-
-    const forbiddenPins = ['1234', '4321', '0000', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999', '12345678', '87654321'];
-    if (forbiddenPins.includes(pin)) {
-      if (Platform.OS === 'web') {
-        alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
-      } else {
-        Alert.alert('Chyba', 'Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
-      }
-      return;
-    }
-
-    if (/^(.)\1+$/.test(pin)) {
-      if (Platform.OS === 'web') {
-        alert('PIN nesmí obsahovat pouze stejné číslice.');
-      } else {
-        Alert.alert('Chyba', 'PIN nesmí obsahovat pouze stejné číslice.');
+        Alert.alert('Chyba', 'Heslo musí mít minimálně 8 znaků');
       }
       return;
     }
 
     setLoading(true);
-    const result = await loginWithPin(farmNumber, pin);
+    const result = await loginWithPin(username.trim(), password);
     setLoading(false);
 
     if (result.success) {
@@ -78,9 +50,9 @@ export default function ProdejnaLoginScreen() {
       }
 
       if (Platform.OS === 'web') {
-        alert(result.error || 'Nesprávný PIN');
+        alert(result.error || 'Nesprávné přihlašovací údaje');
       } else {
-        Alert.alert('Chyba', result.error || 'Nesprávný PIN');
+        Alert.alert('Chyba', result.error || 'Nesprávné přihlašovací údaje');
       }
       setShowMagicLinkOption(true);
     }
@@ -106,15 +78,15 @@ export default function ProdejnaLoginScreen() {
             <Text style={styles.iconText}>🏪</Text>
           </View>
 
-          <Text style={styles.title}>Přihlášení PIN kódem</Text>
+          <Text style={styles.title}>Přihlášení</Text>
           <Text style={styles.subtitle}>
-            Přihlaste se pomocí čísla farmy a PIN kódu
+            Přihlaste se pomocí uživatelského jména a hesla
           </Text>
 
           <View style={styles.infoBox}>
             <Text style={styles.infoTitle}>Bezpečný přístup</Text>
             <Text style={styles.infoText}>
-              Číslo farmy + PIN kód. Správa produktů a objednávek.
+              Správa produktů, objednávek a nastavení vaší farmy.
             </Text>
           </View>
 
@@ -127,34 +99,32 @@ export default function ProdejnaLoginScreen() {
             </View>
           )}
 
-          <Text style={styles.label}>Číslo farmy</Text>
+          <Text style={styles.label}>Uživatelské jméno</Text>
           <TextInput
             style={styles.input}
-            placeholder="Vaše číslo farmy"
+            placeholder="Vaše uživatelské jméno"
             placeholderTextColor="rgba(255,255,255,0.5)"
-            value={farmNumber}
-            onChangeText={(text) => setFarmNumber(text.toUpperCase())}
-            autoCapitalize="characters"
-            maxLength={4}
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            autoCorrect={false}
             autoFocus
           />
 
-          <Text style={styles.label}>PIN kód (min. 4 číslice)</Text>
+          <Text style={styles.label}>Heslo</Text>
           <TextInput
-            style={[styles.input, styles.pinInput]}
-            placeholder="••••"
+            style={styles.input}
+            placeholder="Vaše heslo"
             placeholderTextColor="rgba(255,255,255,0.5)"
-            value={pin}
-            onChangeText={setPin}
-            keyboardType="number-pad"
-            maxLength={12}
+            value={password}
+            onChangeText={setPassword}
             secureTextEntry
-            onSubmitEditing={handlePinLogin}
+            onSubmitEditing={handleLogin}
           />
 
           <TouchableOpacity
             style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
-            onPress={handlePinLogin}
+            onPress={handleLogin}
             disabled={loading}
           >
             <Text style={styles.primaryButtonText}>
@@ -167,7 +137,7 @@ export default function ProdejnaLoginScreen() {
             onPress={() => router.push('/zapomenute-udaje')}
           >
             <Text style={styles.forgotLinkText}>
-              Zapomenuté údaje?
+              Zapomenuté heslo?
             </Text>
           </TouchableOpacity>
 
@@ -175,7 +145,7 @@ export default function ProdejnaLoginScreen() {
             <View style={styles.fallbackContainer}>
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>ZAPOMNĚLI JSTE PIN?</Text>
+                <Text style={styles.dividerText}>ZAPOMNĚLI JSTE HESLO?</Text>
                 <View style={styles.dividerLine} />
               </View>
 
@@ -184,21 +154,27 @@ export default function ProdejnaLoginScreen() {
                 onPress={handleMagicLinkFallback}
               >
                 <Text style={styles.secondaryButtonText}>
-                  Přihlásit se emailem
+                  Obnovit heslo přes email
                 </Text>
               </TouchableOpacity>
 
               <Text style={styles.fallbackInfo}>
-                Po přihlášení emailem si můžete vytvořit nový PIN v nastavení.
+                Na váš email vám pošleme odkaz pro obnovení hesla.
               </Text>
             </View>
           )}
 
           <View style={styles.helpBox}>
-            <Text style={styles.helpTitle}>První přihlášení?</Text>
+            <Text style={styles.helpTitle}>Ještě nemáte účet?</Text>
             <Text style={styles.helpText}>
-              Pokud jste si ještě nevytvořili PIN, přihlaste se do Profilu pomocí emailu. Tam najdete své číslo farmy a můžete si vytvořit PIN.
+              Zaregistrujte se a získejte přístup k správě své farmy.
             </Text>
+            <TouchableOpacity
+              style={styles.registerLink}
+              onPress={() => router.push('/registrace')}
+            >
+              <Text style={styles.registerLinkText}>Vytvořit účet</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -334,12 +310,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: '#ffffff',
   },
-  pinInput: {
-    fontSize: 20,
-    textAlign: 'center',
-    letterSpacing: 6,
-    fontWeight: '700',
-  },
   primaryButton: {
     backgroundColor: '#FF9800',
     borderRadius: 10,
@@ -408,6 +378,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 10,
     marginTop: 20,
+    alignItems: 'center',
   },
   helpTitle: {
     fontSize: 13,
@@ -419,5 +390,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(255,255,255,0.7)',
     lineHeight: 18,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  registerLink: {
+    backgroundColor: 'rgba(255,152,0,0.3)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  registerLinkText: {
+    color: '#FF9800',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

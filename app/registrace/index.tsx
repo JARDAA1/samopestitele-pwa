@@ -1,31 +1,168 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { supabase } from '../../lib/supabase';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
+
+// Zakázané sekvence hesel
+const FORBIDDEN_PASSWORDS = [
+  '12345678', '123456789', '1234567890',
+  '11111111', '22222222', '33333333', '44444444', '55555555',
+  '66666666', '77777777', '88888888', '99999999', '00000000',
+  'abcdefgh', 'qwertyui', 'asdfghjk', 'password', 'heslo123',
+];
+
+// Validace hesla
+function validatePassword(password: string): { valid: boolean; error?: string } {
+  if (password.length < 8) {
+    return { valid: false, error: 'Heslo musí mít alespoň 8 znaků' };
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    return { valid: false, error: 'Heslo musí obsahovat alespoň jedno velké písmeno' };
+  }
+
+  if (!/[0-9]/.test(password)) {
+    return { valid: false, error: 'Heslo musí obsahovat alespoň jedno číslo' };
+  }
+
+  // Kontrola zakázaných sekvencí
+  const lowerPassword = password.toLowerCase();
+  for (const forbidden of FORBIDDEN_PASSWORDS) {
+    if (lowerPassword.includes(forbidden)) {
+      return { valid: false, error: 'Heslo nesmí obsahovat jednoduché sekvence (např. 12345678, 11111111)' };
+    }
+  }
+
+  // Kontrola opakujících se znaků (např. aaaaaaaa)
+  if (/(.)\1{5,}/.test(password)) {
+    return { valid: false, error: 'Heslo nesmí obsahovat více než 5 opakujících se znaků' };
+  }
+
+  return { valid: true };
+}
 
 export default function RegistraceScreen() {
   const { register } = useFarmarAuth();
 
   const [krok, setKrok] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [checkingUsername, setCheckingUsername] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [farmNumber, setFarmNumber] = useState('');
 
-  // KROK 1: Email a základní informace
+  // KROK 1: Uživatelské jméno
+  const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+
+  // KROK 2: Heslo
+  const [heslo, setHeslo] = useState('');
+  const [hesloPotvrdit, setHesloPotvrdit] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // KROK 3: Základní informace
   const [email, setEmail] = useState('');
   const [jmeno, setJmeno] = useState('');
   const [nazevFarmy, setNazevFarmy] = useState('');
 
-  // KROK 2: PIN (4-6 číslic)
-  const [heslo, setHeslo] = useState('');
-  const [hesloPotvrdit, setHesloPotvrdit] = useState('');
-
-  // KROK 3: Souhlasy
+  // KROK 4: Souhlasy
   const [souhlasGDPR, setSouhlasGDPR] = useState(false);
   const [souhlasOdpovednost, setSouhlasOdpovednost] = useState(false);
 
   /**
-   * KROK 1: Validace základních informací
+   * Kontrola unikátnosti uživatelského jména
+   */
+  const checkUsernameAvailability = async (name: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('pestitele')
+        .select('id')
+        .eq('username', name.toLowerCase())
+        .maybeSingle();
+
+      if (error) {
+        console.error('Chyba při kontrole uživatelského jména:', error);
+        return false;
+      }
+
+      return data === null; // Dostupné pokud neexistuje
+    } catch (error) {
+      console.error('Chyba:', error);
+      return false;
+    }
+  };
+
+  /**
+   * KROK 1: Validace uživatelského jména
+   */
+  const validovatUsername = async () => {
+    const cleanUsername = username.trim().toLowerCase();
+
+    if (!cleanUsername) {
+      setUsernameError('Zadejte uživatelské jméno');
+      return;
+    }
+
+    if (cleanUsername.length < 3) {
+      setUsernameError('Uživatelské jméno musí mít alespoň 3 znaky');
+      return;
+    }
+
+    if (cleanUsername.length > 20) {
+      setUsernameError('Uživatelské jméno může mít maximálně 20 znaků');
+      return;
+    }
+
+    if (!/^[a-z0-9_]+$/.test(cleanUsername)) {
+      setUsernameError('Uživatelské jméno může obsahovat pouze malá písmena, čísla a podtržítko');
+      return;
+    }
+
+    setCheckingUsername(true);
+    setUsernameError('');
+
+    const isAvailable = await checkUsernameAvailability(cleanUsername);
+
+    setCheckingUsername(false);
+
+    if (!isAvailable) {
+      setUsernameError('Toto uživatelské jméno je již obsazeno');
+      return;
+    }
+
+    setUsername(cleanUsername);
+    setKrok(2);
+  };
+
+  /**
+   * KROK 2: Validace hesla
+   */
+  const validovatHeslo = () => {
+    const passwordValidation = validatePassword(heslo);
+
+    if (!passwordValidation.valid) {
+      if (Platform.OS === 'web') {
+        alert(passwordValidation.error);
+      } else {
+        Alert.alert('Chyba', passwordValidation.error || 'Neplatné heslo');
+      }
+      return;
+    }
+
+    if (heslo !== hesloPotvrdit) {
+      if (Platform.OS === 'web') {
+        alert('Hesla se neshodují');
+      } else {
+        Alert.alert('Chyba', 'Hesla se neshodují');
+      }
+      return;
+    }
+
+    setKrok(3);
+  };
+
+  /**
+   * KROK 3: Validace základních informací
    */
   const validovatInfo = () => {
     const cleanEmail = email.trim().toLowerCase();
@@ -67,46 +204,11 @@ export default function RegistraceScreen() {
     }
 
     setEmail(cleanEmail);
-    setKrok(2);
+    setKrok(4);
   };
 
   /**
-   * KROK 2: Validace PINu
-   */
-  const validovatHeslo = () => {
-    // PIN musí mít 4-6 znaků a obsahovat pouze číslice
-    if (heslo.length < 4 || heslo.length > 6) {
-      if (Platform.OS === 'web') {
-        alert('PIN musí mít 4-6 číslic');
-      } else {
-        Alert.alert('Chyba', 'PIN musí mít 4-6 číslic');
-      }
-      return;
-    }
-
-    if (!/^\d+$/.test(heslo)) {
-      if (Platform.OS === 'web') {
-        alert('PIN může obsahovat pouze číslice');
-      } else {
-        Alert.alert('Chyba', 'PIN může obsahovat pouze číslice');
-      }
-      return;
-    }
-
-    if (heslo !== hesloPotvrdit) {
-      if (Platform.OS === 'web') {
-        alert('PINy se neshodují');
-      } else {
-        Alert.alert('Chyba', 'PINy se neshodují');
-      }
-      return;
-    }
-
-    setKrok(3);
-  };
-
-  /**
-   * KROK 3: Dokončení registrace
+   * KROK 4: Dokončení registrace
    */
   const registrovat = async () => {
     if (!souhlasGDPR) {
@@ -129,21 +231,19 @@ export default function RegistraceScreen() {
 
     setLoading(true);
     try {
-      // Pro nyní použijeme dummy telefon, protože register() funkce ho vyžaduje
-      // V budoucnu můžeme upravit register() funkci aby akceptovala email místo telefonu
       const result = await register({
         telefon: '+420000000000', // Dummy - nebude se používat
         nazev_farmy: nazevFarmy,
         jmeno,
         email: email,
-        pin: heslo,
+        pin: heslo, // Nyní je to heslo, ne PIN
+        username: username,
       });
 
       if (result.success && result.farmNumber) {
-        // Uložíme kód farmy a zobrazíme úspěšnou obrazovku
         setFarmNumber(result.farmNumber);
         setRegistrationSuccess(true);
-        setKrok(4); // Nový krok 4 - úspěšná registrace
+        setKrok(5);
       } else {
         if (Platform.OS === 'web') {
           alert(result.error || 'Nepodařilo se vytvořit účet');
@@ -175,103 +275,117 @@ export default function RegistraceScreen() {
       </View>
 
       {/* Progress bar */}
-      {krok < 4 && (
+      {krok < 5 && (
         <View style={styles.progressBar}>
           <View style={[styles.progressStep, krok >= 1 && styles.progressStepActive]} />
           <View style={[styles.progressStep, krok >= 2 && styles.progressStepActive]} />
           <View style={[styles.progressStep, krok >= 3 && styles.progressStepActive]} />
+          <View style={[styles.progressStep, krok >= 4 && styles.progressStepActive]} />
         </View>
       )}
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-        {/* KROK 1: Základní informace */}
+        {/* KROK 1: Uživatelské jméno */}
         {krok === 1 && (
           <View style={styles.card}>
             <View style={styles.iconContainer}>
-              <Text style={styles.iconText}>🌾</Text>
+              <Text style={styles.iconText}>👤</Text>
             </View>
-            <Text style={styles.stepTitle}>O vás a vaší farmě</Text>
-            <Text style={styles.stepSubtitle}>Krok 1 z 3</Text>
+            <Text style={styles.stepTitle}>Uživatelské jméno</Text>
+            <Text style={styles.stepSubtitle}>Krok 1 ze 4</Text>
             <Text style={styles.infoText}>
-              Pár základních informací, aby vás zákazníci mohli najít.
+              Vyberte si unikátní uživatelské jméno pro přihlášení.
             </Text>
 
-            <Text style={styles.label}>Email *</Text>
+            <Text style={styles.label}>Uživatelské jméno *</Text>
             <TextInput
-              style={styles.input}
-              placeholder="vas@email.cz"
+              style={[styles.input, usernameError ? styles.inputError : null]}
+              placeholder="např. jan_novak"
               placeholderTextColor="rgba(255,255,255,0.5)"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
+              value={username}
+              onChangeText={(text) => {
+                setUsername(text.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+                setUsernameError('');
+              }}
               autoCapitalize="none"
-              autoComplete="email"
+              autoCorrect={false}
               autoFocus
             />
-
-            <Text style={styles.label}>Vaše jméno *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="např. Jan Novák"
-              placeholderTextColor="rgba(255,255,255,0.5)"
-              value={jmeno}
-              onChangeText={setJmeno}
-            />
-
-            <Text style={styles.label}>Název farmy *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="např. Farma U Nováků"
-              placeholderTextColor="rgba(255,255,255,0.5)"
-              value={nazevFarmy}
-              onChangeText={setNazevFarmy}
-            />
+            {usernameError ? (
+              <Text style={styles.errorText}>{usernameError}</Text>
+            ) : (
+              <Text style={styles.hintText}>
+                Pouze malá písmena, čísla a podtržítko. 3-20 znaků.
+              </Text>
+            )}
 
             <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={validovatInfo}
+              style={[styles.primaryButton, checkingUsername && styles.primaryButtonDisabled]}
+              onPress={validovatUsername}
+              disabled={checkingUsername}
             >
-              <Text style={styles.primaryButtonText}>Pokračovat →</Text>
+              <Text style={styles.primaryButtonText}>
+                {checkingUsername ? 'Kontroluji...' : 'Pokračovat →'}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* KROK 2: Vytvoření PINu */}
+        {/* KROK 2: Heslo */}
         {krok === 2 && (
           <View style={styles.card}>
             <View style={styles.iconContainer}>
               <Text style={styles.iconText}>🔐</Text>
             </View>
-            <Text style={styles.stepTitle}>Vytvořte PIN</Text>
-            <Text style={styles.stepSubtitle}>Krok 2 z 3</Text>
+            <Text style={styles.stepTitle}>Vytvořte heslo</Text>
+            <Text style={styles.stepSubtitle}>Krok 2 ze 4</Text>
             <Text style={styles.infoText}>
-              PIN budete používat společně s kódem farmy pro rychlé přihlášení.
+              Heslo musí být bezpečné pro ochranu vašeho účtu.
             </Text>
 
-            <Text style={styles.label}>PIN (4-6 číslic) *</Text>
-            <TextInput
-              style={[styles.input, styles.pinInput]}
-              placeholder="••••"
-              placeholderTextColor="rgba(255,255,255,0.5)"
-              value={heslo}
-              onChangeText={setHeslo}
-              secureTextEntry
-              keyboardType="number-pad"
-              maxLength={6}
-              autoFocus
-            />
+            <Text style={styles.label}>Heslo *</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, styles.passwordInput]}
+                placeholder="Zadejte heslo"
+                placeholderTextColor="rgba(255,255,255,0.5)"
+                value={heslo}
+                onChangeText={setHeslo}
+                secureTextEntry={!showPassword}
+                autoFocus
+              />
+              <TouchableOpacity
+                style={styles.showPasswordBtn}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Text style={styles.showPasswordText}>{showPassword ? '🙈' : '👁️'}</Text>
+              </TouchableOpacity>
+            </View>
 
-            <Text style={styles.label}>Potvrďte PIN *</Text>
+            <View style={styles.passwordRules}>
+              <Text style={[styles.ruleText, heslo.length >= 8 && styles.ruleTextValid]}>
+                {heslo.length >= 8 ? '✓' : '○'} Minimálně 8 znaků
+              </Text>
+              <Text style={[styles.ruleText, /[A-Z]/.test(heslo) && styles.ruleTextValid]}>
+                {/[A-Z]/.test(heslo) ? '✓' : '○'} Alespoň jedno velké písmeno
+              </Text>
+              <Text style={[styles.ruleText, /[0-9]/.test(heslo) && styles.ruleTextValid]}>
+                {/[0-9]/.test(heslo) ? '✓' : '○'} Alespoň jedno číslo
+              </Text>
+            </View>
+
+            <Text style={styles.label}>Potvrďte heslo *</Text>
             <TextInput
-              style={[styles.input, styles.pinInput]}
-              placeholder="••••"
+              style={styles.input}
+              placeholder="Zadejte heslo znovu"
               placeholderTextColor="rgba(255,255,255,0.5)"
               value={hesloPotvrdit}
               onChangeText={setHesloPotvrdit}
-              secureTextEntry
-              keyboardType="number-pad"
-              maxLength={6}
+              secureTextEntry={!showPassword}
             />
+            {hesloPotvrdit && heslo !== hesloPotvrdit && (
+              <Text style={styles.errorText}>Hesla se neshodují</Text>
+            )}
 
             <View style={styles.buttonRow}>
               <TouchableOpacity
@@ -291,68 +405,86 @@ export default function RegistraceScreen() {
           </View>
         )}
 
-        {/* KROK 4: Úspěšná registrace */}
-        {krok === 4 && registrationSuccess && (
+        {/* KROK 3: Základní informace */}
+        {krok === 3 && (
           <View style={styles.card}>
-            <View style={styles.successIconContainer}>
-              <Text style={styles.successIconText}>✅</Text>
+            <View style={styles.iconContainer}>
+              <Text style={styles.iconText}>🌾</Text>
             </View>
-            <Text style={styles.successTitle}>Registrace úspěšná!</Text>
-            <Text style={styles.successSubtitle}>
-              Váš účet byl vytvořen. Uložte si prosím své přihlašovací údaje:
+            <Text style={styles.stepTitle}>O vás a vaší farmě</Text>
+            <Text style={styles.stepSubtitle}>Krok 3 ze 4</Text>
+            <Text style={styles.infoText}>
+              Základní informace, aby vás zákazníci mohli najít.
             </Text>
 
-            <View style={styles.credentialsBox}>
-              <Text style={styles.credentialsTitle}>Vaše přihlašovací údaje:</Text>
+            <Text style={styles.label}>Email *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="vas@email.cz"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              autoFocus
+            />
+            <Text style={styles.hintText}>
+              Pro obnovu zapomenutého hesla
+            </Text>
 
-              <View style={styles.credentialItem}>
-                <Text style={styles.credentialLabel}>Kód farmy:</Text>
-                <View style={styles.credentialValue}>
-                  <Text style={styles.credentialValueText}>{farmNumber}</Text>
-                </View>
-              </View>
+            <Text style={styles.label}>Vaše jméno *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="např. Jan Novák"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              value={jmeno}
+              onChangeText={setJmeno}
+            />
 
-              <View style={styles.credentialItem}>
-                <Text style={styles.credentialLabel}>PIN:</Text>
-                <View style={styles.credentialValue}>
-                  <Text style={styles.credentialValueText}>{heslo}</Text>
-                </View>
-              </View>
+            <Text style={styles.label}>Název farmy *</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="např. Farma U Nováků"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              value={nazevFarmy}
+              onChangeText={setNazevFarmy}
+            />
+
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={() => setKrok(2)}
+              >
+                <Text style={styles.secondaryButtonText}>← Zpět</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.primaryButton, { flex: 1, marginTop: 0 }]}
+                onPress={validovatInfo}
+              >
+                <Text style={styles.primaryButtonText}>Pokračovat →</Text>
+              </TouchableOpacity>
             </View>
-
-            <View style={styles.warningBox}>
-              <Text style={styles.warningTitle}>Důležité</Text>
-              <Text style={styles.warningText}>
-                • Uložte si tyto údaje na bezpečné místo{'\n'}
-                • Budete je potřebovat pro přihlášení{'\n'}
-                • Pokud zapomenete, lze je obnovit přes email na "Zapomenuté údaje"
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => router.replace('/prihlaseni/prodejna')}
-            >
-              <Text style={styles.primaryButtonText}>Přihlásit se →</Text>
-            </TouchableOpacity>
           </View>
         )}
 
-        {/* KROK 3: Shrnutí a souhlas */}
-        {krok === 3 && (
+        {/* KROK 4: Shrnutí a souhlas */}
+        {krok === 4 && (
           <View style={styles.card}>
             <View style={styles.iconContainer}>
               <Text style={styles.iconText}>✓</Text>
             </View>
             <Text style={styles.stepTitle}>Dokončení</Text>
-            <Text style={styles.stepSubtitle}>Krok 3 z 3</Text>
+            <Text style={styles.stepSubtitle}>Krok 4 ze 4</Text>
 
             <View style={styles.summary}>
               <Text style={styles.summaryTitle}>Shrnutí:</Text>
+              <Text style={styles.summaryItem}>👤 {username}</Text>
               <Text style={styles.summaryItem}>📧 {email}</Text>
-              <Text style={styles.summaryItem}>👤 {jmeno}</Text>
+              <Text style={styles.summaryItem}>🧑 {jmeno}</Text>
               <Text style={styles.summaryItem}>🌾 {nazevFarmy}</Text>
-              <Text style={styles.summaryItem}>🔐 PIN: {'•'.repeat(heslo.length)}</Text>
+              <Text style={styles.summaryItem}>🔐 Heslo: {'•'.repeat(8)}</Text>
             </View>
 
             {/* GDPR Souhlas */}
@@ -364,13 +496,13 @@ export default function RegistraceScreen() {
                 {souhlasGDPR && <Text style={styles.checkboxCheck}>✓</Text>}
               </View>
               <Text style={styles.checkboxText}>
-                Souhlasím se zpracováním osobních údajů (jméno, email, telefon, adresa) v souladu s nařízením GDPR pro účely poskytování služeb této platformy. Jsem si vědom/a svých práv na přístup, opravu, výmaz a přenositelnost údajů. Více informací v{' '}
+                Souhlasím se zpracováním osobních údajů v souladu s GDPR.{' '}
                 <Text
                   style={styles.checkboxLink}
-                  onPress={() => router.push('/podmínky')}
+                  onPress={() => router.push('/podminky')}
                 >
-                  Zásadách ochrany osobních údajů
-                </Text>.
+                  Zásady ochrany osobních údajů
+                </Text>
               </Text>
             </TouchableOpacity>
 
@@ -383,20 +515,20 @@ export default function RegistraceScreen() {
                 {souhlasOdpovednost && <Text style={styles.checkboxCheck}>✓</Text>}
               </View>
               <Text style={styles.checkboxText}>
-                Prohlašuji, že nesu plnou odpovědnost za pravdivost, kvalitu a bezpečnost nabízených produktů. Zavazuji se dodržovat platné hygienické a zdravotní standardy ČR při pěstování a prodeji potravin. Více informací v{' '}
+                Prohlašuji, že nesu odpovědnost za nabízené produkty.{' '}
                 <Text
                   style={styles.checkboxLink}
                   onPress={() => router.push('/podminky')}
                 >
-                  Obchodních podmínkách
-                </Text>.
+                  Obchodní podmínky
+                </Text>
               </Text>
             </TouchableOpacity>
 
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.secondaryButton}
-                onPress={() => setKrok(2)}
+                onPress={() => setKrok(3)}
               >
                 <Text style={styles.secondaryButtonText}>← Zpět</Text>
               </TouchableOpacity>
@@ -411,6 +543,53 @@ export default function RegistraceScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+          </View>
+        )}
+
+        {/* KROK 5: Úspěšná registrace */}
+        {krok === 5 && registrationSuccess && (
+          <View style={styles.card}>
+            <View style={styles.successIconContainer}>
+              <Text style={styles.successIconText}>✅</Text>
+            </View>
+            <Text style={styles.successTitle}>Registrace úspěšná!</Text>
+            <Text style={styles.successSubtitle}>
+              Váš účet byl vytvořen. Uložte si přihlašovací údaje:
+            </Text>
+
+            <View style={styles.credentialsBox}>
+              <Text style={styles.credentialsTitle}>Vaše přihlašovací údaje:</Text>
+
+              <View style={styles.credentialItem}>
+                <Text style={styles.credentialLabel}>Uživatelské jméno:</Text>
+                <View style={styles.credentialValue}>
+                  <Text style={styles.credentialValueText}>{username}</Text>
+                </View>
+              </View>
+
+              <View style={styles.credentialItem}>
+                <Text style={styles.credentialLabel}>Kód farmy:</Text>
+                <View style={styles.credentialValue}>
+                  <Text style={styles.credentialValueText}>{farmNumber}</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.warningBox}>
+              <Text style={styles.warningTitle}>Důležité</Text>
+              <Text style={styles.warningText}>
+                • Pro přihlášení použijte uživatelské jméno a heslo{'\n'}
+                • Kód farmy je váš unikátní identifikátor{'\n'}
+                • Zapomenuté heslo obnovíte přes email
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => router.replace('/prihlaseni')}
+            >
+              <Text style={styles.primaryButtonText}>Přihlásit se →</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -528,11 +707,44 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
     color: '#ffffff',
   },
-  pinInput: {
+  inputError: {
+    borderColor: '#ef5350',
+  },
+  hintText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 6,
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#ef5350',
+    marginTop: 6,
+  },
+  passwordContainer: {
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 50,
+  },
+  showPasswordBtn: {
+    position: 'absolute',
+    right: 14,
+    top: 14,
+  },
+  showPasswordText: {
     fontSize: 20,
-    textAlign: 'center',
-    letterSpacing: 6,
-    fontWeight: '700',
+  },
+  passwordRules: {
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  ruleText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    marginBottom: 4,
+  },
+  ruleTextValid: {
+    color: '#a5d6a7',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -680,11 +892,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
   credentialValueText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
     color: '#ffffff',
     textAlign: 'center',
-    letterSpacing: 4,
   },
   warningBox: {
     backgroundColor: 'rgba(255,152,0,0.2)',
