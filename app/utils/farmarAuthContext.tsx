@@ -281,6 +281,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
         .from('pestitele')
         .insert({
           telefon: data.telefon || '',
+          nazev: data.nazev_farmy,
           nazev_farmy: data.nazev_farmy,
           jmeno: data.jmeno,
           email: data.email,
