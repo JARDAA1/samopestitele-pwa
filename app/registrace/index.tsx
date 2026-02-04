@@ -763,7 +763,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 10,
     fontWeight: '600',
   },
   secondaryButton: {
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 10,
     fontWeight: '600',
   },
   summary: {
