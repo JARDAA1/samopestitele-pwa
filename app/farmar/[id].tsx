@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Farmar {
   id: string;
@@ -219,19 +220,19 @@ export default function FarmarDetailScreen() {
           <View style={styles.contactRow}>
             {farmar.telefon && (
               <TouchableOpacity style={styles.contactBtn} onPress={handleCall}>
-                <Text style={styles.contactBtnIcon}>📞</Text>
+                <Ionicons name="call" size={16} color="#ffffff" />
                 <Text style={styles.contactBtnText}>Zavolat</Text>
               </TouchableOpacity>
             )}
             {farmar.email && (
               <TouchableOpacity style={styles.contactBtn} onPress={handleEmail}>
-                <Text style={styles.contactBtnIcon}>✉️</Text>
+                <Ionicons name="mail" size={16} color="#ffffff" />
                 <Text style={styles.contactBtnText}>Email</Text>
               </TouchableOpacity>
             )}
             {farmar.gps_lat && farmar.gps_lng && (
               <TouchableOpacity style={styles.contactBtn} onPress={handleNavigate}>
-                <Text style={styles.contactBtnIcon}>🗺️</Text>
+                <Ionicons name="navigate" size={16} color="#ffffff" />
                 <Text style={styles.contactBtnText}>Navigovat</Text>
               </TouchableOpacity>
             )}
@@ -459,7 +460,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   contactBtnIcon: {
-    fontSize: 14,
+    marginRight: 4,
   },
   contactBtnText: {
     fontSize: 12,

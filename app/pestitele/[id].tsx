@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DrawerMenu } from '../utils/DrawerMenu';
 import { useDrawerMenu } from '../utils/useDrawerMenu';
 import { responsive, spacing, fontSize, borderRadius } from '../utils/responsive';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Pestitel {
   id: number;
@@ -381,7 +382,7 @@ export default function PestitelDetailScreen() {
             style={styles.navigateButton}
             onPress={handleNavigate}
           >
-            <Text style={styles.navigateButtonIcon}>📍</Text>
+            <Ionicons name="navigate" size={24} color="#ffffff" style={styles.navigateButtonIcon} />
             <Text style={styles.navigateButtonText}>Navigovat</Text>
           </TouchableOpacity>
         )}
@@ -569,7 +570,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   navigateButtonIcon: {
-    fontSize: 24,
     marginRight: 8,
   },
   navigateButtonText: {
