@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, ScrollView, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
@@ -121,7 +121,11 @@ export default function ProfilLoginScreen() {
           // PŘIHLÁŠENÍ USERNAME + HESLO
           <View style={styles.card}>
             <View style={styles.iconContainer}>
-              <Text style={styles.iconText}>👤</Text>
+              <Image
+                source={require('../../assets/images/profil-icon.png')}
+                style={styles.iconImage}
+                resizeMode="contain"
+              />
             </View>
 
             <Text style={styles.title}>Přihlášení</Text>
@@ -342,6 +346,10 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 28,
+  },
+  iconImage: {
+    width: 40,
+    height: 40,
   },
   title: {
     fontSize: 20,

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { router } from 'expo-router';
 
 export default function PrihlaseniScreen() {
@@ -19,7 +19,11 @@ export default function PrihlaseniScreen() {
             style={styles.sectionCard}
             onPress={() => router.push('/prihlaseni/profil')}
           >
-            <Text style={styles.sectionEmoji}>👤</Text>
+            <Image
+              source={require('../../assets/images/profil-icon.png')}
+              style={styles.sectionIcon}
+              resizeMode="contain"
+            />
             <Text style={styles.sectionTitle}>Profil</Text>
             <Text style={styles.sectionArrow}>›</Text>
           </TouchableOpacity>
@@ -122,6 +126,11 @@ const styles = StyleSheet.create({
   },
   sectionEmoji: {
     fontSize: 24,
+    marginRight: 14,
+  },
+  sectionIcon: {
+    width: 28,
+    height: 28,
     marginRight: 14,
   },
   sectionTitle: {

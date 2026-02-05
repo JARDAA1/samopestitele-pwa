@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
 import { router } from 'expo-router';
 
 export default function JsemFarmarScreen() {
@@ -42,7 +42,11 @@ export default function JsemFarmarScreen() {
             style={[styles.loginSectionCard, styles.loginSectionCardPrimary]}
             onPress={() => router.push('/prihlaseni/profil')}
           >
-            <Text style={styles.loginSectionEmoji}>👤</Text>
+            <Image
+              source={require('../../assets/images/profil-icon.png')}
+              style={styles.loginSectionIcon}
+              resizeMode="contain"
+            />
             <Text style={styles.loginSectionTitle}>Profil</Text>
             <Text style={styles.loginSectionSubtitle}>Kompletní přístup</Text>
           </TouchableOpacity>
@@ -194,6 +198,11 @@ const styles = StyleSheet.create({
   },
   loginSectionEmoji: {
     fontSize: 28,
+    marginBottom: 6
+  },
+  loginSectionIcon: {
+    width: 32,
+    height: 32,
     marginBottom: 6
   },
   loginSectionTitle: {
