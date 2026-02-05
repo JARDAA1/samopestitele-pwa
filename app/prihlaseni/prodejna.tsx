@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, ScrollView, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
@@ -75,7 +75,11 @@ export default function ProdejnaLoginScreen() {
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <View style={styles.iconContainer}>
-            <Text style={styles.iconText}>🏪</Text>
+            <Image
+              source={require('../../assets/images/prodejna-icon.png')}
+              style={styles.iconImage}
+              resizeMode="contain"
+            />
           </View>
 
           <Text style={styles.title}>Přihlášení</Text>
@@ -240,6 +244,10 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 28,
+  },
+  iconImage: {
+    width: 160,
+    height: 160,
   },
   title: {
     fontSize: 20,

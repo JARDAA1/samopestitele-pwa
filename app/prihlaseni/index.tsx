@@ -33,7 +33,11 @@ export default function PrihlaseniScreen() {
             style={styles.sectionCard}
             onPress={() => router.push('/prihlaseni/prodejna')}
           >
-            <Text style={styles.sectionEmoji}>🏪</Text>
+            <Image
+              source={require('../../assets/images/prodejna-icon.png')}
+              style={styles.sectionIcon}
+              resizeMode="contain"
+            />
             <Text style={styles.sectionTitle}>Moje prodejna</Text>
             <Text style={styles.sectionArrow}>›</Text>
           </TouchableOpacity>

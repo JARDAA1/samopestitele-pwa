@@ -56,7 +56,11 @@ export default function JsemFarmarScreen() {
             style={[styles.loginSectionCard, styles.loginSectionCardSecondary]}
             onPress={() => router.push('/prihlaseni/prodejna')}
           >
-            <Text style={styles.loginSectionEmoji}>🏪</Text>
+            <Image
+              source={require('../../assets/images/prodejna-icon.png')}
+              style={styles.loginSectionIcon}
+              resizeMode="contain"
+            />
             <Text style={styles.loginSectionTitle}>Moje prodejna</Text>
             <Text style={styles.loginSectionSubtitle}>Správa produktů</Text>
           </TouchableOpacity>
