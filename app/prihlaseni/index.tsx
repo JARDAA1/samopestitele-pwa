@@ -129,8 +129,8 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   sectionIcon: {
-    width: 28,
-    height: 28,
+    width: 56,
+    height: 56,
     marginRight: 14,
   },
   sectionTitle: {

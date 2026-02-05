@@ -201,8 +201,8 @@ const styles = StyleSheet.create({
     marginBottom: 6
   },
   loginSectionIcon: {
-    width: 32,
-    height: 32,
+    width: 64,
+    height: 64,
     marginBottom: 6
   },
   loginSectionTitle: {
