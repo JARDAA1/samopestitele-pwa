@@ -1,23 +1,17 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
 
 interface Objednavka {
   id: string;
-  zakaznik_jmeno: string;
-  zakaznik_telefon: string;
-  celkova_cena: number;
   stav: string;
-  created_at: string;
-  poznamka: string | null;
-  zpusob_kontaktu: string;
+  datum_vyzvednutí?: string;
 }
 
 interface ObjednavkaPolozka {
   id: string;
   nazev_produktu: string;
-  cena: number;
   mnozstvi: number;
   jednotka: string;
 }
@@ -39,13 +33,13 @@ export default function DetailObjednavkyScreen() {
       // Načti objednávku
       const { data: objednavkaData, error: objednavkaError } = await supabase
         .from('objednavky')
-        .select('*')
+        .select('id, stav, datum_vyzvednutí')
         .eq('id', objednavkaId)
         .single();
 
       if (objednavkaError) {
         console.error('Chyba při načítání objednávky:', objednavkaError);
-        Alert.alert('Chyba', 'Nepodařilo se načíst objednávku');
+        showAlert('Chyba', 'Nepodařilo se načíst objednávku');
         router.back();
         return;
       }
@@ -55,7 +49,7 @@ export default function DetailObjednavkyScreen() {
       // Načti položky objednávky
       const { data: polozkyData, error: polozkyError } = await supabase
         .from('objednavky_polozky')
-        .select('*')
+        .select('id, nazev_produktu, mnozstvi, jednotka')
         .eq('objednavka_id', objednavkaId);
 
       if (polozkyError) {
@@ -65,20 +59,27 @@ export default function DetailObjednavkyScreen() {
       }
     } catch (error) {
       console.error('Chyba:', error);
-      Alert.alert('Chyba', 'Nepodařilo se načíst data');
+      showAlert('Chyba', 'Nepodařilo se načíst data');
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDatum = (datum: string) => {
+  const showAlert = (title: string, message: string) => {
+    if (Platform.OS === 'web') {
+      alert(`${title}: ${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
+  const formatDatum = (datum?: string) => {
+    if (!datum) return 'Neuvedeno';
     const d = new Date(datum);
     return d.toLocaleDateString('cs-CZ', {
       day: 'numeric',
-      month: 'long',
+      month: 'numeric',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     });
   };
 
@@ -89,7 +90,7 @@ export default function DetailObjednavkyScreen() {
       case 'zpracovana':
         return '#FF9800';
       case 'dokoncena':
-        return '#7B1FA2';
+        return '#4CAF50';
       case 'zrusena':
         return '#F44336';
       default:
@@ -120,15 +121,15 @@ export default function DetailObjednavkyScreen() {
         .eq('id', objednavkaId);
 
       if (error) {
-        Alert.alert('Chyba', 'Nepodařilo se změnit stav objednávky');
+        showAlert('Chyba', 'Nepodařilo se změnit stav objednávky');
         return;
       }
 
       setObjednavka(prev => prev ? { ...prev, stav: novyStav } : null);
-      Alert.alert('Úspěch', `Stav změněn na "${getStavText(novyStav)}"`);
+      showAlert('Úspěch', `Stav změněn na "${getStavText(novyStav)}"`);
     } catch (error) {
       console.error('Chyba při změně stavu:', error);
-      Alert.alert('Chyba', 'Nepodařilo se změnit stav');
+      showAlert('Chyba', 'Nepodařilo se změnit stav');
     }
   };
 
@@ -164,26 +165,23 @@ export default function DetailObjednavkyScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header s informacemi o zákazníkovi - VŽDY VIDITELNÝ */}
-      <View style={styles.stickyHeader}>
+      {/* Header */}
+      <View style={styles.header}>
         <TouchableOpacity onPress={() => router.push('/moje-farma/objednavky')} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Zpět</Text>
         </TouchableOpacity>
-        <View style={styles.customerHeader}>
-          <Text style={styles.customerHeaderName}>👤 {objednavka.zakaznik_jmeno}</Text>
-          <Text style={styles.customerHeaderPhone}>📱 {objednavka.zakaznik_telefon}</Text>
-        </View>
+        <Text style={styles.headerTitle}>Detail objednávky</Text>
       </View>
 
       <ScrollView style={styles.content}>
         {/* Stav objednávky */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>📋 Stav objednávky</Text>
+            <Text style={styles.cardTitle}>Stav objednávky</Text>
             <View
               style={[
                 styles.statusBadge,
-                { backgroundColor: getStavBarva(objednavka.stav) + '20' }
+                { backgroundColor: getStavBarva(objednavka.stav) + '30' }
               ]}
             >
               <Text
@@ -211,7 +209,7 @@ export default function DetailObjednavkyScreen() {
               <Text style={styles.statusButtonText}>Zpracovaná</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.statusButton, { backgroundColor: '#7B1FA2' }]}
+              style={[styles.statusButton, { backgroundColor: '#4CAF50' }]}
               onPress={() => zmeniStav('dokoncena')}
             >
               <Text style={styles.statusButtonText}>Dokončená</Text>
@@ -219,47 +217,32 @@ export default function DetailObjednavkyScreen() {
           </View>
         </View>
 
-        {/* Informace o objednávce */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>ℹ️ Informace</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Vytvořeno:</Text>
-            <Text style={styles.infoValue}>{formatDatum(objednavka.created_at)}</Text>
+        {/* Datum vyzvednutí */}
+        {objednavka.datum_vyzvednutí && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Datum vyzvednutí</Text>
+            <Text style={styles.vyzvednutiText}>
+              {formatDatum(objednavka.datum_vyzvednutí)}
+            </Text>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Způsob kontaktu:</Text>
-            <Text style={styles.infoValue}>{objednavka.zpusob_kontaktu}</Text>
-          </View>
-          {objednavka.poznamka && (
-            <View style={styles.noteBox}>
-              <Text style={styles.noteLabel}>💬 Poznámka:</Text>
-              <Text style={styles.noteText}>{objednavka.poznamka}</Text>
-            </View>
-          )}
-        </View>
+        )}
 
-        {/* Objednané produkty */}
+        {/* Seznam položek */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🧺 Objednané produkty ({polozky.length})</Text>
+          <Text style={styles.cardTitle}>Objednané produkty ({polozky.length})</Text>
 
-          {polozky.map((polozka) => (
-            <View key={polozka.id} style={styles.productItem}>
-              <View style={styles.productInfo}>
+          {polozky.length === 0 ? (
+            <Text style={styles.emptyText}>Žádné položky</Text>
+          ) : (
+            polozky.map((polozka) => (
+              <View key={polozka.id} style={styles.productItem}>
                 <Text style={styles.productName}>{polozka.nazev_produktu}</Text>
                 <Text style={styles.productQuantity}>
-                  {polozka.mnozstvi} {polozka.jednotka} × {polozka.cena} Kč
+                  {polozka.mnozstvi} {polozka.jednotka}
                 </Text>
               </View>
-              <Text style={styles.productTotal}>
-                {(polozka.mnozstvi * polozka.cena).toFixed(2)} Kč
-              </Text>
-            </View>
-          ))}
-
-          <View style={styles.totalBox}>
-            <Text style={styles.totalLabel}>Celková cena:</Text>
-            <Text style={styles.totalPrice}>{objednavka.celkova_cena} Kč</Text>
-          </View>
+            ))
+          )}
         </View>
       </ScrollView>
     </View>
@@ -271,7 +254,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#6A1B9A'
   },
-  stickyHeader: {
+  header: {
     backgroundColor: '#6A1B9A',
     paddingTop: 44,
     paddingBottom: 12,
@@ -287,17 +270,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600'
   },
-  customerHeader: {
-    gap: 4
-  },
-  customerHeaderName: {
+  headerTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF'
-  },
-  customerHeaderPhone: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)'
   },
   loadingContainer: {
     flex: 1,
@@ -310,13 +286,14 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)'
   },
   content: {
-    flex: 1
+    flex: 1,
+    padding: 12
   },
   card: {
     backgroundColor: 'rgba(255,255,255,0.15)',
-    margin: 12,
     padding: 16,
     borderRadius: 12,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
   },
@@ -333,121 +310,58 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 6
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: '600'
+    fontSize: 13,
+    fontWeight: '700'
   },
   statusButtons: {
     flexDirection: 'row',
     gap: 8,
-    flexWrap: 'wrap'
   },
   statusButton: {
     flex: 1,
-    minWidth: 90,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center'
   },
   statusButtonText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600'
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.7)'
-  },
-  infoValue: {
-    fontSize: 13,
-    color: '#ffffff',
-    fontWeight: '500'
-  },
-  noteBox: {
-    marginTop: 10,
-    padding: 12,
-    backgroundColor: 'rgba(255,152,0,0.2)',
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#FF9800'
-  },
-  noteLabel: {
-    fontSize: 12,
-    fontWeight: '600',
+  vyzvednutiText: {
+    fontSize: 18,
+    fontWeight: '700',
     color: '#FF9800',
-    marginBottom: 4
+    marginTop: -8,
   },
-  noteText: {
-    fontSize: 13,
-    color: '#ffffff',
-    lineHeight: 18
+  emptyText: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
+    marginTop: -8,
   },
   productItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)'
   },
-  productInfo: {
-    flex: 1,
-    gap: 4
-  },
   productName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#ffffff'
+    color: '#ffffff',
+    flex: 1,
   },
   productQuantity: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.7)'
-  },
-  productTotal: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
     color: '#FF9800'
-  },
-  totalBox: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.2)'
-  },
-  totalLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff'
-  },
-  totalPrice: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FF9800'
-  },
-  header: {
-    backgroundColor: '#6A1B9A',
-    paddingTop: 44,
-    paddingBottom: 8,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF'
   }
 });

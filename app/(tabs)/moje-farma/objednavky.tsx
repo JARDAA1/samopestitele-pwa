@@ -6,12 +6,9 @@ import { useFarmarAuth } from '../../utils/farmarAuthContext';
 
 interface Objednavka {
   id: string;
-  zakaznik_jmeno: string;
-  zakaznik_telefon: string;
-  celkova_cena: number;
   stav: string;
   created_at: string;
-  poznamka: string | null;
+  datum_vyzvednutí?: string;
 }
 
 export default function ObjednavkyScreen() {
@@ -32,11 +29,11 @@ export default function ObjednavkyScreen() {
         return;
       }
 
-      const { data, error} = await supabase
+      const { data, error } = await supabase
         .from('objednavky')
-        .select('*')
+        .select('id, stav, created_at, datum_vyzvednutí')
         .eq('pestitel_id', farmar.id)
-        .order('created_at', { ascending: false});
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Chyba při načítání objednávek:', error);
@@ -51,14 +48,13 @@ export default function ObjednavkyScreen() {
     }
   };
 
-  const formatDatum = (datum: string) => {
+  const formatDatum = (datum?: string) => {
+    if (!datum) return 'Neuvedeno';
     const d = new Date(datum);
     return d.toLocaleDateString('cs-CZ', {
       day: 'numeric',
       month: 'numeric',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     });
   };
 
@@ -69,7 +65,7 @@ export default function ObjednavkyScreen() {
       case 'zpracovana':
         return '#FF9800';
       case 'dokoncena':
-        return '#7B1FA2';
+        return '#4CAF50';
       case 'zrusena':
         return '#F44336';
       default:
@@ -117,7 +113,7 @@ export default function ObjednavkyScreen() {
               </Text>
             </View>
           ) : (
-            objednavky.map((objednavka) => (
+            objednavky.map((objednavka, index) => (
               <TouchableOpacity
                 key={objednavka.id}
                 style={styles.orderCard}
@@ -128,19 +124,19 @@ export default function ObjednavkyScreen() {
                   })
                 }
               >
-                <View style={styles.orderHeader}>
-                  <View style={styles.customerInfo}>
-                    <Text style={styles.customerName}>
-                      👤 {objednavka.zakaznik_jmeno}
+                <View style={styles.orderRow}>
+                  <View style={styles.orderInfo}>
+                    <Text style={styles.customerNumber}>
+                      Zákazník #{objednavky.length - index}
                     </Text>
-                    <Text style={styles.customerPhone}>
-                      📱 {objednavka.zakaznik_telefon}
+                    <Text style={styles.orderDate}>
+                      Vyzvednutí: {formatDatum(objednavka.datum_vyzvednutí)}
                     </Text>
                   </View>
                   <View
                     style={[
                       styles.statusBadge,
-                      { backgroundColor: getStavBarva(objednavka.stav) + '20' }
+                      { backgroundColor: getStavBarva(objednavka.stav) + '30' }
                     ]}
                   >
                     <Text
@@ -153,21 +149,6 @@ export default function ObjednavkyScreen() {
                     </Text>
                   </View>
                 </View>
-
-                <View style={styles.orderFooter}>
-                  <Text style={styles.orderDate}>
-                    📅 {formatDatum(objednavka.created_at)}
-                  </Text>
-                  <Text style={styles.orderPrice}>
-                    {objednavka.celkova_cena} Kč
-                  </Text>
-                </View>
-
-                {objednavka.poznamka && (
-                  <Text style={styles.orderNote} numberOfLines={2}>
-                    💬 {objednavka.poznamka}
-                  </Text>
-                )}
               </TouchableOpacity>
             ))
           )}
@@ -246,58 +227,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)'
   },
-  orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 10,
-    gap: 8
-  },
-  customerInfo: {
-    flex: 1,
-    gap: 4
-  },
-  customerName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#ffffff'
-  },
-  customerPhone: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.7)',
-    fontWeight: '500'
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: 'bold'
-  },
-  orderFooter: {
+  orderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)'
+  },
+  orderInfo: {
+    flex: 1,
+    gap: 4
+  },
+  customerNumber: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffffff'
   },
   orderDate: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.6)'
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)'
   },
-  orderPrice: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#FF9800'
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6
   },
-  orderNote: {
+  statusText: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 8,
-    fontStyle: 'italic',
-    lineHeight: 17
+    fontWeight: '700'
   }
 });
