@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput, ActivityIndicator, Image, Platform } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -178,28 +178,44 @@ function MojeProdejnaScreenContent() {
 
   const handleOdhlasit = async () => {
     console.log('🔴 handleOdhlasit CALLED!');
-    Alert.alert(
-      'Odhlásit se?',
-      'Opravdu se chcete odhlásit?',
-      [
-        {
-          text: 'Zrušit',
-          style: 'cancel',
-          onPress: () => console.log('User cancelled logout')
-        },
-        {
-          text: 'Odhlásit',
-          style: 'destructive',
-          onPress: async () => {
-            console.log('🔴 User confirmed logout - calling logout()...');
-            await logout();
-            console.log('🔴 Logout complete - redirecting...');
-            router.replace('/prihlaseni');
-            console.log('🔴 Redirect called');
+
+    if (Platform.OS === 'web') {
+      // Na webu použijeme window.confirm
+      const confirmed = window.confirm('Opravdu se chcete odhlásit?');
+      if (confirmed) {
+        console.log('🔴 User confirmed logout - calling logout()...');
+        await logout();
+        console.log('🔴 Logout complete - redirecting...');
+        router.replace('/prihlaseni');
+        console.log('🔴 Redirect called');
+      } else {
+        console.log('User cancelled logout');
+      }
+    } else {
+      // Na nativních platformách použijeme Alert
+      Alert.alert(
+        'Odhlásit se?',
+        'Opravdu se chcete odhlásit?',
+        [
+          {
+            text: 'Zrušit',
+            style: 'cancel',
+            onPress: () => console.log('User cancelled logout')
+          },
+          {
+            text: 'Odhlásit',
+            style: 'destructive',
+            onPress: async () => {
+              console.log('🔴 User confirmed logout - calling logout()...');
+              await logout();
+              console.log('🔴 Logout complete - redirecting...');
+              router.replace('/prihlaseni');
+              console.log('🔴 Redirect called');
+            }
           }
-        }
-      ]
-    );
+        ]
+      );
+    }
   };
 
   if (loading) {
