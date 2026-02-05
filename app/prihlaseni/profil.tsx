@@ -348,8 +348,8 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   iconImage: {
-    width: 80,
-    height: 80,
+    width: 160,
+    height: 160,
   },
   title: {
     fontSize: 20,
