@@ -47,7 +47,11 @@ export default function PrihlaseniScreen() {
             style={styles.sectionCard}
             onPress={() => router.push('/prihlaseni/stanky')}
           >
-            <Text style={styles.sectionEmoji}>🏕️</Text>
+            <Image
+              source={require('../../assets/images/stanek-icon.png')}
+              style={styles.sectionIcon}
+              resizeMode="contain"
+            />
             <Text style={styles.sectionTitle}>Moje stánky</Text>
             <Text style={styles.sectionArrow}>›</Text>
           </TouchableOpacity>

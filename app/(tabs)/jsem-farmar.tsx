@@ -70,7 +70,11 @@ export default function JsemFarmarScreen() {
             style={[styles.loginSectionCard, styles.loginSectionCardTertiary]}
             onPress={() => router.push('/prihlaseni/stanky')}
           >
-            <Text style={styles.loginSectionEmoji}>🎪</Text>
+            <Image
+              source={require('../../assets/images/stanek-icon.png')}
+              style={styles.loginSectionIcon}
+              resizeMode="contain"
+            />
             <Text style={styles.loginSectionTitle}>Moje stánky</Text>
             <Text style={styles.loginSectionSubtitle}>Správa stánků</Text>
           </TouchableOpacity>
