@@ -35,9 +35,27 @@ interface SeznamItem {
   jednotka: string | null;
   mnozstvi: number;
   mnozstviJednotka: string;
+  pridanoV: string; // ISO timestamp kdy bylo přidáno
+  preferovaneVyzvednutiDatum?: string; // volitelné preferované datum vyzvednutí
+  preferovaneVyzvednutiCas?: string; // volitelný preferovaný čas vyzvednutí
 }
 
 const JEDNOTKY = ['ks', 'kg', 'l', 'g', 'ml'];
+
+// Helper pro formátování data
+const formatDate = (date: Date) => {
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
+};
+
+// Helper pro formátování času
+const formatTime = (date: Date) => {
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
 
 export default function FarmarDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -51,6 +69,11 @@ export default function FarmarDetailScreen() {
   const [selectedProdukt, setSelectedProdukt] = useState<Produkt | null>(null);
   const [mnozstvi, setMnozstvi] = useState('1');
   const [vybranaJednotka, setVybranaJednotka] = useState('ks');
+
+  // Preferované vyzvednutí
+  const [chciVyzvednutiTermin, setChciVyzvednutiTermin] = useState(false);
+  const [vyzvednutiDatum, setVyzvednutiDatum] = useState('');
+  const [vyzvednutiCas, setVyzvednutiCas] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -103,6 +126,10 @@ export default function FarmarDetailScreen() {
       } else {
         setVybranaJednotka('ks');
       }
+      // Reset preferovaného vyzvednutí
+      setChciVyzvednutiTermin(false);
+      setVyzvednutiDatum('');
+      setVyzvednutiCas('');
       setModalVisible(true);
     }
   };
@@ -122,6 +149,9 @@ export default function FarmarDetailScreen() {
       jednotka: selectedProdukt.jednotka,
       mnozstvi: mnozstviNum,
       mnozstviJednotka: vybranaJednotka,
+      pridanoV: new Date().toISOString(),
+      preferovaneVyzvednutiDatum: chciVyzvednutiTermin && vyzvednutiDatum ? vyzvednutiDatum : undefined,
+      preferovaneVyzvednutiCas: chciVyzvednutiTermin && vyzvednutiCas ? vyzvednutiCas : undefined,
     };
 
     const newSeznam = [...seznam, newItem];
@@ -421,6 +451,44 @@ export default function FarmarDetailScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+
+            {/* Preferované vyzvednutí */}
+            <TouchableOpacity
+              style={styles.vyzvednutiCheckbox}
+              onPress={() => setChciVyzvednutiTermin(!chciVyzvednutiTermin)}
+            >
+              <View style={[styles.checkbox, chciVyzvednutiTermin && styles.checkboxActive]}>
+                {chciVyzvednutiTermin && <Text style={styles.checkboxMark}>✓</Text>}
+              </View>
+              <Text style={styles.vyzvednutiCheckboxLabel}>
+                Chci zadat preferovaný termín vyzvednutí
+              </Text>
+            </TouchableOpacity>
+
+            {chciVyzvednutiTermin && (
+              <View style={styles.vyzvednutiInputsRow}>
+                <View style={styles.vyzvednutiInputContainer}>
+                  <Text style={styles.vyzvednutiInputLabel}>Datum:</Text>
+                  <TextInput
+                    style={styles.vyzvednutiInput}
+                    placeholder="např. 15.2.2026"
+                    placeholderTextColor="#999"
+                    value={vyzvednutiDatum}
+                    onChangeText={setVyzvednutiDatum}
+                  />
+                </View>
+                <View style={styles.vyzvednutiInputContainer}>
+                  <Text style={styles.vyzvednutiInputLabel}>Čas:</Text>
+                  <TextInput
+                    style={styles.vyzvednutiInput}
+                    placeholder="např. 14:00"
+                    placeholderTextColor="#999"
+                    value={vyzvednutiCas}
+                    onChangeText={setVyzvednutiCas}
+                  />
+                </View>
+              </View>
+            )}
 
             <View style={styles.modalActions}>
               <TouchableOpacity
@@ -822,5 +890,58 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#ffffff',
+  },
+
+  // Preferované vyzvednutí styly
+  vyzvednutiCheckbox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#6A1B9A',
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxActive: {
+    backgroundColor: '#6A1B9A',
+  },
+  checkboxMark: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  vyzvednutiCheckboxLabel: {
+    fontSize: 13,
+    color: '#555',
+    flex: 1,
+  },
+  vyzvednutiInputsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
+  },
+  vyzvednutiInputContainer: {
+    flex: 1,
+  },
+  vyzvednutiInputLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#555',
+    marginBottom: 4,
+  },
+  vyzvednutiInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 6,
+    padding: 10,
+    fontSize: 14,
+    color: '#333',
   },
 });

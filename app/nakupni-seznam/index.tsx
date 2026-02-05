@@ -15,7 +15,21 @@ interface SeznamItem {
   jednotka: string | null;
   mnozstvi?: number;
   mnozstviJednotka?: string;
+  pridanoV?: string; // ISO timestamp kdy bylo přidáno
+  preferovaneVyzvednutiDatum?: string;
+  preferovaneVyzvednutiCas?: string;
 }
+
+// Helper pro formátování datumu a času
+const formatPridanoV = (isoString?: string) => {
+  if (!isoString) return null;
+  const date = new Date(isoString);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${day}.${month}. ${hours}:${minutes}`;
+};
 
 export default function NakupniSeznamScreen() {
   const [seznam, setSeznam] = useState<SeznamItem[]>([]);
@@ -108,6 +122,19 @@ export default function NakupniSeznamScreen() {
         const jednotka = item.mnozstviJednotka || item.jednotka || 'ks';
         smsText += `• ${item.produktNazev} - ${mnozstvi} ${jednotka}\n`;
       });
+
+      // Přidání preferovaného vyzvednutí, pokud existuje
+      const itemsWithVyzvednutí = group.items.filter(
+        (item) => item.preferovaneVyzvednutiDatum || item.preferovaneVyzvednutiCas
+      );
+      if (itemsWithVyzvednutí.length > 0) {
+        const firstItem = itemsWithVyzvednutí[0];
+        const vyzvednutiText = [firstItem.preferovaneVyzvednutiDatum, firstItem.preferovaneVyzvednutiCas]
+          .filter(Boolean)
+          .join(' ');
+        smsText += `\nPreferované vyzvednutí: ${vyzvednutiText}\n`;
+      }
+
       smsText += `\nDěkuji za odpověď.`;
 
       // Detekce iOS zařízení (i na webu/PWA)
@@ -140,6 +167,19 @@ export default function NakupniSeznamScreen() {
           const jednotka = item.mnozstviJednotka || item.jednotka || 'ks';
           fullText += `  • ${item.produktNazev} - ${mnozstvi} ${jednotka}\n`;
         });
+
+        // Přidání preferovaného vyzvednutí pro každého farmáře
+        const itemsWithVyzvednutí = group.items.filter(
+          (item) => item.preferovaneVyzvednutiDatum || item.preferovaneVyzvednutiCas
+        );
+        if (itemsWithVyzvednutí.length > 0) {
+          const firstItem = itemsWithVyzvednutí[0];
+          const vyzvednutiText = [firstItem.preferovaneVyzvednutiDatum, firstItem.preferovaneVyzvednutiCas]
+            .filter(Boolean)
+            .join(' ');
+          fullText += `  Preferované vyzvednutí: ${vyzvednutiText}\n`;
+        }
+
         fullText += `\n`;
       });
 
@@ -229,6 +269,16 @@ export default function NakupniSeznamScreen() {
                           {item.mnozstvi && item.mnozstvi > 1 && (
                             <Text> = {(item.cena * item.mnozstvi).toFixed(0)} Kč</Text>
                           )}
+                        </Text>
+                      )}
+                      {item.pridanoV && (
+                        <Text style={styles.produktPridano}>
+                          Přidáno: {formatPridanoV(item.pridanoV)}
+                        </Text>
+                      )}
+                      {(item.preferovaneVyzvednutiDatum || item.preferovaneVyzvednutiCas) && (
+                        <Text style={styles.produktVyzvednutiInfo}>
+                          🕐 Preferované vyzvednutí: {item.preferovaneVyzvednutiDatum || ''} {item.preferovaneVyzvednutiCas || ''}
                         </Text>
                       )}
                     </View>
@@ -447,6 +497,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '400',
     color: '#FF9800',
+  },
+  produktPridano: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 4,
+  },
+  produktVyzvednutiInfo: {
+    fontSize: 12,
+    color: '#FF9800',
+    marginTop: 4,
+    fontWeight: '500',
   },
 
   // Bottom button
