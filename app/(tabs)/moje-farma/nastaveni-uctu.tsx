@@ -1,17 +1,13 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../../utils/farmarAuthContext';
 import { supabase } from '../../../lib/supabase';
 
 export default function NastaveniUctuScreen() {
-  const { farmar, createPin, authLevel } = useFarmarAuth();
+  const { farmar } = useFarmarAuth();
 
   const [farmNumber, setFarmNumber] = useState('');
-  const [showPinChange, setShowPinChange] = useState(false);
-  const [newPin, setNewPin] = useState('');
-  const [newPinConfirm, setNewPinConfirm] = useState('');
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadFarmNumber();
@@ -35,83 +31,6 @@ export default function NastaveniUctuScreen() {
     }
   };
 
-  const handleChangePIN = async () => {
-    // Validace PINu
-    if (newPin.length < 4 || newPin.length > 6) {
-      if (Platform.OS === 'web') {
-        alert('PIN musí mít 4-6 číslic');
-      } else {
-        Alert.alert('Chyba', 'PIN musí mít 4-6 číslic');
-      }
-      return;
-    }
-
-    if (!/^\d+$/.test(newPin)) {
-      if (Platform.OS === 'web') {
-        alert('PIN může obsahovat pouze číslice');
-      } else {
-        Alert.alert('Chyba', 'PIN může obsahovat pouze číslice');
-      }
-      return;
-    }
-
-    if (newPin !== newPinConfirm) {
-      if (Platform.OS === 'web') {
-        alert('PINy se neshodují');
-      } else {
-        Alert.alert('Chyba', 'PINy se neshodují');
-      }
-      return;
-    }
-
-    // Zakázané PINy
-    const forbiddenPins = ['1234', '4321', '0000', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999'];
-    if (forbiddenPins.includes(newPin)) {
-      if (Platform.OS === 'web') {
-        alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
-      } else {
-        Alert.alert('Chyba', 'Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
-      }
-      return;
-    }
-
-    // Opakující se číslice
-    if (/^(.)\1+$/.test(newPin)) {
-      if (Platform.OS === 'web') {
-        alert('PIN nesmí obsahovat pouze stejné číslice.');
-      } else {
-        Alert.alert('Chyba', 'PIN nesmí obsahovat pouze stejné číslice.');
-      }
-      return;
-    }
-
-    setLoading(true);
-    const result = await createPin(newPin);
-    setLoading(false);
-
-    if (result.success) {
-      setNewPin('');
-      setNewPinConfirm('');
-      setShowPinChange(false);
-
-      if (Platform.OS === 'web') {
-        alert('PIN byl úspěšně změněn.\n\nMůžete se nyní přihlásit do Prodejny nebo Stánků pomocí čísla farmy a nového PINu.');
-      } else {
-        Alert.alert(
-          'PIN změněn ✓',
-          'Můžete se nyní přihlásit do Prodejny nebo Stánků pomocí čísla farmy a nového PINu.',
-          [{ text: 'OK' }]
-        );
-      }
-    } else {
-      if (Platform.OS === 'web') {
-        alert(result.error || 'Nepodařilo se změnit PIN');
-      } else {
-        Alert.alert('Chyba', result.error || 'Nepodařilo se změnit PIN');
-      }
-    }
-  };
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -132,83 +51,10 @@ export default function NastaveniUctuScreen() {
               <Text style={styles.farmNumberText}>{farmNumber || 'Načítání...'}</Text>
             </View>
             <Text style={styles.hint}>
-              Tento kód používáte společně s PINem pro přihlášení do Prodejny a Stánků.
+              Tento kód používáte společně s heslem pro přihlášení do Prodejny a Stánků.
             </Text>
           </View>
 
-          <View style={styles.divider} />
-
-          <View style={styles.infoSection}>
-            <Text style={styles.label}>PIN kód</Text>
-            {!showPinChange ? (
-              <>
-                <Text style={styles.pinStatus}>
-                  {authLevel === 'pin' ? '✓ PIN je nastaven' : '○ PIN není nastaven'}
-                </Text>
-                <TouchableOpacity
-                  style={styles.changeButton}
-                  onPress={() => setShowPinChange(true)}
-                >
-                  <Text style={styles.changeButtonText}>
-                    {authLevel === 'pin' ? 'Změnit PIN' : 'Nastavit PIN'}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={styles.hint}>
-                  PIN slouží pro rychlé přihlášení do Prodejny a Stánků bez emailu.
-                </Text>
-              </>
-            ) : (
-              <>
-                <Text style={styles.label}>Nový PIN (4-6 číslic)</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="••••"
-                  placeholderTextColor="rgba(255,255,255,0.5)"
-                  value={newPin}
-                  onChangeText={setNewPin}
-                  keyboardType="number-pad"
-                  maxLength={6}
-                  secureTextEntry
-                />
-
-                <Text style={styles.label}>Potvrdit nový PIN</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="••••"
-                  placeholderTextColor="rgba(255,255,255,0.5)"
-                  value={newPinConfirm}
-                  onChangeText={setNewPinConfirm}
-                  keyboardType="number-pad"
-                  maxLength={6}
-                  secureTextEntry
-                  onSubmitEditing={handleChangePIN}
-                />
-
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity
-                    style={styles.cancelButton}
-                    onPress={() => {
-                      setShowPinChange(false);
-                      setNewPin('');
-                      setNewPinConfirm('');
-                    }}
-                  >
-                    <Text style={styles.cancelButtonText}>Zrušit</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-                    onPress={handleChangePIN}
-                    disabled={loading}
-                  >
-                    <Text style={styles.saveButtonText}>
-                      {loading ? 'Ukládám...' : 'Uložit PIN'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-          </View>
         </View>
 
         <View style={styles.card}>
@@ -227,10 +73,10 @@ export default function NastaveniUctuScreen() {
           <View style={styles.securityBox}>
             <Text style={styles.securityTitle}>🔒 Bezpečnostní doporučení</Text>
             <Text style={styles.securityText}>
-              • Nikdy nesdílejte svůj PIN s nikým jiným{'\n'}
-              • Použijte unikátní PIN, který nepoužíváte jinde{'\n'}
-              • PIN změňte v případě podezření na zneužití{'\n'}
-              • Pokud zapomenete PIN nebo kód farmy, obnovte je přes "Zapomenuté údaje"
+              • Nikdy nesdílejte své heslo s nikým jiným{'\n'}
+              • Použijte unikátní heslo, které nepoužíváte jinde{'\n'}
+              • Heslo změňte v případě podezření na zneužití{'\n'}
+              • Pokud zapomenete heslo nebo kód farmy, obnovte je přes "Zapomenuté údaje"
             </Text>
           </View>
         </View>
