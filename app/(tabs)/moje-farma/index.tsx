@@ -230,15 +230,7 @@ function MojeProdejnaScreenContent() {
           <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
             {farmarData?.nazev_farmy}
           </Text>
-          <TouchableOpacity
-            style={styles.addButtonCircle}
-            onPress={() => router.push('/moje-farma/nova-polozka')}
-          >
-            <View style={styles.addCircle}>
-              <Text style={styles.addCirclePlus}>+</Text>
-            </View>
-            <Text style={styles.addCircleText}>Přidat</Text>
-          </TouchableOpacity>
+          <View style={{ width: 36 }} />
         </View>
       </View>
 
