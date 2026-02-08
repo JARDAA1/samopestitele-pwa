@@ -140,7 +140,7 @@ export default function MujProfilScreen() {
           <View style={styles.gridContainer}>
             <TouchableOpacity
               style={styles.gridItem}
-              onPress={() => router.push('/moje-farma/upravit-farmu')}
+              onPress={() => router.push('/moje-prodejna/upravit-farmu')}
             >
               <View style={[styles.gridIconContainer, { backgroundColor: '#E3F2FD' }]}>
                 <Text style={styles.gridIcon}>✏️</Text>
@@ -173,7 +173,7 @@ export default function MujProfilScreen() {
 
             <TouchableOpacity
               style={styles.gridItem}
-              onPress={() => router.push('/moje-farma/upravit-farmu')}
+              onPress={() => router.push('/moje-prodejna/upravit-farmu')}
             >
               <View style={[styles.gridIconContainer, { backgroundColor: '#F3E5F5' }]}>
                 <Text style={styles.gridIcon}>📍</Text>

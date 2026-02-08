@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
+import { getOrCreateCustomerId } from '../utils/customerIdentity';
 
 interface SeznamItem {
   produktId: string;
@@ -98,9 +99,89 @@ export default function NakupniSeznamScreen() {
     return sum + (item.cena || 0) * mnozstvi;
   }, 0);
 
-  // Odeslání SMS - načte telefony z DB a otevře SMS
+  // Uložit objednávku do databáze pro daného farmáře
+  const saveOrderToDatabase = async (farmarId: string, items: SeznamItem[], customerId: { id: string; shortId: string }) => {
+    try {
+      // Vypočítat celkovou cenu
+      const celkovaCena = items.reduce((sum, item) => {
+        const mnozstvi = item.mnozstvi || 1;
+        return sum + (item.cena || 0) * mnozstvi;
+      }, 0);
+
+      // Získat datum vyzvednutí z první položky, která ho má
+      const itemWithVyzvednutí = items.find(
+        (item) => item.preferovaneVyzvednutiDatum
+      );
+      let datumVyzvednuti: string | null = null;
+      if (itemWithVyzvednutí?.preferovaneVyzvednutiDatum) {
+        // Převést český formát "15.2.2026" na ISO formát
+        const parts = itemWithVyzvednutí.preferovaneVyzvednutiDatum.split('.');
+        if (parts.length === 3) {
+          const day = parts[0].padStart(2, '0');
+          const month = parts[1].padStart(2, '0');
+          const year = parts[2];
+          datumVyzvednuti = `${year}-${month}-${day}`;
+        }
+      }
+
+      // 1. Vytvořit objednávku
+      const { data: objednavka, error: objednavkaError } = await supabase
+        .from('objednavky')
+        .insert({
+          pestitel_id: Number(farmarId),
+          stav: 'cekajici_na_potvrzeni',
+          celkova_cena: celkovaCena,
+          zpusob_kontaktu: 'sms',
+          datum_vyzvednuti: datumVyzvednuti,
+          anon_customer_id: customerId.id,
+          anon_customer_code: customerId.shortId,
+        })
+        .select('id')
+        .single();
+
+      if (objednavkaError) {
+        console.error('Chyba při vytváření objednávky:', objednavkaError);
+        return false;
+      }
+
+      // 2. Vytvořit položky objednávky
+      const polozky = items.map((item) => ({
+        objednavka_id: objednavka.id,
+        produkt_id: Number(item.produktId),
+        nazev_produktu: item.produktNazev,
+        cena: item.cena || 0,
+        mnozstvi: item.mnozstvi || 1,
+        jednotka: item.mnozstviJednotka || item.jednotka || 'ks',
+      }));
+
+      const { error: polozkyError } = await supabase
+        .from('objednavky_polozky')
+        .insert(polozky);
+
+      if (polozkyError) {
+        console.error('Chyba při vytváření položek objednávky:', polozkyError);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Chyba při ukládání objednávky:', error);
+      return false;
+    }
+  };
+
+  // Odeslání žádosti o objednávku - uloží do DB a otevře SMS
   const sendSms = async () => {
     const farmarIds = Object.keys(groupedByFarmar);
+
+    // Získat nebo vytvořit anonymní ID zákazníka
+    const customerId = await getOrCreateCustomerId();
+
+    // Uložit objednávky do databáze pro všechny farmáře
+    for (const farmarId of farmarIds) {
+      const group = groupedByFarmar[farmarId];
+      await saveOrderToDatabase(farmarId, group.items, customerId);
+    }
 
     if (farmarIds.length === 1) {
       // Jeden farmář - načíst jeho telefon a poslat SMS
@@ -154,6 +235,9 @@ export default function NakupniSeznamScreen() {
           : `sms:?body=${encodeURIComponent(smsText)}`;
       }
 
+      // Vymazat nákupní seznam po úspěšném odeslání
+      saveSeznam([]);
+
       window.location.href = smsUrl;
     } else {
       // Více farmářů - vytvořit jeden dlouhý text bez čísla
@@ -189,6 +273,9 @@ export default function NakupniSeznamScreen() {
       const smsUrl = isIOS
         ? `sms:&body=${encodeURIComponent(fullText)}`
         : `sms:?body=${encodeURIComponent(fullText)}`;
+
+      // Vymazat nákupní seznam po úspěšném odeslání
+      saveSeznam([]);
 
       window.location.href = smsUrl;
     }
@@ -294,15 +381,18 @@ export default function NakupniSeznamScreen() {
             ))}
           </ScrollView>
 
-          {/* Jedno oranžové tlačítko dole */}
+          {/* Tlačítko pro odeslání žádosti */}
           <View style={styles.bottomButtonContainer}>
             <TouchableOpacity
               style={styles.sendSmsBtn}
               onPress={sendSms}
             >
               <Ionicons name="chatbubble" size={20} color="#ffffff" />
-              <Text style={styles.sendSmsBtnText}>Odeslat objednávku SMS</Text>
+              <Text style={styles.sendSmsBtnText}>Odeslat žádost o objednávku</Text>
             </TouchableOpacity>
+            <Text style={styles.hintText}>
+              Farmář musí vaši žádost potvrdit
+            </Text>
           </View>
         </View>
       )}
@@ -529,5 +619,11 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: '#ffffff',
+  },
+  hintText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
+    marginTop: 8,
   },
 });

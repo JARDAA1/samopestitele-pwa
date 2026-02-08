@@ -91,7 +91,7 @@ export default function UpravitProduktScreen() {
       if (error) {
         console.error('Chyba při načítání produktu:', error);
         Alert.alert('Chyba', 'Nepodařilo se načíst produkt');
-        router.push('/moje-farma');
+        router.push('/moje-prodejna');
         return;
       }
 
@@ -111,7 +111,7 @@ export default function UpravitProduktScreen() {
     } catch (error) {
       console.error('Chyba:', error);
       Alert.alert('Chyba', 'Nepodařilo se načíst produkt');
-      router.push('/moje-farma');
+      router.push('/moje-prodejna');
     } finally {
       setLoading(false);
     }
@@ -208,7 +208,7 @@ export default function UpravitProduktScreen() {
       }
 
       Alert.alert('Úspěch', 'Změny byly uloženy', [
-        { text: 'OK', onPress: () => router.push('/moje-farma') }
+        { text: 'OK', onPress: () => router.push('/moje-prodejna') }
       ]);
     } catch (error: any) {
       console.error('Chyba:', error);
@@ -279,7 +279,7 @@ export default function UpravitProduktScreen() {
 
       console.log(`✅ Produkt úspěšně ${archivovano ? 'obnoven' : 'archivován'}`);
       alert(archivovano ? 'Produkt byl obnoven z archivu' : 'Produkt byl přesunut do archivu');
-      router.push('/moje-farma');
+      router.push('/moje-prodejna');
     } catch (error: any) {
       console.error(`❌ Chyba při ${akce}:`, error);
       alert(`Nepodařilo se ${akce} produkt.\n\nDetail: ${error?.message || 'Neznámá chyba'}`);
@@ -290,7 +290,7 @@ export default function UpravitProduktScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push('/moje-farma')} style={styles.backButton}>
+          <TouchableOpacity onPress={() => router.push('/moje-prodejna')} style={styles.backButton}>
             <Text style={styles.backButtonText}>← Zpět</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Upravit produkt</Text>
@@ -306,7 +306,7 @@ export default function UpravitProduktScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/moje-farma')} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.push('/moje-prodejna')} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Zpět</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Upravit produkt</Text>

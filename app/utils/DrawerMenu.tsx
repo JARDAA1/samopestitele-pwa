@@ -142,7 +142,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
 
               <TouchableOpacity
                 style={styles.menuItem}
-                onPress={() => handleNavigate('/(tabs)/moje-farma')}
+                onPress={() => handleNavigate('/(tabs)/moje-prodejna')}
               >
                 <Feather name="shopping-bag" size={24} color="#333" style={styles.menuItemIcon} />
                 <Text style={styles.menuItemText}>Moje prodejna</Text>

@@ -14,7 +14,7 @@ export default function ProdejnaLoginScreen() {
 
   useEffect(() => {
     if (isAuthenticated && authLevel === 'pin') {
-      router.replace('/(tabs)/moje-farma');
+      router.replace('/(tabs)/moje-prodejna');
     }
   }, [isAuthenticated, authLevel]);
 
@@ -43,7 +43,7 @@ export default function ProdejnaLoginScreen() {
 
     if (result.success) {
       setRemainingAttempts(null);
-      router.replace('/(tabs)/moje-farma');
+      router.replace('/(tabs)/moje-prodejna');
     } else {
       if (result.remainingAttempts !== undefined) {
         setRemainingAttempts(result.remainingAttempts);

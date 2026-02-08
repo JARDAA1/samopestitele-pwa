@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 
-export default function MojeFarmaLayout() {
+export default function MojeProdejnaLayout() {
   return (
     <Stack
       screenOptions={{

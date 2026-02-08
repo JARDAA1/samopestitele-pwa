@@ -193,7 +193,7 @@ export default function PridatProduktScreen() {
 
       Alert.alert('Úspěch', 'Produkt byl přidán! Můžeš přidat další.', [
         { text: 'Přidat další', onPress: () => {} },
-        { text: 'Hotovo', onPress: () => router.push('/moje-farma') }
+        { text: 'Hotovo', onPress: () => router.push('/moje-prodejna') }
       ]);
     } catch (error: any) {
       console.error('Chyba:', error);
@@ -205,7 +205,7 @@ export default function PridatProduktScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/moje-farma')} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.push('/moje-prodejna')} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Zpět</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Přidat produkt</Text>

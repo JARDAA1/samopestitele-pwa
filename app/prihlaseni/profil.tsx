@@ -18,7 +18,7 @@ export default function ProfilLoginScreen() {
 
   useEffect(() => {
     if (isAuthenticated && (authLevel === 'pin' || authLevel === 'magic_link')) {
-      router.replace('/(tabs)/moje-farma');
+      router.replace('/(tabs)/moje-prodejna');
     }
   }, [isAuthenticated, authLevel]);
 
@@ -47,7 +47,7 @@ export default function ProfilLoginScreen() {
 
     if (result.success) {
       setRemainingAttempts(null);
-      router.replace('/(tabs)/moje-farma');
+      router.replace('/(tabs)/moje-prodejna');
     } else {
       if (result.remainingAttempts !== undefined) {
         setRemainingAttempts(result.remainingAttempts);

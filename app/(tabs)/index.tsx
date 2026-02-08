@@ -22,7 +22,7 @@ export default function HomeScreen() {
           Čerstvé produkty{'\n'}od pěstitelů
         </Text>
         <Text style={[styles.subtitle, isDesktop && styles.subtitleDesktop]}>
-          Najděte lokální farmáře ve vašem okolí
+          Najděte lokální farmáře ve vašem okolí, nebo nabídněte v prodejně své produkty
         </Text>
       </View>
 
@@ -44,13 +44,13 @@ export default function HomeScreen() {
 
         <TouchableOpacity
           style={[styles.pathCard, isDesktop && styles.pathCardDesktop]}
-          onPress={() => router.push('/jsem-farmar')}
+          onPress={() => router.push('/moje-prodejna')}
         >
           <View style={styles.pathCardRow}>
             <Text style={styles.pathEmoji}>🌾</Text>
             <View style={styles.pathCardContent}>
-              <Text style={styles.pathTitle}>Nabízím produkty</Text>
-              <Text style={styles.pathDescription}>Zaregistrujte se jako pěstitel</Text>
+              <Text style={styles.pathTitle}>Moje prodejna</Text>
+              <Text style={styles.pathDescription}>Nabídni své produkty</Text>
             </View>
             <Text style={styles.pathArrow}>→</Text>
           </View>
