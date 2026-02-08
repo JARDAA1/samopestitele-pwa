@@ -215,7 +215,7 @@ export default function LokalitaScreen() {
             <View style={styles.sectionIconCircle}>
               <Text style={styles.sectionIcon}>📍</Text>
             </View>
-            <View>
+            <View style={styles.sectionTextContainer}>
               <Text style={styles.sectionTitle}>Lokalita prodejny</Text>
               <Text style={styles.sectionSubtitle}>Kde vás zákazníci najdou</Text>
             </View>
@@ -381,24 +381,28 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionIconCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(255,152,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: 12,
+    flexShrink: 0,
   },
   sectionIcon: {
-    fontSize: 24,
+    fontSize: 20,
+  },
+  sectionTextContainer: {
+    flex: 1,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: '#ffffff'
   },
   sectionSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
   },
