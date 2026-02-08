@@ -234,14 +234,21 @@ export default function DetailObjednavkyScreen() {
     }
   };
 
+  const odeslstOdkazSMS = () => {
+    if (objednavka?.zakaznik_telefon && objednavka?.anon_customer_code) {
+      const url = `https://samopestitele.vercel.app/vyzvednuti/${objednavka.anon_customer_code}`;
+      const message = `Vaše objednávka je připravena k vyzvednutí! 🌾\n\nDetail objednávky: ${url}`;
+      const smsUrl = `sms:${objednavka.zakaznik_telefon}?body=${encodeURIComponent(message)}`;
+      Linking.openURL(smsUrl).catch(() => {
+        showAlert('Chyba', 'Nelze otevřít SMS aplikaci');
+      });
+    }
+  };
+
   const generateQRData = () => {
-    if (!objednavka) return '';
-    return JSON.stringify({
-      id: objednavka.id,
-      kod: objednavka.anon_customer_code,
-      cena: objednavka.celkova_cena,
-      datum: objednavka.datum_vyzvednuti,
-    });
+    if (!objednavka || !objednavka.anon_customer_code) return '';
+    // URL odkaz na veřejnou stránku s detailem objednávky
+    return `https://samopestitele.vercel.app/vyzvednuti/${objednavka.anon_customer_code}`;
   };
 
   // Generování QR kódu jako data URL
@@ -424,8 +431,20 @@ export default function DetailObjednavkyScreen() {
                 <ActivityIndicator size="small" color="#ffffff" />
               )}
               <Text style={styles.qrHint}>
-                Zákazník může tento kód ukázat při vyzvednutí
+                Zákazník naskenuje kód a uvidí detail objednávky
               </Text>
+
+              {/* Tlačítko pro odeslání SMS */}
+              {objednavka.zakaznik_telefon && (
+                <TouchableOpacity
+                  style={styles.sendSmsButton}
+                  onPress={odeslstOdkazSMS}
+                >
+                  <Text style={styles.sendSmsButtonText}>
+                    📩 Poslat odkaz zákazníkovi (SMS)
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
@@ -677,6 +696,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(255,255,255,0.6)',
     marginTop: 12,
+    textAlign: 'center',
+  },
+  sendSmsButton: {
+    marginTop: 16,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  sendSmsButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
     textAlign: 'center',
   },
   actionCard: {
