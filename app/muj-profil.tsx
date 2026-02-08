@@ -113,7 +113,7 @@ export default function MujProfilScreen() {
 
             <TouchableOpacity
               style={styles.gridItem}
-              onPress={() => router.push('/moje-prodejna/upravit-farmu')}
+              onPress={() => router.push('/profil/lokalita')}
             >
               <View style={[styles.gridIconContainer, { backgroundColor: '#E8F5E9' }]}>
                 <Text style={styles.gridIcon}>📍</Text>
