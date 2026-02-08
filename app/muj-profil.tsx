@@ -97,8 +97,6 @@ export default function MujProfilScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Moderní grid menu */}
         <View style={styles.gridSection}>
-          <Text style={styles.sectionTitle}>Nastavení účtu</Text>
-
           <View style={styles.gridContainer}>
             <TouchableOpacity
               style={styles.gridItem}
