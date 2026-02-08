@@ -345,14 +345,19 @@ export default function UpravitFarmuScreen() {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Telefon</Text>
-            <TextInput
-              style={[styles.input, styles.inputDisabled]}
-              value={farmarData?.telefon}
-              editable={false}
-            />
-            <Text style={styles.phoneHint}>
-              Pro změnu telefonního čísla nás kontaktujte na info@samopestitele.cz
-            </Text>
+            <View style={styles.phoneRow}>
+              <TextInput
+                style={[styles.input, styles.inputDisabled, styles.phoneInput]}
+                value={farmarData?.telefon}
+                editable={false}
+              />
+              <TouchableOpacity
+                style={styles.changePhoneButton}
+                onPress={() => router.push('/profil/zmenit-telefon')}
+              >
+                <Text style={styles.changePhoneButtonText}>Změnit</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -600,11 +605,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.1)',
     color: 'rgba(255,255,255,0.5)'
   },
-  phoneHint: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: 6,
-    fontStyle: 'italic',
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  phoneInput: {
+    flex: 1,
+  },
+  changePhoneButton: {
+    backgroundColor: '#FF9800',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  changePhoneButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   textArea: {
     minHeight: 100,

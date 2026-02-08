@@ -37,6 +37,7 @@ interface FarmarAuthContextType {
   sendSMSCode: (telefon: string) => Promise<boolean>;
   checkPinSession: () => Promise<boolean>;
   checkAndUpdateActivity: () => Promise<boolean>;
+  updateFarmarData: (data: Partial<Farmar>) => void;
 }
 
 const FarmarAuthContext = createContext<FarmarAuthContextType | undefined>(undefined);
@@ -852,6 +853,13 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     }
   };
 
+  // Aktualizuje lokální data farmáře (např. po změně telefonu)
+  const updateFarmarData = (data: Partial<Farmar>) => {
+    if (farmar) {
+      setFarmar({ ...farmar, ...data });
+    }
+  };
+
   const value: FarmarAuthContextType = {
     farmar,
     isAuthenticated: farmar !== null && authLevel !== 'none',
@@ -868,6 +876,7 @@ export function FarmarAuthProvider({ children }: { children: React.ReactNode }) 
     sendSMSCode,
     checkPinSession,
     checkAndUpdateActivity,
+    updateFarmarData,
   };
 
   return (
