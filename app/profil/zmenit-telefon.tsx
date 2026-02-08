@@ -7,10 +7,7 @@ import { useFarmarAuth } from '../utils/farmarAuthContext';
 export default function ZmenitTelefonScreen() {
   const { farmar, updateFarmarData } = useFarmarAuth();
 
-  const [step, setStep] = useState<'phone' | 'verify'>('phone');
   const [newPhone, setNewPhone] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [generatedCode, setGeneratedCode] = useState('');
   const [loading, setLoading] = useState(false);
 
   const formatPhone = (phone: string): string => {
@@ -38,13 +35,19 @@ export default function ZmenitTelefonScreen() {
     }
   };
 
-  const handleSendCode = async () => {
+  const handleChangePhone = async () => {
     if (!validatePhone(newPhone)) {
-      showAlert('Chyba', 'Zadejte platné české telefonní číslo');
+      showAlert('Chyba', 'Zadejte platné české telefonní číslo (9 číslic)');
       return;
     }
 
     const formattedPhone = formatPhone(newPhone);
+
+    // Kontrola, zda je nové číslo jiné než aktuální
+    if (formattedPhone === farmar?.telefon) {
+      showAlert('Chyba', 'Nové číslo je stejné jako aktuální');
+      return;
+    }
 
     // Kontrola, zda číslo již neexistuje
     const { data: existingUser } = await supabase
@@ -54,54 +57,13 @@ export default function ZmenitTelefonScreen() {
       .single();
 
     if (existingUser) {
-      showAlert('Chyba', 'Toto telefonní číslo je již registrováno');
+      showAlert('Chyba', 'Toto telefonní číslo je již registrováno u jiného účtu');
       return;
     }
 
     setLoading(true);
 
     try {
-      // Generování 6-místného kódu
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedCode(code);
-
-      // Odeslání SMS
-      const smsResponse = await fetch('https://ozxzowfzhdulofkxniji.supabase.co/functions/v1/send-sms', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phone: formattedPhone,
-          message: `Váš ověřovací kód pro změnu telefonu v Samopěstitelé: ${code}`,
-        }),
-      });
-
-      if (!smsResponse.ok) {
-        throw new Error('Nepodařilo se odeslat SMS');
-      }
-
-      setStep('verify');
-      showAlert('Kód odeslán', `Na číslo ${formattedPhone} jsme odeslali ověřovací kód`);
-    } catch (error) {
-      console.error('Chyba při odesílání SMS:', error);
-      showAlert('Chyba', 'Nepodařilo se odeslat ověřovací SMS. Zkuste to znovu.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyAndChange = async () => {
-    if (verificationCode !== generatedCode) {
-      showAlert('Chyba', 'Nesprávný ověřovací kód');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const formattedPhone = formatPhone(newPhone);
-
       // Aktualizace telefonu v databázi
       const { error } = await supabase
         .from('pestitele')
@@ -140,91 +102,51 @@ export default function ZmenitTelefonScreen() {
             <Text style={styles.icon}>📱</Text>
           </View>
 
-          {step === 'phone' ? (
-            <>
-              <Text style={styles.title}>Změna telefonního čísla</Text>
-              <Text style={styles.subtitle}>
-                Zadejte nové telefonní číslo. Pošleme vám SMS s ověřovacím kódem.
-              </Text>
+          <Text style={styles.title}>Změna telefonního čísla</Text>
+          <Text style={styles.subtitle}>
+            Zadejte nové telefonní číslo pro váš účet.
+          </Text>
 
-              <View style={styles.currentPhoneBox}>
-                <Text style={styles.currentPhoneLabel}>Aktuální číslo:</Text>
-                <Text style={styles.currentPhoneValue}>{farmar?.telefon}</Text>
-              </View>
+          <View style={styles.currentPhoneBox}>
+            <Text style={styles.currentPhoneLabel}>Aktuální číslo:</Text>
+            <Text style={styles.currentPhoneValue}>{farmar?.telefon}</Text>
+          </View>
 
-              <Text style={styles.label}>Nové telefonní číslo</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="+420 xxx xxx xxx"
-                placeholderTextColor="rgba(255,255,255,0.5)"
-                value={newPhone}
-                onChangeText={setNewPhone}
-                keyboardType="phone-pad"
-                autoFocus
-              />
+          <Text style={styles.label}>Nové telefonní číslo</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="např. 777 123 456"
+            placeholderTextColor="rgba(255,255,255,0.5)"
+            value={newPhone}
+            onChangeText={setNewPhone}
+            keyboardType="phone-pad"
+            autoFocus
+          />
 
-              <TouchableOpacity
-                style={[styles.primaryButton, loading && styles.buttonDisabled]}
-                onPress={handleSendCode}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#ffffff" />
-                ) : (
-                  <Text style={styles.primaryButtonText}>Odeslat ověřovací kód</Text>
-                )}
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <Text style={styles.title}>Ověření</Text>
-              <Text style={styles.subtitle}>
-                Zadejte 6-místný kód, který jsme odeslali na číslo {formatPhone(newPhone)}
-              </Text>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>
+              💡 Zadejte české telefonní číslo (9 číslic). Předvolba +420 bude doplněna automaticky.
+            </Text>
+          </View>
 
-              <Text style={styles.label}>Ověřovací kód</Text>
-              <TextInput
-                style={styles.codeInput}
-                placeholder="000000"
-                placeholderTextColor="rgba(255,255,255,0.5)"
-                value={verificationCode}
-                onChangeText={setVerificationCode}
-                keyboardType="number-pad"
-                maxLength={6}
-                autoFocus
-              />
+          <TouchableOpacity
+            style={[styles.primaryButton, loading && styles.buttonDisabled]}
+            onPress={handleChangePhone}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.primaryButtonText}>Změnit telefonní číslo</Text>
+            )}
+          </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.primaryButton, loading && styles.buttonDisabled]}
-                onPress={handleVerifyAndChange}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#ffffff" />
-                ) : (
-                  <Text style={styles.primaryButtonText}>Ověřit a změnit</Text>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={() => {
-                  setStep('phone');
-                  setVerificationCode('');
-                }}
-              >
-                <Text style={styles.secondaryButtonText}>Zadat jiné číslo</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.resendButton}
-                onPress={handleSendCode}
-                disabled={loading}
-              >
-                <Text style={styles.resendButtonText}>Odeslat kód znovu</Text>
-              </TouchableOpacity>
-            </>
-          )}
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.cancelButtonText}>Zrušit</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -326,20 +248,20 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  codeInput: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+  infoBox: {
+    backgroundColor: 'rgba(255,152,0,0.2)',
     borderRadius: 10,
-    padding: 16,
-    fontSize: 28,
-    color: '#ffffff',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    padding: 12,
     marginBottom: 20,
-    textAlign: 'center',
-    letterSpacing: 8,
-    fontWeight: '700',
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF9800',
+  },
+  infoText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.9)',
+    lineHeight: 18,
   },
   primaryButton: {
     backgroundColor: '#FF9800',
@@ -356,26 +278,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-  secondaryButton: {
+  cancelButton: {
     backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 10,
     padding: 14,
     alignItems: 'center',
-    marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
   },
-  secondaryButtonText: {
+  cancelButtonText: {
     color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  resendButton: {
-    padding: 12,
-    alignItems: 'center',
-  },
-  resendButtonText: {
-    color: '#FF9800',
     fontSize: 14,
     fontWeight: '600',
   },
