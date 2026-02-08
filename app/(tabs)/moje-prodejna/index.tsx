@@ -358,25 +358,6 @@ function MojeProdejnaScreenContent() {
           ))
         )}
 
-        {/* Spodní sekce s nastavením */}
-        <View style={styles.bottomSection}>
-          <TouchableOpacity
-            style={styles.settingsRow}
-            onPress={() => router.push('/moje-prodejna/upravit-farmu')}
-          >
-            <Feather name="edit-2" size={20} color="rgba(255,255,255,0.7)" />
-            <Text style={styles.settingsRowText}>Upravit údaje prodejny</Text>
-            <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.4)" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.settingsRow, styles.logoutRow]}
-            onPress={handleOdhlasit}
-          >
-            <Feather name="log-out" size={20} color="#F44336" />
-            <Text style={[styles.settingsRowText, styles.logoutText]}>Odhlásit se</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
 
     </View>
@@ -615,32 +596,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Bottom section
-  bottomSection: {
-    marginTop: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
-  },
-  settingsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 4,
-    gap: 12,
-  },
-  settingsRowText: {
-    flex: 1,
-    fontSize: 15,
-    color: 'rgba(255,255,255,0.8)',
-  },
-  logoutRow: {
-    marginTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
-    paddingTop: 20,
-  },
-  logoutText: {
-    color: '#F44336',
-  },
 });
