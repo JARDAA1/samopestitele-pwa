@@ -235,6 +235,7 @@ const styles = StyleSheet.create({
   gridSection: {
     paddingHorizontal: layout.card.margin,
     marginBottom: spacing.sm,
+    marginTop: spacing.xl,
   },
   sectionTitle: {
     fontSize: fontSize.lg,
