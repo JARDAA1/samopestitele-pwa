@@ -113,13 +113,13 @@ export default function MujProfilScreen() {
 
             <TouchableOpacity
               style={styles.gridItem}
-              onPress={() => router.push('/profil/foto-farmy')}
+              onPress={() => router.push('/moje-prodejna/upravit-farmu')}
             >
-              <View style={[styles.gridIconContainer, { backgroundColor: '#F3E5F5' }]}>
-                <Text style={styles.gridIcon}>📸</Text>
+              <View style={[styles.gridIconContainer, { backgroundColor: '#E8F5E9' }]}>
+                <Text style={styles.gridIcon}>📍</Text>
               </View>
-              <Text style={styles.gridTitle}>Tady mě najdete</Text>
-              <Text style={styles.gridSubtitle}>Vložit foto</Text>
+              <Text style={styles.gridTitle}>Kde mě najdete</Text>
+              <Text style={styles.gridSubtitle}>GPS souřadnice</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -135,13 +135,13 @@ export default function MujProfilScreen() {
 
             <TouchableOpacity
               style={styles.gridItem}
-              onPress={() => router.push('/moje-prodejna/upravit-farmu')}
+              onPress={() => router.push('/profil/foto-farmy')}
             >
               <View style={[styles.gridIconContainer, { backgroundColor: '#F3E5F5' }]}>
-                <Text style={styles.gridIcon}>📍</Text>
+                <Text style={styles.gridIcon}>🌳</Text>
               </View>
-              <Text style={styles.gridTitle}>Kde mě najdete</Text>
-              <Text style={styles.gridSubtitle}>GPS souřadnice</Text>
+              <Text style={styles.gridTitle}>Tady mě najdete</Text>
+              <Text style={styles.gridSubtitle}>Vložit foto</Text>
             </TouchableOpacity>
           </View>
         </View>
