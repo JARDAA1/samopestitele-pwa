@@ -329,15 +329,6 @@ function MojeProdejnaScreenContent() {
         <View style={styles.bottomSection}>
           <TouchableOpacity
             style={styles.settingsRow}
-            onPress={() => router.push('/(tabs)/moje-prodejna/nastaveni-uctu')}
-          >
-            <Feather name="settings" size={20} color="rgba(255,255,255,0.7)" />
-            <Text style={styles.settingsRowText}>Nastavení účtu</Text>
-            <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.4)" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.settingsRow}
             onPress={() => router.push('/moje-prodejna/upravit-farmu')}
           >
             <Feather name="edit-2" size={20} color="rgba(255,255,255,0.7)" />
