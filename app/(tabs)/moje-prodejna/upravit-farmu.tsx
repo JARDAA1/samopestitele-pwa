@@ -350,6 +350,9 @@ export default function UpravitFarmuScreen() {
               value={farmarData?.telefon}
               editable={false}
             />
+            <Text style={styles.phoneHint}>
+              Pro změnu telefonního čísla nás kontaktujte na info@samopestitele.cz
+            </Text>
           </View>
         </View>
 
@@ -596,6 +599,12 @@ const styles = StyleSheet.create({
   inputDisabled: {
     backgroundColor: 'rgba(255,255,255,0.1)',
     color: 'rgba(255,255,255,0.5)'
+  },
+  phoneHint: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 6,
+    fontStyle: 'italic',
   },
   textArea: {
     minHeight: 100,
