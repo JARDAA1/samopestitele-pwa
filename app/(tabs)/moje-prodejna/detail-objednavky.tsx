@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform, TextInput, Linking, Image } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
+import QRCodeLib from 'qrcode';
 
 interface Objednavka {
   id: string;
@@ -10,6 +11,8 @@ interface Objednavka {
   anon_customer_code?: string;
   celkova_cena?: number;
   created_at: string;
+  zakaznik_telefon?: string;
+  poznamka_farmare?: string;
 }
 
 interface ObjednavkaPolozka {
@@ -28,6 +31,10 @@ export default function DetailObjednavkyScreen() {
   const [error, setError] = useState<string | null>(null);
   const [objednavka, setObjednavka] = useState<Objednavka | null>(null);
   const [polozky, setPolozky] = useState<ObjednavkaPolozka[]>([]);
+  const [poznamka, setPoznamka] = useState('');
+  const [savingPoznamka, setSavingPoznamka] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('Detail objednavky - ID:', objednavkaId);
@@ -46,7 +53,7 @@ export default function DetailObjednavkyScreen() {
       // Načti objednávku
       const { data: objednavkaData, error: objednavkaError } = await supabase
         .from('objednavky')
-        .select('id, stav, datum_vyzvednuti, anon_customer_code, celkova_cena, created_at')
+        .select('id, stav, datum_vyzvednuti, anon_customer_code, celkova_cena, created_at, zakaznik_telefon, poznamka_farmare')
         .eq('id', objednavkaId)
         .single();
 
@@ -60,6 +67,7 @@ export default function DetailObjednavkyScreen() {
       }
 
       setObjednavka(objednavkaData);
+      setPoznamka(objednavkaData.poznamka_farmare || '');
 
       // Načti položky objednávky
       const { data: polozkyData, error: polozkyError } = await supabase
@@ -192,6 +200,67 @@ export default function DetailObjednavkyScreen() {
     }
   };
 
+  const ulozitPoznamku = async () => {
+    if (!objednavka) return;
+
+    setSavingPoznamka(true);
+    try {
+      const { error } = await supabase
+        .from('objednavky')
+        .update({ poznamka_farmare: poznamka.trim() || null })
+        .eq('id', objednavkaId);
+
+      if (error) {
+        showAlert('Chyba', 'Nepodařilo se uložit poznámku');
+        return;
+      }
+
+      setObjednavka(prev => prev ? { ...prev, poznamka_farmare: poznamka.trim() || undefined } : null);
+      showAlert('Uloženo', 'Poznámka byla uložena');
+    } catch (error) {
+      console.error('Chyba při ukládání poznámky:', error);
+      showAlert('Chyba', 'Nepodařilo se uložit poznámku');
+    } finally {
+      setSavingPoznamka(false);
+    }
+  };
+
+  const zavolatZakaznika = () => {
+    if (objednavka?.zakaznik_telefon) {
+      const phoneUrl = `tel:${objednavka.zakaznik_telefon}`;
+      Linking.openURL(phoneUrl).catch(() => {
+        showAlert('Chyba', 'Nelze otevřít telefonní aplikaci');
+      });
+    }
+  };
+
+  const generateQRData = () => {
+    if (!objednavka) return '';
+    return JSON.stringify({
+      id: objednavka.id,
+      kod: objednavka.anon_customer_code,
+      cena: objednavka.celkova_cena,
+      datum: objednavka.datum_vyzvednuti,
+    });
+  };
+
+  // Generování QR kódu jako data URL
+  useEffect(() => {
+    if (showQR && objednavka) {
+      const qrData = generateQRData();
+      QRCodeLib.toDataURL(qrData, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        },
+      })
+        .then((url: string) => setQrDataUrl(url))
+        .catch((err: any) => console.error('Chyba při generování QR:', err));
+    }
+  }, [showQR, objednavka]);
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -257,9 +326,11 @@ export default function DetailObjednavkyScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.customerCode}>
-              {objednavka.anon_customer_code
-                ? `Zákazník ${objednavka.anon_customer_code}`
-                : 'Zákazník'}
+              {objednavka.poznamka_farmare
+                ? objednavka.poznamka_farmare
+                : objednavka.anon_customer_code
+                  ? `Zákazník ${objednavka.anon_customer_code}`
+                  : 'Zákazník'}
             </Text>
             <View
               style={[
@@ -278,6 +349,18 @@ export default function DetailObjednavkyScreen() {
             </View>
           </View>
 
+          {/* Telefon zákazníka */}
+          {objednavka.zakaznik_telefon && (
+            <TouchableOpacity
+              style={styles.phoneRow}
+              onPress={zavolatZakaznika}
+            >
+              <Text style={styles.phoneIcon}>📱</Text>
+              <Text style={styles.phoneText}>{objednavka.zakaznik_telefon}</Text>
+              <Text style={styles.phoneAction}>Zavolat →</Text>
+            </TouchableOpacity>
+          )}
+
           <Text style={styles.infoText}>
             Přijato: {formatCreatedAt(objednavka.created_at)}
           </Text>
@@ -292,6 +375,58 @@ export default function DetailObjednavkyScreen() {
             <Text style={styles.priceText}>
               Celková cena: {objednavka.celkova_cena.toFixed(0)} Kč
             </Text>
+          )}
+        </View>
+
+        {/* Poznámka farmáře */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>📝 Poznámka (jméno zákazníka apod.)</Text>
+          <TextInput
+            style={styles.noteInput}
+            placeholder="Např. Paní Nováková, telefon na manžela..."
+            placeholderTextColor="rgba(255,255,255,0.4)"
+            value={poznamka}
+            onChangeText={setPoznamka}
+            multiline
+            numberOfLines={2}
+          />
+          <TouchableOpacity
+            style={[styles.saveNoteButton, savingPoznamka && styles.buttonDisabled]}
+            onPress={ulozitPoznamku}
+            disabled={savingPoznamka}
+          >
+            <Text style={styles.saveNoteButtonText}>
+              {savingPoznamka ? 'Ukládám...' : 'Uložit poznámku'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* QR kód pro vyzvednutí */}
+        <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.qrToggle}
+            onPress={() => setShowQR(!showQR)}
+          >
+            <Text style={styles.cardTitle}>🎫 QR kód pro vyzvednutí</Text>
+            <Text style={styles.qrToggleText}>{showQR ? '▼' : '▶'}</Text>
+          </TouchableOpacity>
+
+          {showQR && (
+            <View style={styles.qrContainer}>
+              {qrDataUrl ? (
+                <View style={styles.qrCodeWrapper}>
+                  <Image
+                    source={{ uri: qrDataUrl }}
+                    style={{ width: 160, height: 160 }}
+                  />
+                </View>
+              ) : (
+                <ActivityIndicator size="small" color="#ffffff" />
+              )}
+              <Text style={styles.qrHint}>
+                Zákazník může tento kód ukázat při vyzvednutí
+              </Text>
+            </View>
           )}
         </View>
 
@@ -457,6 +592,31 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)',
     marginBottom: 4,
   },
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(79,195,247,0.15)',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(79,195,247,0.3)',
+  },
+  phoneIcon: {
+    fontSize: 18,
+    marginRight: 8,
+  },
+  phoneText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#4FC3F7',
+    fontWeight: '600',
+  },
+  phoneAction: {
+    fontSize: 13,
+    color: '#4FC3F7',
+    fontWeight: '500',
+  },
   pickupText: {
     fontSize: 14,
     color: '#FF9800',
@@ -468,6 +628,56 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontWeight: '700',
     marginTop: 8,
+  },
+  noteInput: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: '#ffffff',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    marginBottom: 12,
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  saveNoteButton: {
+    backgroundColor: '#FF9800',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  saveNoteButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  qrToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  qrToggleText: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
+  },
+  qrContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  qrCodeWrapper: {
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 12,
+  },
+  qrHint: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 12,
+    textAlign: 'center',
   },
   actionCard: {
     backgroundColor: 'rgba(255,152,0,0.2)',

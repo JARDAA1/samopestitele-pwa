@@ -15,6 +15,8 @@ interface Objednavka {
   datum_vyzvednuti?: string;
   anon_customer_code?: string;
   celkova_cena?: number;
+  zakaznik_telefon?: string;
+  poznamka_farmare?: string;
 }
 
 function MojeProdejnaScreenContent() {
@@ -25,7 +27,7 @@ function MojeProdejnaScreenContent() {
   const [refreshing, setRefreshing] = useState(false);
   const [objednavky, setObjednavky] = useState<Objednavka[]>([]);
   const [pocetProduktu, setPocetProduktu] = useState(0);
-  const [activeTab, setActiveTab] = useState<'cekajici' | 'ostatni'>('cekajici');
+  const [activeTab, setActiveTab] = useState<'cekajici' | 'rozpracovane' | 'dokoncene'>('cekajici');
 
   useFocusEffect(
     useCallback(() => {
@@ -172,10 +174,20 @@ function MojeProdejnaScreenContent() {
     }
   };
 
-  // Rozdělit objednávky
+  // Rozdělit objednávky do 3 kategorií
   const cekajiciObjednavky = objednavky.filter(o => o.stav === 'cekajici_na_potvrzeni');
-  const ostatniObjednavky = objednavky.filter(o => o.stav !== 'cekajici_na_potvrzeni');
-  const displayedObjednavky = activeTab === 'cekajici' ? cekajiciObjednavky : ostatniObjednavky;
+  const rozpracovaneObjednavky = objednavky.filter(o =>
+    ['potvrzena', 'nova', 'zpracovana'].includes(o.stav)
+  );
+  const dokonceneObjednavky = objednavky.filter(o =>
+    ['dokoncena', 'odmitnuta', 'zrusena'].includes(o.stav)
+  );
+
+  const displayedObjednavky = activeTab === 'cekajici'
+    ? cekajiciObjednavky
+    : activeTab === 'rozpracovane'
+      ? rozpracovaneObjednavky
+      : dokonceneObjednavky;
 
   if (loading) {
     return (
@@ -221,7 +233,7 @@ function MojeProdejnaScreenContent() {
         <Text style={styles.produktyArrow}>→</Text>
       </TouchableOpacity>
 
-      {/* Tabs pro objednávky */}
+      {/* Tabs pro objednávky - 3 záložky */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'cekajici' && styles.activeTab]}
@@ -232,11 +244,19 @@ function MojeProdejnaScreenContent() {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'ostatni' && styles.activeTab]}
-          onPress={() => setActiveTab('ostatni')}
+          style={[styles.tab, activeTab === 'rozpracovane' && styles.activeTab]}
+          onPress={() => setActiveTab('rozpracovane')}
         >
-          <Text style={[styles.tabText, activeTab === 'ostatni' && styles.activeTabText]}>
-            Ostatní ({ostatniObjednavky.length})
+          <Text style={[styles.tabText, activeTab === 'rozpracovane' && styles.activeTabText]}>
+            🔧 Rozpracované ({rozpracovaneObjednavky.length})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'dokoncene' && styles.activeTab]}
+          onPress={() => setActiveTab('dokoncene')}
+        >
+          <Text style={[styles.tabText, activeTab === 'dokoncene' && styles.activeTabText]}>
+            ✅ Dokončené ({dokonceneObjednavky.length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -255,16 +275,22 @@ function MojeProdejnaScreenContent() {
       >
         {displayedObjednavky.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>{activeTab === 'cekajici' ? '✅' : '📋'}</Text>
+            <Text style={styles.emptyIcon}>
+              {activeTab === 'cekajici' ? '✅' : activeTab === 'rozpracovane' ? '🔧' : '📋'}
+            </Text>
             <Text style={styles.emptyText}>
               {activeTab === 'cekajici'
                 ? 'Žádné objednávky nečekají na potvrzení'
-                : 'Zatím nemáte žádné zpracované objednávky'}
+                : activeTab === 'rozpracovane'
+                  ? 'Žádné rozpracované objednávky'
+                  : 'Zatím nemáte žádné dokončené objednávky'}
             </Text>
             <Text style={styles.emptySubtext}>
               {activeTab === 'cekajici'
                 ? 'Jakmile vám někdo pošle žádost, zobrazí se zde'
-                : 'Potvrzené objednávky se zobrazí zde'}
+                : activeTab === 'rozpracovane'
+                  ? 'Potvrzené objednávky se zobrazí zde'
+                  : 'Dokončené a zrušené objednávky se zobrazí zde'}
             </Text>
           </View>
         ) : (
@@ -283,14 +309,21 @@ function MojeProdejnaScreenContent() {
                 <View style={styles.orderInfo}>
                   <View style={styles.customerRow}>
                     <Text style={styles.customerCode}>
-                      {objednavka.anon_customer_code
-                        ? `Zákazník ${objednavka.anon_customer_code}`
-                        : 'Zákazník'}
+                      {objednavka.poznamka_farmare
+                        ? objednavka.poznamka_farmare
+                        : objednavka.anon_customer_code
+                          ? `Zákazník ${objednavka.anon_customer_code}`
+                          : 'Zákazník'}
                     </Text>
                     {objednavka.stav === 'cekajici_na_potvrzeni' && (
                       <Text style={styles.urgentBadge}>NOVÁ</Text>
                     )}
                   </View>
+                  {objednavka.zakaznik_telefon && (
+                    <Text style={styles.orderPhone}>
+                      📱 {objednavka.zakaznik_telefon}
+                    </Text>
+                  )}
                   <Text style={styles.orderDate}>
                     Přijato: {formatCreatedAt(objednavka.created_at)}
                   </Text>
@@ -453,18 +486,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Tabs
+  // Tabs - 3 záložky pro mobil
   tabsContainer: {
     flexDirection: 'row',
-    marginHorizontal: 12,
+    marginHorizontal: 8,
     marginTop: 12,
     borderRadius: 8,
     backgroundColor: 'rgba(255,255,255,0.1)',
-    padding: 4,
+    padding: 3,
   },
   tab: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
     borderRadius: 6,
     alignItems: 'center',
   },
@@ -472,9 +506,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
   tabText: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '600',
     color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
   },
   activeTabText: {
     color: '#ffffff',
@@ -550,6 +585,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
+  },
+  orderPhone: {
+    fontSize: 13,
+    color: '#4FC3F7',
+    fontWeight: '500',
   },
   orderDate: {
     fontSize: 12,
