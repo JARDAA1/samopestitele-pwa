@@ -358,6 +358,9 @@ export default function UpravitFarmuScreen() {
                 <Text style={styles.changePhoneButtonText}>Změnit</Text>
               </TouchableOpacity>
             </View>
+            <Text style={styles.phoneHint}>
+              Klikněte na "Změnit" pro úpravu telefonního čísla
+            </Text>
           </View>
         </View>
 
@@ -623,6 +626,11 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  phoneHint: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 6,
   },
   textArea: {
     minHeight: 100,
