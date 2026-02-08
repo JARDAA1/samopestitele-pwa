@@ -330,28 +330,26 @@ export default function UpravitFarmuScreen() {
             />
           </View>
 
-          <View style={styles.inputRow}>
-            <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="email@priklad.cz"
-                placeholderTextColor="rgba(255,255,255,0.5)"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="email@priklad.cz"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
 
-            <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-              <Text style={styles.label}>Telefon</Text>
-              <TextInput
-                style={[styles.input, styles.inputDisabled]}
-                value={farmarData?.telefon}
-                editable={false}
-              />
-            </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Telefon</Text>
+            <TextInput
+              style={[styles.input, styles.inputDisabled]}
+              value={farmarData?.telefon}
+              editable={false}
+            />
           </View>
         </View>
 
