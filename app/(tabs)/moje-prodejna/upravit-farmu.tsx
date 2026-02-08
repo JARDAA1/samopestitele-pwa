@@ -440,16 +440,19 @@ export default function UpravitFarmuScreen() {
               <View style={styles.pinDisplayBox}>
                 <View style={styles.pinValueBox}>
                   <Text style={styles.pinLabel}>Váš PIN</Text>
-                  <Text style={styles.pinValue}>{currentPin}</Text>
+                  <Text style={styles.pinValue}>••••••</Text>
                 </View>
-                {!showPinSection && (
-                  <TouchableOpacity
-                    style={styles.changeButton}
-                    onPress={() => setShowPinSection(true)}
-                  >
-                    <Text style={styles.changeButtonText}>Změnit</Text>
-                  </TouchableOpacity>
-                )}
+                <View style={styles.pinStatusContainer}>
+                  <Text style={styles.pinStatusText}>✓ Nastaven</Text>
+                  {!showPinSection && (
+                    <TouchableOpacity
+                      style={styles.changeButton}
+                      onPress={() => setShowPinSection(true)}
+                    >
+                      <Text style={styles.changeButtonText}>Změnit</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
 
               {showPinSection && (
@@ -950,6 +953,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FF9800',
     letterSpacing: 6,
+  },
+  pinStatusContainer: {
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  pinStatusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4CAF50',
   },
   changeButton: {
     backgroundColor: '#FF9800',
