@@ -95,44 +95,6 @@ export default function MujProfilScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Číslo farmy a PIN - prominentně nahoře */}
-        {farmar?.farm_number && (
-          <View style={styles.farmNumberCard}>
-            <View style={styles.farmNumberHeader}>
-              <View style={styles.farmNumberIconContainer}>
-                <Text style={styles.farmNumberIcon}>🔑</Text>
-              </View>
-              <View style={styles.farmNumberTextContainer}>
-                <Text style={styles.farmNumberLabel}>Přihlašovací údaje do Prodejny</Text>
-                <View style={styles.credentialsRow}>
-                  <View style={styles.credentialItem}>
-                    <Text style={styles.credentialLabel}>Číslo farmy:</Text>
-                    <Text style={styles.farmNumberValue}>{farmar.farm_number}</Text>
-                  </View>
-                  <View style={styles.credentialItem}>
-                    <Text style={styles.credentialLabel}>PIN:</Text>
-                    <View style={styles.pinStatus}>
-                      {farmar.heslo_hash ? (
-                        <>
-                          <Text style={styles.pinDots}>••••</Text>
-                          <Text style={styles.pinSet}>✓ Nastaven</Text>
-                        </>
-                      ) : (
-                        <Text style={styles.pinNotSet}>Nenastaveno</Text>
-                      )}
-                    </View>
-                  </View>
-                </View>
-              </View>
-            </View>
-            <View style={styles.farmNumberHintBox}>
-              <Text style={styles.farmNumberHint}>
-                💡 Pro přihlášení do Prodejny použijte číslo farmy + PIN kód
-              </Text>
-            </View>
-          </View>
-        )}
-
         {/* Moderní grid menu */}
         <View style={styles.gridSection}>
           <Text style={styles.sectionTitle}>Nastavení účtu</Text>
@@ -182,25 +144,6 @@ export default function MujProfilScreen() {
               <Text style={styles.gridSubtitle}>GPS souřadnice</Text>
             </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Bezpečnost */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Bezpečnost</Text>
-
-          <TouchableOpacity
-            style={styles.securityCard}
-            onPress={() => router.push('/profil/zmenit-pin')}
-          >
-            <View style={styles.securityIconContainer}>
-              <Text style={styles.securityIcon}>🔐</Text>
-            </View>
-            <View style={styles.securityInfo}>
-              <Text style={styles.securityTitle}>Změnit PIN kód</Text>
-              <Text style={styles.securitySubtitle}>PIN pro přihlášení do Prodejny</Text>
-            </View>
-            <Text style={styles.securityArrow}>›</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Odhlásit */}
@@ -288,101 +231,6 @@ const styles = StyleSheet.create({
     marginTop: -20,
   },
 
-  // Číslo farmy - responzivní karta
-  farmNumberCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: layout.card.margin,
-    marginTop: spacing.md,
-    marginBottom: layout.card.margin,
-    borderRadius: borderRadius.md,
-    padding: layout.card.padding,
-    elevation: 4,
-    shadowColor: '#7B1FA2',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    borderWidth: 1,
-    borderColor: '#F3E5F5',
-  },
-  farmNumberHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  farmNumberIconContainer: {
-    width: responsive({ mobile: 48, tablet: 60, desktop: 70 }),
-    height: responsive({ mobile: 48, tablet: 60, desktop: 70 }),
-    borderRadius: responsive({ mobile: 24, tablet: 30, desktop: 35 }),
-    backgroundColor: '#F3E5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  farmNumberIcon: {
-    fontSize: fontSize.lg,
-  },
-  farmNumberTextContainer: {
-    flex: 1,
-  },
-  farmNumberLabel: {
-    fontSize: fontSize.sm,
-    color: '#666',
-    marginBottom: spacing.md,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  credentialsRow: {
-    flexDirection: responsive({ mobile: 'column', tablet: 'row', desktop: 'row' }) as any,
-    gap: spacing.lg,
-  },
-  credentialItem: {
-    flex: responsive({ mobile: undefined, tablet: 1, desktop: 1 }) as any,
-  },
-  credentialLabel: {
-    fontSize: fontSize.xs,
-    color: '#888',
-    marginBottom: spacing.xs,
-    fontWeight: '600',
-  },
-  farmNumberValue: {
-    fontSize: responsive({ mobile: 32, tablet: 40, desktop: 48 }),
-    fontWeight: '800',
-    color: '#6A1B9A',
-    letterSpacing: responsive({ mobile: 3, tablet: 4, desktop: 5 }),
-  },
-  pinStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  pinDots: {
-    fontSize: responsive({ mobile: 28, tablet: 36, desktop: 40 }),
-    fontWeight: '800',
-    color: '#6A1B9A',
-    letterSpacing: 2,
-  },
-  pinSet: {
-    fontSize: fontSize.sm,
-    color: '#7B1FA2',
-    fontWeight: '600',
-  },
-  pinNotSet: {
-    fontSize: fontSize.base,
-    color: '#FF9800',
-    fontWeight: '600',
-  },
-  farmNumberHintBox: {
-    backgroundColor: '#F1F8F4',
-    padding: spacing.md,
-    borderRadius: borderRadius.sm,
-  },
-  farmNumberHint: {
-    fontSize: fontSize.sm,
-    color: '#6A1B9A',
-    lineHeight: responsive({ mobile: 18, tablet: 22, desktop: 26 }),
-  },
-
   // Grid menu - responzivní
   gridSection: {
     paddingHorizontal: layout.card.margin,
@@ -438,52 +286,10 @@ const styles = StyleSheet.create({
     lineHeight: responsive({ mobile: 14, tablet: 16, desktop: 18 }),
   },
 
-  // Bezpečnost
+  // Section
   section: {
     paddingHorizontal: 20,
     marginBottom: 10,
-  },
-  securityCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-  },
-  securityIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#FFF3E0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
-  },
-  securityIcon: {
-    fontSize: 26,
-  },
-  securityInfo: {
-    flex: 1,
-  },
-  securityTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 3,
-  },
-  securitySubtitle: {
-    fontSize: 13,
-    color: '#666',
-  },
-  securityArrow: {
-    fontSize: 24,
-    color: '#CCC',
-    fontWeight: '600',
   },
 
   // Logout button
