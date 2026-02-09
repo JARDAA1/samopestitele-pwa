@@ -25,7 +25,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return (
       <View style={styles.container}>
         <View style={styles.content}>
-          <Text style={styles.emoji}>🌾</Text>
+          <Text style={styles.emoji}>🧺</Text>
           <Text style={styles.title}>Moje prodejna</Text>
           <Text style={styles.subtitle}>
             Pro přístup k prodejně se prosím přihlaste nebo si založte nový účet

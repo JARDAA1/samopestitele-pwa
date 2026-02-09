@@ -91,7 +91,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
       >
         {/* Header */}
         <View style={styles.drawerHeader}>
-          <Text style={styles.drawerHeaderEmoji}>🌾</Text>
+          <Text style={styles.drawerHeaderEmoji}>🧺</Text>
           <Text style={styles.drawerHeaderTitle}>
             {isAuthenticated ? farmar?.nazev_farmy || 'Menu' : 'Samopěstitelé'}
           </Text>

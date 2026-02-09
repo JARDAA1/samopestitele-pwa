@@ -146,7 +146,7 @@ export default function PestiteleScreen() {
           <View style={{ width: 36 }} />
         </View>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyIcon}>🌾</Text>
+          <Text style={styles.emptyIcon}>🧺</Text>
           <Text style={styles.emptyTitle}>Zatím žádní oblíbení farmáři</Text>
           <Text style={styles.emptyText}>
             Najděte farmáře na mapě a uložte si je do oblíbených, nebo u nich nakupte!

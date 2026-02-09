@@ -119,7 +119,7 @@ export default function KosikScreen() {
       // Úspěch!
       Alert.alert(
         '✅ Objednávka odeslána!',
-        `Vaše objednávka byla úspěšně odeslána farmáři ${cart[0].pestitelNazev}.\n\nFarmář vás bude brzy kontaktovat na čísle ${telefon}.\n\nDěkujeme za nákup! 🌾`,
+        `Vaše objednávka byla úspěšně odeslána farmáři ${cart[0].pestitelNazev}.\n\nFarmář vás bude brzy kontaktovat na čísle ${telefon}.\n\nDěkujeme za nákup! 🧺`,
         [
           {
             text: 'OK',
@@ -180,7 +180,7 @@ export default function KosikScreen() {
         {/* Info banner */}
         <View style={styles.infoBanner}>
           <Text style={styles.infoBannerText}>
-            🌾 Nakupujete u: {cart[0].pestitelNazev}
+            🧺 Nakupujete u: {cart[0].pestitelNazev}
           </Text>
         </View>
 

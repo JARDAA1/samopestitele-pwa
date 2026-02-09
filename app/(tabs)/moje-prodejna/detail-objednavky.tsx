@@ -223,7 +223,7 @@ export default function DetailObjednavkyScreen() {
 
   const odeslstDekujemeSMS = () => {
     if (objednavka?.zakaznik_telefon) {
-      const message = `Děkujeme za nákup! 🙏 Těšíme se na vaši další návštěvu. 🌾`;
+      const message = `Děkujeme za nákup! 🙏 Těšíme se na vaši další návštěvu. 🧺`;
       const smsUrl = `sms:${objednavka.zakaznik_telefon}?body=${encodeURIComponent(message)}`;
       Linking.openURL(smsUrl).catch(() => {
         showAlert('Chyba', 'Nelze otevřít SMS aplikaci');
@@ -276,7 +276,7 @@ export default function DetailObjednavkyScreen() {
           message = `Dobrý den, vaše objednávka byla potvrzena! ✅`;
           break;
         case 'zpracovana':
-          message = `Dobrý den, vaše objednávka je připravena k vyzvednutí! 🌾`;
+          message = `Dobrý den, vaše objednávka je připravena k vyzvednutí! 🧺`;
           break;
         case 'dokoncena':
           message = `Děkujeme za nákup! 🙏`;

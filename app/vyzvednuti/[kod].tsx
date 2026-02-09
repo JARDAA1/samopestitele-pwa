@@ -197,7 +197,7 @@ export default function VyzvednutiScreen() {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.logo}>🌾 Samopěstitelé</Text>
+        <Text style={styles.logo}>🧺 Samopěstitelé</Text>
         <Text style={styles.headerTitle}>Vaše objednávka</Text>
         <Text style={styles.orderCode}>#{objednavka.anon_customer_code}</Text>
       </View>
@@ -283,7 +283,7 @@ export default function VyzvednutiScreen() {
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Děkujeme, že nakupujete lokálně! 🌱
+          Děkujeme, že nakupujete lokálně! 🍎🥬
         </Text>
       </View>
     </ScrollView>

@@ -409,7 +409,7 @@ export default function RegistraceScreen() {
         {krok === 3 && (
           <View style={styles.card}>
             <View style={styles.iconContainer}>
-              <Text style={styles.iconText}>🌾</Text>
+              <Text style={styles.iconText}>🧺</Text>
             </View>
             <Text style={styles.stepTitle}>O vás a vaší farmě</Text>
             <Text style={styles.stepSubtitle}>Krok 3 ze 4</Text>
@@ -483,7 +483,7 @@ export default function RegistraceScreen() {
               <Text style={styles.summaryItem}>👤 {username}</Text>
               <Text style={styles.summaryItem}>📧 {email}</Text>
               <Text style={styles.summaryItem}>🧑 {jmeno}</Text>
-              <Text style={styles.summaryItem}>🌾 {nazevFarmy}</Text>
+              <Text style={styles.summaryItem}>🧺 {nazevFarmy}</Text>
               <Text style={styles.summaryItem}>🔐 Heslo: {'•'.repeat(8)}</Text>
             </View>
 

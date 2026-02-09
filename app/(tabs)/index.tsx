@@ -47,7 +47,7 @@ export default function HomeScreen() {
           onPress={() => router.push('/moje-prodejna')}
         >
           <View style={styles.pathCardRow}>
-            <Text style={styles.pathEmoji}>🌾</Text>
+            <Text style={styles.pathEmoji}>🧺</Text>
             <View style={styles.pathCardContent}>
               <Text style={styles.pathTitle}>Moje prodejna</Text>
               <Text style={styles.pathDescription}>Nabídni své produkty</Text>
