@@ -160,10 +160,11 @@ export default function DetailObjednavkyScreen() {
     try {
       const { error } = await supabase
         .from('objednavky')
-        .update({ stav: novyStav, updated_at: new Date().toISOString() })
+        .update({ stav: novyStav })
         .eq('id', objednavkaId);
 
       if (error) {
+        console.error('Supabase error:', error);
         showAlert('Chyba', 'Nepodařilo se změnit stav objednávky');
         return;
       }
