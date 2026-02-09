@@ -206,7 +206,7 @@ function MojeProdejnaScreenContent() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity style={styles.menuButton} onPress={openMenu}>
-            <Text style={styles.menuIcon}>☰</Text>
+            <Feather name="menu" size={22} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Moje prodejna</Text>
           <TouchableOpacity
