@@ -385,6 +385,31 @@ export default function DetailObjednavkyScreen() {
           )}
         </View>
 
+        {/* Seznam položek - hned za zákazníkem */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>🛒 Objednané produkty ({polozky.length})</Text>
+
+          {polozky.length === 0 ? (
+            <Text style={styles.emptyText}>Žádné položky</Text>
+          ) : (
+            polozky.map((polozka) => (
+              <View key={polozka.id} style={styles.productItem}>
+                <View style={styles.productInfo}>
+                  <Text style={styles.productName}>{polozka.nazev_produktu}</Text>
+                  {polozka.cena && polozka.cena > 0 && (
+                    <Text style={styles.productPrice}>
+                      {(polozka.cena * polozka.mnozstvi).toFixed(0)} Kč
+                    </Text>
+                  )}
+                </View>
+                <Text style={styles.productQuantity}>
+                  {polozka.mnozstvi} {polozka.jednotka}
+                </Text>
+              </View>
+            ))
+          )}
+        </View>
+
         {/* Poznámka farmáře */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>📝 Poznámka (jméno zákazníka apod.)</Text>
@@ -490,31 +515,6 @@ export default function DetailObjednavkyScreen() {
             </View>
           </View>
         )}
-
-        {/* Seznam položek */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Objednané produkty ({polozky.length})</Text>
-
-          {polozky.length === 0 ? (
-            <Text style={styles.emptyText}>Žádné položky</Text>
-          ) : (
-            polozky.map((polozka) => (
-              <View key={polozka.id} style={styles.productItem}>
-                <View style={styles.productInfo}>
-                  <Text style={styles.productName}>{polozka.nazev_produktu}</Text>
-                  {polozka.cena && polozka.cena > 0 && (
-                    <Text style={styles.productPrice}>
-                      {(polozka.cena * polozka.mnozstvi).toFixed(0)} Kč
-                    </Text>
-                  )}
-                </View>
-                <Text style={styles.productQuantity}>
-                  {polozka.mnozstvi} {polozka.jednotka}
-                </Text>
-              </View>
-            ))
-          )}
-        </View>
       </ScrollView>
     </View>
   );
