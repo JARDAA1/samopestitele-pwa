@@ -198,6 +198,39 @@ export default function DetailObjednavkyScreen() {
     }
   };
 
+  const dokoncitObjednavku = async () => {
+    // Nejprve změnit stav
+    await zmeniStav('dokoncena');
+
+    // Pak nabídnout odeslání SMS
+    if (objednavka?.zakaznik_telefon) {
+      if (Platform.OS === 'web') {
+        if (confirm('Chcete odeslat zákazníkovi SMS s poděkováním?')) {
+          odeslstDekujemeSMS();
+        }
+      } else {
+        Alert.alert(
+          'Odeslat SMS?',
+          'Chcete odeslat zákazníkovi SMS s poděkováním za nákup?',
+          [
+            { text: 'Ne', style: 'cancel' },
+            { text: 'Ano, odeslat', onPress: () => odeslstDekujemeSMS() },
+          ]
+        );
+      }
+    }
+  };
+
+  const odeslstDekujemeSMS = () => {
+    if (objednavka?.zakaznik_telefon) {
+      const message = `Děkujeme za nákup! 🙏 Těšíme se na vaši další návštěvu. 🌾`;
+      const smsUrl = `sms:${objednavka.zakaznik_telefon}?body=${encodeURIComponent(message)}`;
+      Linking.openURL(smsUrl).catch(() => {
+        showAlert('Chyba', 'Nelze otevřít SMS aplikaci');
+      });
+    }
+  };
+
   const ulozitPoznamku = async () => {
     if (!objednavka) return;
 
@@ -484,7 +517,7 @@ export default function DetailObjednavkyScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.statusButton, { backgroundColor: '#4CAF50' }]}
-                onPress={() => zmeniStav('dokoncena')}
+                onPress={dokoncitObjednavku}
               >
                 <Text style={styles.statusButtonText}>Dokončená</Text>
               </TouchableOpacity>
