@@ -1,8 +1,7 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform, TextInput, Linking, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform, TextInput, Linking } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
-import QRCodeLib from 'qrcode';
 
 interface Objednavka {
   id: string;
@@ -33,8 +32,6 @@ export default function DetailObjednavkyScreen() {
   const [polozky, setPolozky] = useState<ObjednavkaPolozka[]>([]);
   const [poznamka, setPoznamka] = useState('');
   const [savingPoznamka, setSavingPoznamka] = useState(false);
-  const [showQR, setShowQR] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('Detail objednavky - ID:', objednavkaId);
@@ -234,39 +231,46 @@ export default function DetailObjednavkyScreen() {
     }
   };
 
-  const odeslstOdkazSMS = () => {
-    if (objednavka?.zakaznik_telefon && objednavka?.anon_customer_code) {
-      const url = `https://samopestitele.vercel.app/vyzvednuti/${objednavka.anon_customer_code}`;
-      const message = `Vaše objednávka je připravena k vyzvednutí! 🌾\n\nDetail objednávky: ${url}`;
+  const odeslstSMSoStavu = () => {
+    if (objednavka?.zakaznik_telefon) {
+      // Sestavit zprávu podle stavu objednávky
+      let message = '';
+      const stavText = getStavText(objednavka.stav);
+
+      switch (objednavka.stav) {
+        case 'potvrzena':
+          message = `Dobrý den, vaše objednávka byla potvrzena! ✅`;
+          break;
+        case 'zpracovana':
+          message = `Dobrý den, vaše objednávka je připravena k vyzvednutí! 🌾`;
+          break;
+        case 'dokoncena':
+          message = `Děkujeme za nákup! 🙏`;
+          break;
+        case 'odmitnuta':
+          message = `Omlouváme se, vaši objednávku bohužel nemůžeme splnit.`;
+          break;
+        default:
+          message = `Informace k vaší objednávce (${stavText}):`;
+      }
+
+      // Přidat datum vyzvednutí pokud existuje
+      if (objednavka.datum_vyzvednuti && objednavka.stav !== 'dokoncena') {
+        const datum = new Date(objednavka.datum_vyzvednuti).toLocaleDateString('cs-CZ');
+        message += `\nDatum vyzvednutí: ${datum}`;
+      }
+
+      // Přidat odkaz na detail
+      if (objednavka.anon_customer_code) {
+        message += `\n\nDetail: https://samopestitele.vercel.app/vyzvednuti/${objednavka.anon_customer_code}`;
+      }
+
       const smsUrl = `sms:${objednavka.zakaznik_telefon}?body=${encodeURIComponent(message)}`;
       Linking.openURL(smsUrl).catch(() => {
         showAlert('Chyba', 'Nelze otevřít SMS aplikaci');
       });
     }
   };
-
-  const generateQRData = () => {
-    if (!objednavka || !objednavka.anon_customer_code) return '';
-    // URL odkaz na veřejnou stránku s detailem objednávky
-    return `https://samopestitele.vercel.app/vyzvednuti/${objednavka.anon_customer_code}`;
-  };
-
-  // Generování QR kódu jako data URL
-  useEffect(() => {
-    if (showQR && objednavka) {
-      const qrData = generateQRData();
-      QRCodeLib.toDataURL(qrData, {
-        width: 200,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#ffffff',
-        },
-      })
-        .then((url: string) => setQrDataUrl(url))
-        .catch((err: any) => console.error('Chyba při generování QR:', err));
-    }
-  }, [showQR, objednavka]);
 
   if (loading) {
     return (
@@ -356,16 +360,28 @@ export default function DetailObjednavkyScreen() {
             </View>
           </View>
 
-          {/* Telefon zákazníka */}
+          {/* Telefon zákazníka s akcemi */}
           {objednavka.zakaznik_telefon && (
-            <TouchableOpacity
-              style={styles.phoneRow}
-              onPress={zavolatZakaznika}
-            >
-              <Text style={styles.phoneIcon}>📱</Text>
-              <Text style={styles.phoneText}>{objednavka.zakaznik_telefon}</Text>
-              <Text style={styles.phoneAction}>Zavolat →</Text>
-            </TouchableOpacity>
+            <View style={styles.phoneSection}>
+              <View style={styles.phoneInfo}>
+                <Text style={styles.phoneIcon}>📱</Text>
+                <Text style={styles.phoneText}>{objednavka.zakaznik_telefon}</Text>
+              </View>
+              <View style={styles.phoneActions}>
+                <TouchableOpacity
+                  style={styles.phoneActionButton}
+                  onPress={zavolatZakaznika}
+                >
+                  <Text style={styles.phoneActionButtonText}>📞 Zavolat</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.phoneActionButton, styles.smsButton]}
+                  onPress={odeslstSMSoStavu}
+                >
+                  <Text style={styles.phoneActionButtonText}>💬 SMS</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           )}
 
           <Text style={styles.infoText}>
@@ -431,47 +447,6 @@ export default function DetailObjednavkyScreen() {
               {savingPoznamka ? 'Ukládám...' : 'Uložit poznámku'}
             </Text>
           </TouchableOpacity>
-        </View>
-
-        {/* QR kód pro vyzvednutí */}
-        <View style={styles.card}>
-          <TouchableOpacity
-            style={styles.qrToggle}
-            onPress={() => setShowQR(!showQR)}
-          >
-            <Text style={styles.cardTitle}>🎫 QR kód pro vyzvednutí</Text>
-            <Text style={styles.qrToggleText}>{showQR ? '▼' : '▶'}</Text>
-          </TouchableOpacity>
-
-          {showQR && (
-            <View style={styles.qrContainer}>
-              {qrDataUrl ? (
-                <View style={styles.qrCodeWrapper}>
-                  <Image
-                    source={{ uri: qrDataUrl }}
-                    style={{ width: 160, height: 160 }}
-                  />
-                </View>
-              ) : (
-                <ActivityIndicator size="small" color="#ffffff" />
-              )}
-              <Text style={styles.qrHint}>
-                Zákazník naskenuje kód a uvidí detail objednávky
-              </Text>
-
-              {/* Tlačítko pro odeslání SMS */}
-              {objednavka.zakaznik_telefon && (
-                <TouchableOpacity
-                  style={styles.sendSmsButton}
-                  onPress={odeslstOdkazSMS}
-                >
-                  <Text style={styles.sendSmsButtonText}>
-                    📩 Poslat odkaz zákazníkovi (SMS)
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
         </View>
 
         {/* Tlačítka Potvrdit / Odmítnout pro čekající objednávky */}
@@ -611,9 +586,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)',
     marginBottom: 4,
   },
-  phoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  phoneSection: {
     backgroundColor: 'rgba(79,195,247,0.15)',
     padding: 12,
     borderRadius: 8,
@@ -621,20 +594,38 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(79,195,247,0.3)',
   },
+  phoneInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   phoneIcon: {
     fontSize: 18,
     marginRight: 8,
   },
   phoneText: {
-    flex: 1,
     fontSize: 16,
     color: '#4FC3F7',
     fontWeight: '600',
   },
-  phoneAction: {
-    fontSize: 13,
-    color: '#4FC3F7',
-    fontWeight: '500',
+  phoneActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  phoneActionButton: {
+    flex: 1,
+    backgroundColor: '#4FC3F7',
+    paddingVertical: 10,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  phoneActionButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  smsButton: {
+    backgroundColor: '#4CAF50',
   },
   pickupText: {
     fontSize: 14,
@@ -673,43 +664,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
-  },
-  qrToggle: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  qrToggleText: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
-  },
-  qrContainer: {
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  qrCodeWrapper: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
-  },
-  qrHint: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: 12,
-    textAlign: 'center',
-  },
-  sendSmsButton: {
-    marginTop: 16,
-    backgroundColor: '#4CAF50',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  sendSmsButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
   },
   actionCard: {
     backgroundColor: 'rgba(255,152,0,0.2)',
