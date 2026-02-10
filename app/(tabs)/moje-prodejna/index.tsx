@@ -245,10 +245,11 @@ function MojeProdejnaScreenContent() {
           <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/')}>
             <Feather name="arrow-left" size={22} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Moje prodejna</Text>
+          <Text style={styles.headerTitle} testID="page-title">Moje prodejna</Text>
           <TouchableOpacity
             style={styles.profileButton}
             onPress={() => router.push('/muj-profil')}
+            testID="nav-profil"
           >
             <Feather name="user" size={22} color="#FFFFFF" />
           </TouchableOpacity>
@@ -259,6 +260,7 @@ function MojeProdejnaScreenContent() {
       <TouchableOpacity
         style={styles.produktyButton}
         onPress={() => router.push('/moje-prodejna/seznam-produktu')}
+        testID="nav-produkty"
       >
         <View style={styles.produktyButtonContent}>
           <Text style={styles.produktyIcon}>📦</Text>
@@ -271,7 +273,7 @@ function MojeProdejnaScreenContent() {
       </TouchableOpacity>
 
       {/* Nadpis objednávek */}
-      <View style={styles.sectionHeader}>
+      <View style={styles.sectionHeader} testID="orders-section">
         <Text style={styles.sectionTitle}>📋 Objednávky ({objednavky.length})</Text>
       </View>
 
@@ -301,7 +303,7 @@ function MojeProdejnaScreenContent() {
             const isExpanded = expandedOrders.has(objednavka.id);
 
             return (
-              <View key={objednavka.id} style={styles.orderCard}>
+              <View key={objednavka.id} style={styles.orderCard} testID="order-card">
                 {/* Hlavička objednávky */}
                 <TouchableOpacity
                   style={styles.orderHeader}
@@ -336,7 +338,7 @@ function MojeProdejnaScreenContent() {
 
                 {/* Rozbalené položky */}
                 {isExpanded && (
-                  <View style={styles.polozkyContainer}>
+                  <View style={styles.polozkyContainer} testID="order-items">
                     {objednavka.polozky.map((polozka) => (
                       <View
                         key={polozka.id}
@@ -364,6 +366,8 @@ function MojeProdejnaScreenContent() {
                               polozka.stav_polozky === 'pripraveno' && styles.actionBtnActive
                             ]}
                             onPress={() => zmeniStavPolozky(polozka.id, 'pripraveno', objednavka.id)}
+                            testID="item-prepare-btn"
+                            {...(polozka.stav_polozky === 'pripraveno' && { 'data-active': 'true' })}
                           >
                             <Text style={styles.actionBtnText}>✓</Text>
                           </TouchableOpacity>
@@ -375,6 +379,8 @@ function MojeProdejnaScreenContent() {
                               polozka.stav_polozky === 'neni_k_dispozici' && styles.actionBtnActive
                             ]}
                             onPress={() => zmeniStavPolozky(polozka.id, 'neni_k_dispozici', objednavka.id)}
+                            testID="item-unavailable-btn"
+                            {...(polozka.stav_polozky === 'neni_k_dispozici' && { 'data-active': 'true' })}
                           >
                             <Text style={styles.actionBtnText}>✗</Text>
                           </TouchableOpacity>
@@ -386,6 +392,7 @@ function MojeProdejnaScreenContent() {
                     <TouchableOpacity
                       style={styles.detailButton}
                       onPress={() => router.push(`/moje-prodejna/detail-objednavky?id=${objednavka.id}`)}
+                      testID="order-detail-btn"
                     >
                       <Text style={styles.detailButtonText}>📝 Detail objednávky</Text>
                     </TouchableOpacity>
@@ -400,6 +407,7 @@ function MojeProdejnaScreenContent() {
         <TouchableOpacity
           style={styles.archiveLink}
           onPress={() => router.push('/moje-prodejna/dokoncene-objednavky')}
+          testID="nav-dokoncene"
         >
           <Text style={styles.archiveLinkText}>📚 Zobrazit dokončené objednávky</Text>
         </TouchableOpacity>

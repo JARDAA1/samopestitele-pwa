@@ -95,7 +95,7 @@ export default function ProdejnaLoginScreen() {
           </View>
 
           {remainingAttempts !== null && remainingAttempts < 5 && (
-            <View style={styles.warningBox}>
+            <View style={styles.warningBox} testID="login-error">
               <Text style={styles.warningTitle}>Zbývající pokusy: {remainingAttempts}</Text>
               <Text style={styles.warningText}>
                 Poté bude účet uzamčen na 15 minut.
@@ -113,6 +113,7 @@ export default function ProdejnaLoginScreen() {
             autoCapitalize="none"
             autoCorrect={false}
             autoFocus
+            testID="login-username"
           />
 
           <Text style={styles.label}>Heslo</Text>
@@ -124,12 +125,14 @@ export default function ProdejnaLoginScreen() {
             onChangeText={setPassword}
             secureTextEntry
             onSubmitEditing={handleLogin}
+            testID="login-password"
           />
 
           <TouchableOpacity
             style={[styles.primaryButton, loading && styles.primaryButtonDisabled]}
             onPress={handleLogin}
             disabled={loading}
+            testID="login-submit"
           >
             <Text style={styles.primaryButtonText}>
               {loading ? 'Přihlašuji...' : 'Přihlásit se'}
