@@ -1,11 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useFarmarAuth } from '../../utils/farmarAuthContext';
 import { ProtectedRoute } from '../../utils/ProtectedRoute';
-import { DrawerMenu } from '../../utils/DrawerMenu';
-import { useDrawerMenu } from '../../utils/useDrawerMenu';
 import { Feather } from '@expo/vector-icons';
 
 interface ObjednavkaPolozka {
@@ -31,7 +29,6 @@ interface Objednavka {
 
 function MojeProdejnaScreenContent() {
   const { farmar } = useFarmarAuth();
-  const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -242,13 +239,11 @@ function MojeProdejnaScreenContent() {
 
   return (
     <View style={styles.container}>
-      <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
-
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <TouchableOpacity style={styles.menuButton} onPress={openMenu}>
-            <Feather name="menu" size={22} color="#FFFFFF" />
+          <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/')}>
+            <Feather name="arrow-left" size={22} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Moje prodejna</Text>
           <TouchableOpacity
