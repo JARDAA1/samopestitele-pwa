@@ -177,8 +177,46 @@ export default function DetailObjednavkyScreen() {
     }
   };
 
-  const potvrditObjednavku = () => {
-    zmeniStav('potvrzena');
+  const potvrditObjednavku = async () => {
+    await zmeniStav('potvrzena');
+
+    // Nabídnout odeslání SMS
+    if (objednavka?.zakaznik_telefon) {
+      if (Platform.OS === 'web') {
+        if (confirm('Chcete odeslat zákazníkovi SMS s potvrzením?')) {
+          odeslstPotvrzeniSMS();
+        }
+      } else {
+        Alert.alert(
+          'Odeslat SMS?',
+          'Chcete odeslat zákazníkovi SMS s potvrzením objednávky?',
+          [
+            { text: 'Ne', style: 'cancel' },
+            { text: 'Ano, odeslat', onPress: () => odeslstPotvrzeniSMS() },
+          ]
+        );
+      }
+    }
+  };
+
+  const odeslstPotvrzeniSMS = () => {
+    if (objednavka?.zakaznik_telefon) {
+      let message = `Dobrý den, vaše objednávka byla potvrzena! ✅`;
+
+      if (objednavka.datum_vyzvednuti) {
+        const datum = new Date(objednavka.datum_vyzvednuti).toLocaleDateString('cs-CZ');
+        message += `\nDatum vyzvednutí: ${datum}`;
+      }
+
+      if (objednavka.anon_customer_code) {
+        message += `\n\nDetail: https://samopestitele.vercel.app/vyzvednuti/${objednavka.anon_customer_code}`;
+      }
+
+      const smsUrl = `sms:${objednavka.zakaznik_telefon}?body=${encodeURIComponent(message)}`;
+      Linking.openURL(smsUrl).catch(() => {
+        showAlert('Chyba', 'Nelze otevřít SMS aplikaci');
+      });
+    }
   };
 
   const odmitnoutObjednavku = () => {
