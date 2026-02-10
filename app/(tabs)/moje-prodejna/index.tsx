@@ -8,6 +8,15 @@ import { DrawerMenu } from '../../utils/DrawerMenu';
 import { useDrawerMenu } from '../../utils/useDrawerMenu';
 import { Feather } from '@expo/vector-icons';
 
+interface ObjednavkaPolozka {
+  id: string;
+  nazev_produktu: string;
+  mnozstvi: number;
+  jednotka: string;
+  cena?: number;
+  stav_polozky?: string; // 'novy' | 'pripraveno' | 'neni_k_dispozici' | 'zruseno'
+}
+
 interface Objednavka {
   id: string;
   stav: string;
@@ -17,17 +26,18 @@ interface Objednavka {
   celkova_cena?: number;
   zakaznik_telefon?: string;
   poznamka_farmare?: string;
+  polozky: ObjednavkaPolozka[];
 }
 
 function MojeProdejnaScreenContent() {
-  const { farmar, logout } = useFarmarAuth();
+  const { farmar } = useFarmarAuth();
   const { isMenuVisible, openMenu, closeMenu } = useDrawerMenu();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [objednavky, setObjednavky] = useState<Objednavka[]>([]);
   const [pocetProduktu, setPocetProduktu] = useState(0);
-  const [activeTab, setActiveTab] = useState<'cekajici' | 'rozpracovane' | 'dokoncene'>('cekajici');
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   useFocusEffect(
     useCallback(() => {
@@ -47,17 +57,45 @@ function MojeProdejnaScreenContent() {
         setLoading(true);
       }
 
-      // Načíst objednávky
+      // Načíst objednávky s položkami
       const { data: objednavkyData, error: objednavkyError } = await supabase
         .from('objednavky')
-        .select('*')
+        .select(`
+          id, stav, created_at, datum_vyzvednuti, anon_customer_code,
+          celkova_cena, zakaznik_telefon, poznamka_farmare
+        `)
         .eq('pestitel_id', pestitelId)
+        .in('stav', ['nova', 'cekajici_na_potvrzeni', 'potvrzena', 'zpracovana'])
         .order('created_at', { ascending: false });
 
       if (objednavkyError) {
         console.error('Chyba při načítání objednávek:', objednavkyError);
-      } else {
-        setObjednavky(objednavkyData || []);
+      } else if (objednavkyData) {
+        // Pro každou objednávku načíst položky
+        const objednavkyWithPolozky = await Promise.all(
+          objednavkyData.map(async (obj) => {
+            const { data: polozkyData } = await supabase
+              .from('objednavky_polozky')
+              .select('id, nazev_produktu, mnozstvi, jednotka, cena, stav_polozky')
+              .eq('objednavka_id', obj.id);
+
+            return {
+              ...obj,
+              polozky: polozkyData || []
+            };
+          })
+        );
+
+        setObjednavky(objednavkyWithPolozky);
+
+        // Automaticky rozbalit nové objednávky
+        const newExpanded = new Set<string>();
+        objednavkyWithPolozky.forEach(obj => {
+          if (obj.stav === 'nova' || obj.stav === 'cekajici_na_potvrzeni') {
+            newExpanded.add(obj.id);
+          }
+        });
+        setExpandedOrders(prev => new Set([...prev, ...newExpanded]));
       }
 
       // Načíst počet produktů
@@ -67,9 +105,7 @@ function MojeProdejnaScreenContent() {
         .eq('pestitel_id', pestitelId)
         .eq('archivovano', false);
 
-      if (produktyError) {
-        console.error('Chyba při načítání produktů:', produktyError);
-      } else {
+      if (!produktyError) {
         setPocetProduktu(count || 0);
       }
     } catch (error) {
@@ -86,29 +122,78 @@ function MojeProdejnaScreenContent() {
     }
   }, [farmar]);
 
-  const handleOdhlasit = async () => {
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm('Opravdu se chcete odhlásit?');
-      if (confirmed) {
-        await logout();
-        router.replace('/prihlaseni');
+  const toggleExpanded = (orderId: string) => {
+    setExpandedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
       }
-    } else {
-      Alert.alert(
-        'Odhlásit se?',
-        'Opravdu se chcete odhlásit?',
-        [
-          { text: 'Zrušit', style: 'cancel' },
-          {
-            text: 'Odhlásit',
-            style: 'destructive',
-            onPress: async () => {
-              await logout();
-              router.replace('/prihlaseni');
-            }
-          }
-        ]
-      );
+      return newSet;
+    });
+  };
+
+  const zmeniStavPolozky = async (polozkaId: string, novyStav: string, objednavkaId: string) => {
+    try {
+      const { error } = await supabase
+        .from('objednavky_polozky')
+        .update({ stav_polozky: novyStav })
+        .eq('id', polozkaId);
+
+      if (error) {
+        console.error('Chyba při změně stavu položky:', error);
+        return;
+      }
+
+      // Aktualizovat lokální stav
+      setObjednavky(prev => prev.map(obj => {
+        if (obj.id === objednavkaId) {
+          return {
+            ...obj,
+            polozky: obj.polozky.map(pol =>
+              pol.id === polozkaId ? { ...pol, stav_polozky: novyStav } : pol
+            )
+          };
+        }
+        return obj;
+      }));
+
+      // Zkontrolovat, jestli jsou všechny položky vyřízené -> změnit stav objednávky
+      const objednavka = objednavky.find(o => o.id === objednavkaId);
+      if (objednavka) {
+        const updatedPolozky = objednavka.polozky.map(pol =>
+          pol.id === polozkaId ? { ...pol, stav_polozky: novyStav } : pol
+        );
+
+        const vsechnyVyrizene = updatedPolozky.every(
+          pol => pol.stav_polozky && pol.stav_polozky !== 'novy'
+        );
+
+        if (vsechnyVyrizene) {
+          // Všechny položky mají stav -> objednávka je zpracovaná
+          await supabase
+            .from('objednavky')
+            .update({ stav: 'zpracovana' })
+            .eq('id', objednavkaId);
+
+          setObjednavky(prev => prev.map(obj =>
+            obj.id === objednavkaId ? { ...obj, stav: 'zpracovana' } : obj
+          ));
+        } else if (objednavka.stav === 'nova' || objednavka.stav === 'cekajici_na_potvrzeni') {
+          // Alespoň jedna položka má stav -> objednávka je potvrzená (rozpracovaná)
+          await supabase
+            .from('objednavky')
+            .update({ stav: 'potvrzena' })
+            .eq('id', objednavkaId);
+
+          setObjednavky(prev => prev.map(obj =>
+            obj.id === objednavkaId ? { ...obj, stav: 'potvrzena' } : obj
+          ));
+        }
+      }
+    } catch (error) {
+      console.error('Chyba:', error);
     }
   };
 
@@ -122,72 +207,29 @@ function MojeProdejnaScreenContent() {
     });
   };
 
-  const formatDatum = (datum?: string) => {
-    if (!datum) return 'Neuvedeno';
-    const d = new Date(datum);
-    return d.toLocaleDateString('cs-CZ', {
-      day: 'numeric',
-      month: 'numeric',
-      year: 'numeric',
-    });
-  };
+  const getOrderBadge = (objednavka: Objednavka) => {
+    // Zkontrolovat, jestli má alespoň jedna položka stav
+    const maNejakyStav = objednavka.polozky.some(
+      pol => pol.stav_polozky && pol.stav_polozky !== 'novy'
+    );
 
-  const getStavBarva = (stav: string) => {
-    switch (stav) {
-      case 'cekajici_na_potvrzeni':
-        return '#FF9800';
-      case 'potvrzena':
-        return '#2196F3';
-      case 'odmitnuta':
-        return '#F44336';
-      case 'nova':
-        return '#2196F3';
-      case 'zpracovana':
-        return '#9C27B0';
-      case 'dokoncena':
-        return '#4CAF50';
-      case 'zrusena':
-        return '#F44336';
-      default:
-        return '#999';
+    if (objednavka.stav === 'zpracovana') {
+      return { text: 'HOTOVO', color: '#4CAF50' };
+    } else if (maNejakyStav || objednavka.stav === 'potvrzena') {
+      return { text: 'ROZPRACOVÁNO', color: '#FF9800' };
+    } else {
+      return { text: 'NOVÁ', color: '#F44336' };
     }
   };
 
-  const getStavText = (stav: string) => {
+  const getPolozkaStavColor = (stav?: string) => {
     switch (stav) {
-      case 'cekajici_na_potvrzeni':
-        return 'Čeká na potvrzení';
-      case 'potvrzena':
-        return 'Potvrzená';
-      case 'odmitnuta':
-        return 'Odmítnutá';
-      case 'nova':
-        return 'Nová';
-      case 'zpracovana':
-        return 'Zpracovaná';
-      case 'dokoncena':
-        return 'Dokončená';
-      case 'zrusena':
-        return 'Zrušená';
-      default:
-        return stav;
+      case 'pripraveno': return '#4CAF50';
+      case 'neni_k_dispozici': return '#9E9E9E';
+      case 'zruseno': return '#F44336';
+      default: return 'transparent';
     }
   };
-
-  // Rozdělit objednávky do 3 kategorií
-  const cekajiciObjednavky = objednavky.filter(o => o.stav === 'cekajici_na_potvrzeni');
-  const rozpracovaneObjednavky = objednavky.filter(o =>
-    ['potvrzena', 'nova', 'zpracovana'].includes(o.stav)
-  );
-  const dokonceneObjednavky = objednavky.filter(o =>
-    ['dokoncena', 'odmitnuta', 'zrusena'].includes(o.stav)
-  );
-
-  const displayedObjednavky = activeTab === 'cekajici'
-    ? cekajiciObjednavky
-    : activeTab === 'rozpracovane'
-      ? rozpracovaneObjednavky
-      : dokonceneObjednavky;
 
   if (loading) {
     return (
@@ -233,32 +275,9 @@ function MojeProdejnaScreenContent() {
         <Text style={styles.produktyArrow}>→</Text>
       </TouchableOpacity>
 
-      {/* Tabs pro objednávky - 3 záložky */}
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'cekajici' && styles.activeTab]}
-          onPress={() => setActiveTab('cekajici')}
-        >
-          <Text style={[styles.tabText, activeTab === 'cekajici' && styles.activeTabText]}>
-            🔔 Čekající ({cekajiciObjednavky.length})
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'rozpracovane' && styles.activeTab]}
-          onPress={() => setActiveTab('rozpracovane')}
-        >
-          <Text style={[styles.tabText, activeTab === 'rozpracovane' && styles.activeTabText]}>
-            🔧 Rozpracované ({rozpracovaneObjednavky.length})
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'dokoncene' && styles.activeTab]}
-          onPress={() => setActiveTab('dokoncene')}
-        >
-          <Text style={[styles.tabText, activeTab === 'dokoncene' && styles.activeTabText]}>
-            ✅ Dokončené ({dokonceneObjednavky.length})
-          </Text>
-        </TouchableOpacity>
+      {/* Nadpis objednávek */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>📋 Objednávky ({objednavky.length})</Text>
       </View>
 
       {/* Seznam objednávek */}
@@ -273,93 +292,123 @@ function MojeProdejnaScreenContent() {
           />
         }
       >
-        {displayedObjednavky.length === 0 ? (
+        {objednavky.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>
-              {activeTab === 'cekajici' ? '✅' : activeTab === 'rozpracovane' ? '🔧' : '📋'}
-            </Text>
-            <Text style={styles.emptyText}>
-              {activeTab === 'cekajici'
-                ? 'Žádné objednávky nečekají na potvrzení'
-                : activeTab === 'rozpracovane'
-                  ? 'Žádné rozpracované objednávky'
-                  : 'Zatím nemáte žádné dokončené objednávky'}
-            </Text>
+            <Text style={styles.emptyIcon}>✅</Text>
+            <Text style={styles.emptyText}>Žádné aktivní objednávky</Text>
             <Text style={styles.emptySubtext}>
-              {activeTab === 'cekajici'
-                ? 'Jakmile vám někdo pošle žádost, zobrazí se zde'
-                : activeTab === 'rozpracovane'
-                  ? 'Potvrzené objednávky se zobrazí zde'
-                  : 'Dokončené a zrušené objednávky se zobrazí zde'}
+              Jakmile vám někdo pošle objednávku, zobrazí se zde
             </Text>
           </View>
         ) : (
-          displayedObjednavky.map((objednavka) => (
-            <TouchableOpacity
-              key={objednavka.id}
-              style={[
-                styles.orderCard,
-                objednavka.stav === 'cekajici_na_potvrzeni' && styles.orderCardUrgent
-              ]}
-              onPress={() =>
-                router.push(`/moje-prodejna/detail-objednavky?id=${objednavka.id}`)
-              }
-            >
-              <View style={styles.orderRow}>
-                <View style={styles.orderInfo}>
-                  <View style={styles.customerRow}>
-                    <Text style={styles.customerCode}>
-                      {objednavka.poznamka_farmare
-                        ? objednavka.poznamka_farmare
-                        : objednavka.anon_customer_code
-                          ? `Zákazník ${objednavka.anon_customer_code}`
-                          : 'Zákazník'}
-                    </Text>
-                    {objednavka.stav === 'cekajici_na_potvrzeni' && (
-                      <Text style={styles.urgentBadge}>NOVÁ</Text>
-                    )}
-                  </View>
-                  {objednavka.zakaznik_telefon && (
-                    <Text style={styles.orderPhone}>
-                      📱 {objednavka.zakaznik_telefon}
-                    </Text>
-                  )}
-                  <Text style={styles.orderDate}>
-                    Přijato: {formatCreatedAt(objednavka.created_at)}
-                  </Text>
-                  {objednavka.datum_vyzvednuti && (
-                    <Text style={styles.orderPickup}>
-                      Vyzvednutí: {formatDatum(objednavka.datum_vyzvednuti)}
-                    </Text>
-                  )}
-                  {objednavka.celkova_cena && objednavka.celkova_cena > 0 && (
-                    <Text style={styles.orderPrice}>
-                      {objednavka.celkova_cena.toFixed(0)} Kč
-                    </Text>
-                  )}
-                </View>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    { backgroundColor: getStavBarva(objednavka.stav) + '30' }
-                  ]}
+          objednavky.map((objednavka) => {
+            const badge = getOrderBadge(objednavka);
+            const isExpanded = expandedOrders.has(objednavka.id);
+
+            return (
+              <View key={objednavka.id} style={styles.orderCard}>
+                {/* Hlavička objednávky */}
+                <TouchableOpacity
+                  style={styles.orderHeader}
+                  onPress={() => toggleExpanded(objednavka.id)}
                 >
-                  <Text
-                    style={[
-                      styles.statusText,
-                      { color: getStavBarva(objednavka.stav) }
-                    ]}
-                  >
-                    {getStavText(objednavka.stav)}
-                  </Text>
-                </View>
+                  <View style={styles.orderInfo}>
+                    <View style={styles.customerRow}>
+                      <Text style={styles.customerCode}>
+                        {objednavka.poznamka_farmare ||
+                          (objednavka.anon_customer_code
+                            ? `Zákazník ${objednavka.anon_customer_code}`
+                            : 'Zákazník')}
+                      </Text>
+                      <View style={[styles.badge, { backgroundColor: badge.color }]}>
+                        <Text style={styles.badgeText}>{badge.text}</Text>
+                      </View>
+                    </View>
+
+                    {objednavka.zakaznik_telefon && (
+                      <Text style={styles.orderPhone}>
+                        📱 {objednavka.zakaznik_telefon}
+                      </Text>
+                    )}
+
+                    <Text style={styles.orderDate}>
+                      {formatCreatedAt(objednavka.created_at)} • {objednavka.polozky.length} položek
+                    </Text>
+                  </View>
+
+                  <Text style={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</Text>
+                </TouchableOpacity>
+
+                {/* Rozbalené položky */}
+                {isExpanded && (
+                  <View style={styles.polozkyContainer}>
+                    {objednavka.polozky.map((polozka) => (
+                      <View
+                        key={polozka.id}
+                        style={[
+                          styles.polozkaRow,
+                          polozka.stav_polozky && polozka.stav_polozky !== 'novy' && {
+                            borderLeftWidth: 3,
+                            borderLeftColor: getPolozkaStavColor(polozka.stav_polozky)
+                          }
+                        ]}
+                      >
+                        <View style={styles.polozkaInfo}>
+                          <Text style={styles.polozkaNazev}>{polozka.nazev_produktu}</Text>
+                          <Text style={styles.polozkaMnozstvi}>
+                            {polozka.mnozstvi} {polozka.jednotka}
+                            {polozka.cena ? ` • ${(polozka.cena * polozka.mnozstvi).toFixed(0)} Kč` : ''}
+                          </Text>
+                        </View>
+
+                        <View style={styles.polozkaActions}>
+                          <TouchableOpacity
+                            style={[
+                              styles.actionBtn,
+                              styles.actionBtnGreen,
+                              polozka.stav_polozky === 'pripraveno' && styles.actionBtnActive
+                            ]}
+                            onPress={() => zmeniStavPolozky(polozka.id, 'pripraveno', objednavka.id)}
+                          >
+                            <Text style={styles.actionBtnText}>✓</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            style={[
+                              styles.actionBtn,
+                              styles.actionBtnGray,
+                              polozka.stav_polozky === 'neni_k_dispozici' && styles.actionBtnActive
+                            ]}
+                            onPress={() => zmeniStavPolozky(polozka.id, 'neni_k_dispozici', objednavka.id)}
+                          >
+                            <Text style={styles.actionBtnText}>✗</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+
+                    {/* Tlačítko pro detail */}
+                    <TouchableOpacity
+                      style={styles.detailButton}
+                      onPress={() => router.push(`/moje-prodejna/detail-objednavky?id=${objednavka.id}`)}
+                    >
+                      <Text style={styles.detailButtonText}>📝 Detail objednávky</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
-            </TouchableOpacity>
-          ))
+            );
+          })
         )}
 
+        {/* Odkaz na dokončené */}
+        <TouchableOpacity
+          style={styles.archiveLink}
+          onPress={() => router.push('/moje-prodejna/dokoncene-objednavky')}
+        >
+          <Text style={styles.archiveLinkText}>📚 Zobrazit dokončené objednávky</Text>
+        </TouchableOpacity>
       </ScrollView>
-
     </View>
   );
 }
@@ -407,11 +456,6 @@ const styles = StyleSheet.create({
     height: 36,
     justifyContent: 'center',
     alignItems: 'center'
-  },
-  menuIcon: {
-    fontSize: 22,
-    color: '#FFFFFF',
-    fontWeight: '400'
   },
   headerTitle: {
     flex: 1,
@@ -467,39 +511,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Tabs - 3 záložky pro mobil
-  tabsContainer: {
-    flexDirection: 'row',
-    marginHorizontal: 8,
-    marginTop: 12,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    padding: 3,
+  // Section header
+  sectionHeader: {
+    paddingHorizontal: 12,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
-  tab: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
-  activeTab: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  tabText: {
-    fontSize: 11,
+  sectionTitle: {
+    fontSize: 14,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: 'center',
-  },
-  activeTabText: {
-    color: '#ffffff',
+    color: 'rgba(255,255,255,0.8)',
   },
 
   // Content
   content: {
     flex: 1,
-    padding: 12,
+    paddingHorizontal: 12,
   },
 
   // Empty state
@@ -528,21 +555,15 @@ const styles = StyleSheet.create({
   // Order cards
   orderCard: {
     backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 12,
+    marginBottom: 12,
+    overflow: 'hidden',
   },
-  orderCardUrgent: {
-    borderColor: '#FF9800',
-    borderWidth: 2,
-    backgroundColor: 'rgba(255,152,0,0.15)',
-  },
-  orderRow: {
+  orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    padding: 14,
   },
   orderInfo: {
     flex: 1,
@@ -552,20 +573,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flexWrap: 'wrap',
   },
   customerCode: {
     fontSize: 16,
     fontWeight: '700',
     color: '#ffffff',
   },
-  urgentBadge: {
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  badgeText: {
     fontSize: 10,
     fontWeight: '700',
     color: '#ffffff',
-    backgroundColor: '#FF9800',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
   },
   orderPhone: {
     fontSize: 13,
@@ -576,24 +599,90 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(255,255,255,0.6)',
   },
-  orderPickup: {
-    fontSize: 13,
-    color: '#FF9800',
-    fontWeight: '500',
-  },
-  orderPrice: {
+  expandIcon: {
     fontSize: 14,
-    color: '#4CAF50',
-    fontWeight: '700',
+    color: 'rgba(255,255,255,0.6)',
+    marginLeft: 8,
   },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
+
+  // Položky
+  polozkyContainer: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 14,
+    paddingBottom: 14,
   },
-  statusText: {
-    fontSize: 11,
+  polozkaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingLeft: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  polozkaInfo: {
+    flex: 1,
+  },
+  polozkaNazev: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  polozkaMnozstvi: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 2,
+  },
+  polozkaActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionBtnGreen: {
+    backgroundColor: 'rgba(76,175,80,0.3)',
+  },
+  actionBtnGray: {
+    backgroundColor: 'rgba(158,158,158,0.3)',
+  },
+  actionBtnActive: {
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  actionBtnText: {
+    fontSize: 16,
+    color: '#ffffff',
     fontWeight: '700',
   },
 
+  detailButton: {
+    marginTop: 12,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  detailButtonText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '500',
+  },
+
+  // Archive link
+  archiveLink: {
+    marginTop: 8,
+    marginBottom: 24,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  archiveLinkText: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
+  },
 });
