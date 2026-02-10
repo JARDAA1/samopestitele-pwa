@@ -353,7 +353,7 @@ export default function DetailObjednavkyScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/moje-prodejna/objednavky')} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.push('/moje-prodejna')} style={styles.backButton}>
           <Text style={styles.backButtonText}>← Zpět</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Detail objednávky</Text>
