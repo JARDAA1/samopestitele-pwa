@@ -255,6 +255,7 @@ export default function KosikScreen() {
             placeholder="+420 123 456 789"
             placeholderTextColor="rgba(255,255,255,0.5)"
             keyboardType="phone-pad"
+            testID="customer-phone"
           />
 
           <Text style={styles.label}>Poznámka pro farmáře (volitelné)</Text>

@@ -362,6 +362,7 @@ export default function FarmarDetailScreen() {
                         isInSeznam(produkt.id) && styles.addToListBtnActive
                       ]}
                       onPress={() => openMnozstviModal(produkt)}
+                      testID="add-product"
                     >
                       <Text style={styles.addToListBtnText}>
                         {isInSeznam(produkt.id) ? '✓' : '+'}
@@ -379,6 +380,7 @@ export default function FarmarDetailScreen() {
           <TouchableOpacity
             style={styles.floatingSeznamBtn}
             onPress={() => router.push('/nakupni-seznam')}
+            testID="cart-badge"
           >
             <Text style={styles.floatingSeznamBtnText}>
               Zobrazit seznam ({seznam.length})
@@ -418,6 +420,7 @@ export default function FarmarDetailScreen() {
                 onChangeText={setMnozstvi}
                 keyboardType="numeric"
                 selectTextOnFocus
+                testID="quantity-input"
               />
 
               <TouchableOpacity
@@ -501,6 +504,7 @@ export default function FarmarDetailScreen() {
               <TouchableOpacity
                 style={styles.modalConfirmBtn}
                 onPress={pridatDoSeznamu}
+                testID="confirm-add-product"
               >
                 <Text style={styles.modalConfirmBtnText}>Přidat</Text>
               </TouchableOpacity>

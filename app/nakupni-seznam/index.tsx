@@ -298,7 +298,7 @@ export default function NakupniSeznamScreen() {
       </View>
 
       {seznam.length === 0 ? (
-        <View style={styles.emptyContainer}>
+        <View style={styles.emptyContainer} testID="order-success">
           <Text style={styles.emptyIcon}>🧺</Text>
           <Text style={styles.emptyTitle}>Seznam je prázdný</Text>
           <Text style={styles.emptyText}>
@@ -386,6 +386,7 @@ export default function NakupniSeznamScreen() {
             <TouchableOpacity
               style={styles.sendSmsBtn}
               onPress={sendSms}
+              testID="send-order"
             >
               <Ionicons name="chatbubble" size={20} color="#ffffff" />
               <Text style={styles.sendSmsBtnText}>Odeslat žádost o objednávku</Text>
