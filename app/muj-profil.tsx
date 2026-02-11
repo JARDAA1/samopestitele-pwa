@@ -141,6 +141,17 @@ export default function MujProfilScreen() {
               <Text style={styles.gridTitle}>Tady mě najdete</Text>
               <Text style={styles.gridSubtitle}>Vložit foto</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.gridItem}
+              onPress={() => router.push('/profil/zmena-hesla')}
+            >
+              <View style={[styles.gridIconContainer, { backgroundColor: '#FFEBEE' }]}>
+                <Text style={styles.gridIcon}>🔐</Text>
+              </View>
+              <Text style={styles.gridTitle}>Změnit heslo</Text>
+              <Text style={styles.gridSubtitle}>Bezpečnost účtu</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
