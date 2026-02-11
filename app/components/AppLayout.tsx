@@ -1,4 +1,4 @@
-import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, useWindowDimensions, Platform } from 'react-native';
 import { ReactNode } from 'react';
 
 interface AppLayoutProps {
@@ -21,13 +21,23 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   if (!isWideMode) {
     // Mobilní režim - žádné změny
-    return <>{children}</>;
+    return <View style={styles.mobileContainer}>{children}</View>;
   }
 
   // Wide mode - centrovaný layout
+  // Vypočítáme margin pro centrování
+  const sideMargin = Math.max(0, (width - MAX_CONTENT_WIDTH) / 2);
+
   return (
     <View style={styles.wideContainer}>
-      <View style={styles.centeredContent}>
+      <View style={[
+        styles.centeredContent,
+        {
+          marginLeft: sideMargin,
+          marginRight: sideMargin,
+          maxWidth: MAX_CONTENT_WIDTH,
+        }
+      ]}>
         {children}
       </View>
     </View>
@@ -35,15 +45,17 @@ export function AppLayout({ children }: AppLayoutProps) {
 }
 
 const styles = StyleSheet.create({
+  mobileContainer: {
+    flex: 1,
+  },
   wideContainer: {
     flex: 1,
     backgroundColor: '#4A148C', // Tmavší pozadí pro okraje
-    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   centeredContent: {
     flex: 1,
-    width: '100%',
-    maxWidth: MAX_CONTENT_WIDTH,
     backgroundColor: '#6A1B9A', // Hlavní barva aplikace
     // Jemný stín pro vizuální oddělení
     shadowColor: '#000',
@@ -51,5 +63,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 5,
+    overflow: 'hidden',
   },
 });

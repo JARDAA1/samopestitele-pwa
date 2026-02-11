@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert, SafeAreaView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert, SafeAreaView } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -41,11 +41,8 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 }
 
 export default function MapaScreen() {
-  const { width } = useWindowDimensions();
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Desktop detection až po hydrataci (prevence React error #418)
-  const isDesktop = isMounted && width >= 1024;
+  // Odstraněna desktop detection - používáme pouze mobile-first layout
+  // Tablet layout je řešen globálně přes AppLayout wrapper
 
   const [pestitele, setPestitele] = useState<Pestitel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +85,6 @@ export default function MapaScreen() {
   };
 
   useEffect(() => {
-    setIsMounted(true);
     loadPestitele();
     loadProdukty();
     // Automaticky získat polohu a spustit filtrování při načtení
@@ -480,10 +476,10 @@ export default function MapaScreen() {
         <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={[styles.scrollContent, isDesktop && styles.scrollContentDesktop]}>
-        <View style={[styles.mainLayout, isDesktop && styles.mainLayoutDesktop]}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.mainLayout}>
           {/* Panel produktů */}
-          <View style={[styles.filtersPanel, isDesktop && styles.filtersPanelDesktop]}>
+          <View style={styles.filtersPanel}>
             {/* Rozbalovací tlačítko */}
             <TouchableOpacity
               style={styles.produktyToggle}
@@ -505,7 +501,7 @@ export default function MapaScreen() {
 
             {/* Seznam produktů - rozbalený */}
             {showProduktyFilter && (
-              <View style={[styles.produktyCard, isDesktop && styles.produktyCardDesktop]}>
+              <View style={styles.produktyCard}>
                 <View style={styles.produktyGrid}>
                   {produkty.map((produkt) => (
                     <TouchableOpacity
