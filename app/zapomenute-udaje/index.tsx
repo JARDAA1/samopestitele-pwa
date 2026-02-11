@@ -98,13 +98,13 @@ export default function ZapomenuteUdajeScreen() {
             <>
               <Text style={styles.title}>Obnovení přístupu</Text>
               <Text style={styles.subtitle}>
-                Zadejte email, který jste použili při registraci. Pošleme vám odkaz, přes který si zobrazíte kód farmy a můžete změnit PIN.
+                Zadejte email, který jste použili při registraci. Pošleme vám odkaz pro přihlášení a nastavení nového hesla.
               </Text>
 
               <View style={styles.infoBox}>
                 <Text style={styles.infoTitle}>Bezpečné obnovení</Text>
                 <Text style={styles.infoText}>
-                  Přihlašovací odkaz platný 1 hodinu. Po přihlášení zobrazíme váš kód farmy a umožníme změnit PIN.
+                  Přihlašovací odkaz je platný 1 hodinu. Po přihlášení budete moci nastavit nové heslo.
                 </Text>
               </View>
 
