@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ShoppingListProvider } from './utils/cartContext';
 import { FarmarAuthProvider } from './utils/farmarAuthContext';
+import { AppLayout } from './components/AppLayout';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -50,21 +51,24 @@ function RootLayoutNav() {
 
   // Globální nastavení - všechny screeny mají headerShown: false
   // Každý screen má vlastní custom header
+  // AppLayout zajišťuje responzivní centrování na tabletech (>=768px)
   return (
     <FarmarAuthProvider>
       <ShoppingListProvider>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="mapa/index" />
-            <Stack.Screen name="pestitele/[id]" />
-            <Stack.Screen name="kosik/index" />
-            <Stack.Screen name="registrace/index" />
-            <Stack.Screen name="prihlaseni/index" />
-            <Stack.Screen name="zapomenute-heslo/index" />
-            <Stack.Screen name="muj-profil" />
-          </Stack>
+          <AppLayout>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="mapa/index" />
+              <Stack.Screen name="pestitele/[id]" />
+              <Stack.Screen name="kosik/index" />
+              <Stack.Screen name="registrace/index" />
+              <Stack.Screen name="prihlaseni/index" />
+              <Stack.Screen name="zapomenute-heslo/index" />
+              <Stack.Screen name="muj-profil" />
+            </Stack>
+          </AppLayout>
         </ThemeProvider>
       </ShoppingListProvider>
     </FarmarAuthProvider>

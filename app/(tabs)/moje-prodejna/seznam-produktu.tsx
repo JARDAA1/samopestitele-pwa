@@ -1,8 +1,11 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, useWindowDimensions } from 'react-native';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useFarmarAuth } from '../../utils/farmarAuthContext';
+
+// Breakpoint pro wide mode (tablet)
+const WIDE_MODE_BREAKPOINT = 768;
 
 interface Produkt {
   id: string;
@@ -21,6 +24,8 @@ export default function SeznamProduktScreen() {
   const { farmar, isAuthenticated } = useFarmarAuth();
   const params = useLocalSearchParams();
   const filtr = params.filtr as string;
+  const { width } = useWindowDimensions();
+  const isWideMode = width >= WIDE_MODE_BREAKPOINT;
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -155,42 +160,48 @@ export default function SeznamProduktScreen() {
               )}
             </View>
           ) : (
-            displayedProdukty.map((produkt) => (
-              <TouchableOpacity
-                key={produkt.id}
-                style={[styles.productItem, activeTab === 'archivovane' && styles.productItemArchived]}
-                onPress={() => router.push(`/moje-prodejna/upravit-produkt?id=${produkt.id}`)}
-              >
-                <View style={styles.productLeft}>
-                  <Text style={styles.productEmoji}>{produkt.emoji || '📦'}</Text>
-                  <View style={styles.productInfo}>
-                    <Text style={[styles.productName, activeTab === 'archivovane' && styles.productNameArchived]}>
-                      {produkt.nazev}
-                    </Text>
-                    <Text style={[styles.productPrice, activeTab === 'archivovane' && styles.productPriceArchived]}>
-                      {produkt.cena} Kč / {produkt.jednotka}
-                    </Text>
+            <View style={isWideMode ? styles.gridContainer : undefined}>
+              {displayedProdukty.map((produkt) => (
+                <TouchableOpacity
+                  key={produkt.id}
+                  style={[
+                    styles.productItem,
+                    activeTab === 'archivovane' && styles.productItemArchived,
+                    isWideMode && styles.productItemGrid
+                  ]}
+                  onPress={() => router.push(`/moje-prodejna/upravit-produkt?id=${produkt.id}`)}
+                >
+                  <View style={styles.productLeft}>
+                    <Text style={styles.productEmoji}>{produkt.emoji || '📦'}</Text>
+                    <View style={styles.productInfo}>
+                      <Text style={[styles.productName, activeTab === 'archivovane' && styles.productNameArchived]}>
+                        {produkt.nazev}
+                      </Text>
+                      <Text style={[styles.productPrice, activeTab === 'archivovane' && styles.productPriceArchived]}>
+                        {produkt.cena} Kč / {produkt.jednotka}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-                <View style={styles.productRight}>
-                  <View
-                    style={[
-                      styles.availabilityBadge,
-                      activeTab === 'archivovane'
-                        ? styles.archivedBadge
-                        : produkt.dostupnost
-                          ? styles.availableBadge
-                          : styles.unavailableBadge
-                    ]}
-                  >
-                    <Text style={styles.availabilityText}>
-                      {activeTab === 'archivovane' ? '📦' : produkt.dostupnost ? '✓' : '✗'}
-                    </Text>
+                  <View style={styles.productRight}>
+                    <View
+                      style={[
+                        styles.availabilityBadge,
+                        activeTab === 'archivovane'
+                          ? styles.archivedBadge
+                          : produkt.dostupnost
+                            ? styles.availableBadge
+                            : styles.unavailableBadge
+                      ]}
+                    >
+                      <Text style={styles.availabilityText}>
+                        {activeTab === 'archivovane' ? '📦' : produkt.dostupnost ? '✓' : '✗'}
+                      </Text>
+                    </View>
+                    <Text style={styles.editHint}>✏️</Text>
                   </View>
-                  <Text style={styles.editHint}>✏️</Text>
-                </View>
-              </TouchableOpacity>
-            ))
+                </TouchableOpacity>
+              ))}
+            </View>
           )}
         </ScrollView>
       )}
@@ -393,5 +404,14 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: '#FFFFFF',
     fontWeight: '300',
+  },
+  // Grid layout pro wide mode (tablet)
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  productItemGrid: {
+    width: '48.5%',
   },
 });
