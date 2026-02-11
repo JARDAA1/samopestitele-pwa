@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { useFarmarAuth } from '../utils/farmarAuthContext';
@@ -8,12 +8,13 @@ import { supabase } from '../../lib/supabase';
  * Callback handler pro magic link autentizaci
  *
  * Tato stránka se zobrazí po kliknutí na magic link v emailu.
- * Zpracuje autentizaci a přesměruje uživatele na hlavní stránku.
+ * Zpracuje autentizaci a nabídne možnost nastavit nové heslo.
  */
 export default function AuthCallbackScreen() {
   const { checkMagicLinkSession, farmar } = useFarmarAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  const [hasPassword, setHasPassword] = useState(true);
 
   useEffect(() => {
     handleCallback();
@@ -29,8 +30,7 @@ export default function AuthCallbackScreen() {
       if (success) {
         setStatus('success');
 
-        // Zkontrolujeme, jestli má uživatel nastavený PIN
-        // Pokud ne, přesměrujeme ho na vytvoření PINu
+        // Zkontrolujeme, jestli má uživatel nastavené heslo
         if (farmar && farmar.id) {
           const { data: farmarData } = await supabase
             .from('pestitele')
@@ -38,19 +38,18 @@ export default function AuthCallbackScreen() {
             .eq('id', farmar.id)
             .single();
 
-          // Pokud nemá PIN (heslo_hash je null nebo prázdné), přesměrujeme na vytvoření PINu
+          // Pokud nemá heslo, přesměrujeme na vytvoření
           if (!farmarData?.heslo_hash) {
+            setHasPassword(false);
             setTimeout(() => {
-              router.replace('/prihlaseni/vytvorit-pin');
+              router.replace('/profil/nastavit-heslo');
             }, 1500);
             return;
           }
         }
 
-        // Pokud má PIN nebo se něco pokazilo, jdeme na můj profil
-        setTimeout(() => {
-          router.replace('/muj-profil');
-        }, 1500);
+        // Uživatel má heslo - zobrazíme možnost změnit nebo pokračovat
+        setHasPassword(true);
       } else {
         setStatus('error');
         setErrorMessage('Nepodařilo se ověřit přihlašovací odkaz. Zkuste to prosím znovu.');
@@ -60,6 +59,14 @@ export default function AuthCallbackScreen() {
       setStatus('error');
       setErrorMessage(error.message || 'Došlo k neočekávané chybě při přihlašování.');
     }
+  };
+
+  const handleSetNewPassword = () => {
+    router.replace('/profil/nastavit-heslo');
+  };
+
+  const handleContinue = () => {
+    router.replace('/muj-profil');
   };
 
   return (
@@ -75,13 +82,29 @@ export default function AuthCallbackScreen() {
           </>
         )}
 
-        {status === 'success' && (
+        {status === 'success' && !hasPassword && (
           <>
             <Text style={styles.successIcon}>✓</Text>
             <Text style={styles.title}>Přihlášení úspěšné!</Text>
             <Text style={styles.subtitle}>
-              Budete přesměrováni na hlavní stránku...
+              Přesměrováváme vás na nastavení hesla...
             </Text>
+          </>
+        )}
+
+        {status === 'success' && hasPassword && (
+          <>
+            <Text style={styles.successIcon}>✓</Text>
+            <Text style={styles.title}>Přihlášení úspěšné!</Text>
+            <Text style={styles.subtitle}>
+              Chcete si nastavit nové heslo?
+            </Text>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleSetNewPassword}>
+              <Text style={styles.primaryButtonText}>Nastavit nové heslo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.secondaryButton} onPress={handleContinue}>
+              <Text style={styles.secondaryButtonText}>Pokračovat bez změny</Text>
+            </TouchableOpacity>
           </>
         )}
 
@@ -163,5 +186,27 @@ const styles = StyleSheet.create({
     color: '#7B1FA2',
     fontWeight: '600',
     textDecorationLine: 'underline',
+  },
+  primaryButton: {
+    backgroundColor: '#7B1FA2',
+    borderRadius: 10,
+    padding: 14,
+    alignItems: 'center',
+    marginTop: 20,
+    width: '100%',
+  },
+  primaryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  secondaryButton: {
+    marginTop: 12,
+    padding: 14,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    color: '#666',
+    fontSize: 14,
   },
 });
