@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase';
 import { useFarmarAuth } from '../../utils/farmarAuthContext';
 import { ProtectedRoute } from '../../utils/ProtectedRoute';
 import { Feather } from '@expo/vector-icons';
+import { useLayoutMode } from '../../components/AppLayout';
 
 interface ObjednavkaPolozka {
   id: string;
@@ -29,12 +30,15 @@ interface Objednavka {
 
 function MojeProdejnaScreenContent() {
   const { farmar } = useFarmarAuth();
+  const { mode } = useLayoutMode();
+  const isDesktop = mode === 'desktop';
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [objednavky, setObjednavky] = useState<Objednavka[]>([]);
   const [pocetProduktu, setPocetProduktu] = useState(0);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -237,25 +241,14 @@ function MojeProdejnaScreenContent() {
     );
   }
 
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/')}>
-            <Feather name="arrow-left" size={22} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle} testID="page-title">Moje prodejna</Text>
-          <TouchableOpacity
-            style={styles.profileButton}
-            onPress={() => router.push('/muj-profil')}
-            testID="nav-profil"
-          >
-            <Feather name="user" size={22} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-      </View>
+  // Vybraná objednávka pro detail panel (desktop)
+  const selectedOrder = selectedOrderId
+    ? objednavky.find(o => o.id === selectedOrderId)
+    : null;
 
+  // Render seznamu objednávek (levý sloupec)
+  const renderOrdersList = () => (
+    <>
       {/* Tlačítko Moje produkty */}
       <TouchableOpacity
         style={styles.produktyButton}
@@ -301,14 +294,26 @@ function MojeProdejnaScreenContent() {
           objednavky.map((objednavka) => {
             const badge = getOrderBadge(objednavka);
             const isExpanded = expandedOrders.has(objednavka.id);
+            const isSelected = isDesktop && selectedOrderId === objednavka.id;
 
             return (
-              <View key={objednavka.id} style={styles.orderCard} testID="order-card">
+              <TouchableOpacity
+                key={objednavka.id}
+                style={[
+                  styles.orderCard,
+                  isSelected && styles.orderCardSelected
+                ]}
+                testID="order-card"
+                onPress={() => {
+                  if (isDesktop) {
+                    setSelectedOrderId(objednavka.id);
+                  } else {
+                    toggleExpanded(objednavka.id);
+                  }
+                }}
+              >
                 {/* Hlavička objednávky */}
-                <TouchableOpacity
-                  style={styles.orderHeader}
-                  onPress={() => toggleExpanded(objednavka.id)}
-                >
+                <View style={styles.orderHeader}>
                   <View style={styles.orderInfo}>
                     <View style={styles.customerRow}>
                       <Text style={styles.customerCode}>
@@ -333,11 +338,13 @@ function MojeProdejnaScreenContent() {
                     </Text>
                   </View>
 
-                  <Text style={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</Text>
-                </TouchableOpacity>
+                  {!isDesktop && (
+                    <Text style={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</Text>
+                  )}
+                </View>
 
-                {/* Rozbalené položky */}
-                {isExpanded && (
+                {/* Rozbalené položky - pouze na mobile/tablet */}
+                {!isDesktop && isExpanded && (
                   <View style={styles.polozkyContainer} testID="order-items">
                     {objednavka.polozky.map((polozka) => (
                       <View
@@ -367,7 +374,6 @@ function MojeProdejnaScreenContent() {
                             ]}
                             onPress={() => zmeniStavPolozky(polozka.id, 'pripraveno', objednavka.id)}
                             testID="item-prepare-btn"
-                            {...(polozka.stav_polozky === 'pripraveno' && { 'data-active': 'true' })}
                           >
                             <Text style={styles.actionBtnText}>✓</Text>
                           </TouchableOpacity>
@@ -380,7 +386,6 @@ function MojeProdejnaScreenContent() {
                             ]}
                             onPress={() => zmeniStavPolozky(polozka.id, 'neni_k_dispozici', objednavka.id)}
                             testID="item-unavailable-btn"
-                            {...(polozka.stav_polozky === 'neni_k_dispozici' && { 'data-active': 'true' })}
                           >
                             <Text style={styles.actionBtnText}>✗</Text>
                           </TouchableOpacity>
@@ -398,7 +403,7 @@ function MojeProdejnaScreenContent() {
                     </TouchableOpacity>
                   </View>
                 )}
-              </View>
+              </TouchableOpacity>
             );
           })
         )}
@@ -412,6 +417,137 @@ function MojeProdejnaScreenContent() {
           <Text style={styles.archiveLinkText}>📚 Zobrazit dokončené objednávky</Text>
         </TouchableOpacity>
       </ScrollView>
+    </>
+  );
+
+  // Render detail panelu (pravý sloupec na desktop)
+  const renderDetailPanel = () => {
+    if (!selectedOrder) {
+      return (
+        <View style={styles.detailEmptyContainer}>
+          <Text style={styles.detailEmptyIcon}>📋</Text>
+          <Text style={styles.detailEmptyText}>Vyberte objednávku</Text>
+          <Text style={styles.detailEmptySubtext}>
+            Klikněte na objednávku vlevo pro zobrazení detailu
+          </Text>
+        </View>
+      );
+    }
+
+    const badge = getOrderBadge(selectedOrder);
+
+    return (
+      <ScrollView style={styles.detailPanel}>
+        <View style={styles.detailHeader}>
+          <View style={styles.detailHeaderTop}>
+            <Text style={styles.detailTitle}>
+              {selectedOrder.poznamka_farmare ||
+                (selectedOrder.anon_customer_code
+                  ? `Zákazník ${selectedOrder.anon_customer_code}`
+                  : 'Zákazník')}
+            </Text>
+            <View style={[styles.badge, { backgroundColor: badge.color }]}>
+              <Text style={styles.badgeText}>{badge.text}</Text>
+            </View>
+          </View>
+          {selectedOrder.zakaznik_telefon && (
+            <Text style={styles.detailPhone}>📱 {selectedOrder.zakaznik_telefon}</Text>
+          )}
+          <Text style={styles.detailDate}>
+            Vytvořeno: {formatCreatedAt(selectedOrder.created_at)}
+          </Text>
+        </View>
+
+        <View style={styles.detailSection}>
+          <Text style={styles.detailSectionTitle}>Položky ({selectedOrder.polozky.length})</Text>
+          {selectedOrder.polozky.map((polozka) => (
+            <View
+              key={polozka.id}
+              style={[
+                styles.detailPolozkaRow,
+                polozka.stav_polozky && polozka.stav_polozky !== 'novy' && {
+                  borderLeftWidth: 3,
+                  borderLeftColor: getPolozkaStavColor(polozka.stav_polozky)
+                }
+              ]}
+            >
+              <View style={styles.polozkaInfo}>
+                <Text style={styles.polozkaNazev}>{polozka.nazev_produktu}</Text>
+                <Text style={styles.polozkaMnozstvi}>
+                  {polozka.mnozstvi} {polozka.jednotka}
+                  {polozka.cena ? ` • ${(polozka.cena * polozka.mnozstvi).toFixed(0)} Kč` : ''}
+                </Text>
+              </View>
+
+              <View style={styles.polozkaActions}>
+                <TouchableOpacity
+                  style={[
+                    styles.actionBtn,
+                    styles.actionBtnGreen,
+                    polozka.stav_polozky === 'pripraveno' && styles.actionBtnActive
+                  ]}
+                  onPress={() => zmeniStavPolozky(polozka.id, 'pripraveno', selectedOrder.id)}
+                >
+                  <Text style={styles.actionBtnText}>✓</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.actionBtn,
+                    styles.actionBtnGray,
+                    polozka.stav_polozky === 'neni_k_dispozici' && styles.actionBtnActive
+                  ]}
+                  onPress={() => zmeniStavPolozky(polozka.id, 'neni_k_dispozici', selectedOrder.id)}
+                >
+                  <Text style={styles.actionBtnText}>✗</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <TouchableOpacity
+          style={styles.detailFullButton}
+          onPress={() => router.push(`/moje-prodejna/detail-objednavky?id=${selectedOrder.id}`)}
+        >
+          <Text style={styles.detailFullButtonText}>📝 Otevřít plný detail</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/')}>
+            <Feather name="arrow-left" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle} testID="page-title">Moje prodejna</Text>
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={() => router.push('/muj-profil')}
+            testID="nav-profil"
+          >
+            <Feather name="user" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Hlavní obsah - dvousloupcový na desktop */}
+      {isDesktop ? (
+        <View style={styles.desktopLayout}>
+          <View style={styles.desktopLeftColumn}>
+            {renderOrdersList()}
+          </View>
+          <View style={styles.desktopRightColumn}>
+            {renderDetailPanel()}
+          </View>
+        </View>
+      ) : (
+        renderOrdersList()
+      )}
     </View>
   );
 }
@@ -687,5 +823,111 @@ const styles = StyleSheet.create({
   archiveLinkText: {
     fontSize: 14,
     color: 'rgba(255,255,255,0.6)',
+  },
+
+  // Desktop dvousloupcový layout
+  desktopLayout: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  desktopLeftColumn: {
+    flex: 40,
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.1)',
+  },
+  desktopRightColumn: {
+    flex: 60,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+  },
+  orderCardSelected: {
+    backgroundColor: 'rgba(255,152,0,0.3)',
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF9800',
+  },
+
+  // Detail panel (pravý sloupec)
+  detailEmptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  detailEmptyIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+    opacity: 0.5,
+  },
+  detailEmptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.6)',
+    marginBottom: 8,
+  },
+  detailEmptySubtext: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.4)',
+    textAlign: 'center',
+  },
+  detailPanel: {
+    flex: 1,
+    padding: 16,
+  },
+  detailHeader: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  detailHeaderTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  detailPhone: {
+    fontSize: 14,
+    color: '#4FC3F7',
+    marginBottom: 4,
+  },
+  detailDate: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+  },
+  detailSection: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  detailSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 12,
+  },
+  detailPolozkaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingLeft: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  detailFullButton: {
+    backgroundColor: '#FF9800',
+    borderRadius: 10,
+    padding: 14,
+    alignItems: 'center',
+  },
+  detailFullButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

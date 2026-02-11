@@ -1,11 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useFarmarAuth } from '../../utils/farmarAuthContext';
-
-// Breakpoint pro wide mode (tablet)
-const WIDE_MODE_BREAKPOINT = 768;
+import { useLayoutMode } from '../../components/AppLayout';
 
 interface Produkt {
   id: string;
@@ -24,14 +22,16 @@ export default function SeznamProduktScreen() {
   const { farmar, isAuthenticated } = useFarmarAuth();
   const params = useLocalSearchParams();
   const filtr = params.filtr as string;
-  const { width } = useWindowDimensions();
-  const isWideMode = width >= WIDE_MODE_BREAKPOINT;
+  const { mode } = useLayoutMode();
+  const isWideMode = mode === 'tablet' || mode === 'desktop';
+  const isDesktop = mode === 'desktop';
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [archivovaneProdukty, setArchivovaneProdukty] = useState<Produkt[]>([]);
   const [activeTab, setActiveTab] = useState<'aktivni' | 'archivovane'>('aktivni');
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
