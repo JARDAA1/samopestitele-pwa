@@ -6,13 +6,15 @@ import {
   ScrollView,
   Alert,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { DrawerMenu } from '../utils/DrawerMenu';
 import { useDrawerMenu } from '../utils/useDrawerMenu';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../utils/cartContext';
 import { supabase } from '../../lib/supabase';
+import { ProdejniMisto, getAktivniProdejniMistaFarmare } from '../utils/locationService';
 
 export default function KosikScreen() {
   const { cart, removeFromCart, updateQuantity, clearCart, totalPrice, itemCount } = useCart();
@@ -21,6 +23,37 @@ export default function KosikScreen() {
   const [telefon, setTelefon] = useState('');
   const [poznamka, setPoznamka] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Prodejní místa
+  const [prodejniMista, setProdejniMista] = useState<ProdejniMisto[]>([]);
+  const [selectedMistoId, setSelectedMistoId] = useState<number | null>(null);
+  const [loadingMista, setLoadingMista] = useState(false);
+
+  // Načteme prodejní místa při změně košíku
+  useEffect(() => {
+    if (cart.length > 0) {
+      loadProdejniMista();
+    }
+  }, [cart.length > 0 ? cart[0].pestitelId : null]);
+
+  const loadProdejniMista = async () => {
+    if (cart.length === 0) return;
+
+    setLoadingMista(true);
+    try {
+      const mista = await getAktivniProdejniMistaFarmare(cart[0].pestitelId);
+      setProdejniMista(mista);
+
+      // Auto-select pokud je jen jedno místo
+      if (mista.length === 1) {
+        setSelectedMistoId(mista[0].id);
+      }
+    } catch (error) {
+      console.error('Chyba při načítání prodejních míst:', error);
+    } finally {
+      setLoadingMista(false);
+    }
+  };
 
   const handleQuantityChange = (produkt_id: number, change: number) => {
     const item = cart.find((i) => i.produkt_id === produkt_id);
@@ -62,13 +95,19 @@ export default function KosikScreen() {
       return;
     }
 
+    // Pokud má farmář více prodejních míst, musí být vybráno
+    if (prodejniMista.length > 1 && !selectedMistoId) {
+      Alert.alert('Chyba', 'Vyberte prosím místo vyzvednutí');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       // Získáme ID farmáře z prvního produktu v košíku
       const pestitelId = cart[0].pestitelId;
 
-      // 1. Vytvoříme objednávku
+      // 1. Vytvoříme objednávku s prodejnim mistem
       const { data: objednavka, error: objednavkaError } = await supabase
         .from('objednavky')
         .insert({
@@ -79,6 +118,7 @@ export default function KosikScreen() {
           celkova_cena: totalPrice,
           poznamka: poznamka || null,
           zpusob_kontaktu: 'telefon',
+          prodejni_misto_id: selectedMistoId || (prodejniMista.length === 1 ? prodejniMista[0].id : null),
         })
         .select()
         .single();
@@ -233,6 +273,58 @@ export default function KosikScreen() {
           <Text style={styles.totalLabel}>Celkem:</Text>
           <Text style={styles.totalPrice}>{totalPrice.toFixed(0)} Kč</Text>
         </View>
+
+        {/* Výběr prodejního místa */}
+        {loadingMista ? (
+          <View style={styles.mistaContainer}>
+            <ActivityIndicator size="small" color="#FF9800" />
+            <Text style={styles.mistaLoadingText}>Načítám místa vyzvednutí...</Text>
+          </View>
+        ) : prodejniMista.length > 1 ? (
+          <View style={styles.mistaContainer}>
+            <Text style={styles.mistaTitle}>📍 Vyberte místo vyzvednutí *</Text>
+            <Text style={styles.mistaSubtitle}>
+              Farmář nabízí více prodejních míst
+            </Text>
+            {prodejniMista.map((misto) => (
+              <TouchableOpacity
+                key={misto.id}
+                style={[
+                  styles.mistoOption,
+                  selectedMistoId === misto.id && styles.mistoOptionSelected
+                ]}
+                onPress={() => setSelectedMistoId(misto.id)}
+              >
+                <View style={styles.mistoRadio}>
+                  {selectedMistoId === misto.id && (
+                    <View style={styles.mistoRadioInner} />
+                  )}
+                </View>
+                <View style={styles.mistoInfo}>
+                  <Text style={[
+                    styles.mistoNazev,
+                    selectedMistoId === misto.id && styles.mistoNazevSelected
+                  ]}>
+                    {misto.nazev}
+                  </Text>
+                  {misto.adresa && (
+                    <Text style={styles.mistoAdresa}>{misto.adresa}</Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : prodejniMista.length === 1 ? (
+          <View style={styles.mistaContainer}>
+            <Text style={styles.mistaTitle}>📍 Místo vyzvednutí</Text>
+            <View style={styles.singleMistoBox}>
+              <Text style={styles.singleMistoNazev}>{prodejniMista[0].nazev}</Text>
+              {prodejniMista[0].adresa && (
+                <Text style={styles.singleMistoAdresa}>{prodejniMista[0].adresa}</Text>
+              )}
+            </View>
+          </View>
+        ) : null}
 
         {/* Kontaktní formulář */}
         <View style={styles.formContainer}>
@@ -421,4 +513,94 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginBottom: 24, lineHeight: 20 },
   continueButton: { backgroundColor: '#FF9800', paddingVertical: 14, paddingHorizontal: 28, borderRadius: 10 },
   continueButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+
+  // Prodejní místa
+  mistaContainer: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    padding: 16,
+    marginHorizontal: 12,
+    marginBottom: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  mistaLoadingText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  mistaTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  mistaSubtitle: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    marginBottom: 12,
+  },
+  mistoOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  mistoOptionSelected: {
+    borderColor: '#FF9800',
+    backgroundColor: 'rgba(255,152,0,0.15)',
+  },
+  mistoRadio: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.5)',
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mistoRadioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FF9800',
+  },
+  mistoInfo: {
+    flex: 1,
+  },
+  mistoNazev: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
+  },
+  mistoNazevSelected: {
+    color: '#FF9800',
+  },
+  mistoAdresa: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 2,
+  },
+  singleMistoBox: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  singleMistoNazev: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  singleMistoAdresa: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 4,
+  },
 });

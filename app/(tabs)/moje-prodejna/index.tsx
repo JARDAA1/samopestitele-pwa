@@ -37,6 +37,7 @@ function MojeProdejnaScreenContent() {
   const [refreshing, setRefreshing] = useState(false);
   const [objednavky, setObjednavky] = useState<Objednavka[]>([]);
   const [pocetProduktu, setPocetProduktu] = useState(0);
+  const [pocetProdejnichMist, setPocetProdejnichMist] = useState(0);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
@@ -108,6 +109,16 @@ function MojeProdejnaScreenContent() {
 
       if (!produktyError) {
         setPocetProduktu(count || 0);
+      }
+
+      // Načíst počet prodejních míst
+      const { count: mistaCount, error: mistaError } = await supabase
+        .from('prodejni_mista')
+        .select('*', { count: 'exact', head: true })
+        .eq('pestitel_id', pestitelId);
+
+      if (!mistaError) {
+        setPocetProdejnichMist(mistaCount || 0);
       }
     } catch (error) {
       console.error('Chyba:', error);
@@ -249,21 +260,40 @@ function MojeProdejnaScreenContent() {
   // Render seznamu objednávek (levý sloupec)
   const renderOrdersList = () => (
     <>
-      {/* Tlačítko Moje produkty */}
-      <TouchableOpacity
-        style={styles.produktyButton}
-        onPress={() => router.push('/moje-prodejna/seznam-produktu')}
-        testID="nav-produkty"
-      >
-        <View style={styles.produktyButtonContent}>
-          <Text style={styles.produktyIcon}>📦</Text>
-          <View style={styles.produktyTextContainer}>
-            <Text style={styles.produktyButtonText}>Moje produkty</Text>
-            <Text style={styles.produktyCount}>{pocetProduktu} aktivních</Text>
+      {/* Navigační tlačítka */}
+      <View style={styles.navButtonsContainer}>
+        {/* Tlačítko Moje produkty */}
+        <TouchableOpacity
+          style={styles.produktyButton}
+          onPress={() => router.push('/moje-prodejna/seznam-produktu')}
+          testID="nav-produkty"
+        >
+          <View style={styles.produktyButtonContent}>
+            <Text style={styles.produktyIcon}>📦</Text>
+            <View style={styles.produktyTextContainer}>
+              <Text style={styles.produktyButtonText}>Moje produkty</Text>
+              <Text style={styles.produktyCount}>{pocetProduktu} aktivních</Text>
+            </View>
           </View>
-        </View>
-        <Text style={styles.produktyArrow}>→</Text>
-      </TouchableOpacity>
+          <Text style={styles.produktyArrow}>→</Text>
+        </TouchableOpacity>
+
+        {/* Tlačítko Prodejní místa */}
+        <TouchableOpacity
+          style={styles.mistaButton}
+          onPress={() => router.push('/moje-prodejna/prodejni-mista')}
+          testID="nav-mista"
+        >
+          <View style={styles.produktyButtonContent}>
+            <Text style={styles.produktyIcon}>📍</Text>
+            <View style={styles.produktyTextContainer}>
+              <Text style={styles.mistaButtonText}>Prodejní místa</Text>
+              <Text style={styles.produktyCount}>{pocetProdejnichMist} míst</Text>
+            </View>
+          </View>
+          <Text style={styles.produktyArrow}>→</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Nadpis objednávek */}
       <View style={styles.sectionHeader} testID="orders-section">
@@ -612,17 +642,36 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
 
-  // Tlačítko Produkty
+  // Navigační tlačítka
+  navButtonsContainer: {
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    gap: 10,
+  },
   produktyButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#FF9800',
-    marginHorizontal: 12,
-    marginTop: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 12,
+  },
+  mistaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  mistaButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   produktyButtonContent: {
     flexDirection: 'row',

@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import * as Location from 'expo-location';
+import { ProdejniMistoSFarmarem, getVsechnaAktivniProdejniMista } from '../utils/locationService';
 
 interface Pestitel {
   id: string;
@@ -13,6 +14,22 @@ interface Pestitel {
   gps_lat: number | null;
   gps_lng: number | null;
   distance?: number; // Vzdálenost v km
+}
+
+// Rozšířený typ pro zobrazení v mapě - prodejní místo s info o farmáři
+interface MapaPolozka {
+  id: string; // Unikátní ID pro mapu (kombinace farmáře a místa)
+  pestitel_id: number;
+  prodejni_misto_id: number | null;
+  nazev_farmy: string;
+  nazev_mista: string | null; // Název prodejního místa (pokud existuje)
+  mesto: string;
+  popis: string | null;
+  telefon: string;
+  gps_lat: number | null;
+  gps_lng: number | null;
+  distance?: number;
+  produkty?: string[];
 }
 
 interface PredefinovanyProdukt {
@@ -44,7 +61,7 @@ export default function MapaScreen() {
   // Odstraněna desktop detection - používáme pouze mobile-first layout
   // Tablet layout je řešen globálně přes AppLayout wrapper
 
-  const [pestitele, setPestitele] = useState<Pestitel[]>([]);
+  const [pestitele, setPestitele] = useState<MapaPolozka[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtering, setFiltering] = useState(false); // Nový stav pro filtrování
   const [searchQuery, setSearchQuery] = useState('');
@@ -288,7 +305,10 @@ export default function MapaScreen() {
     try {
       setLoading(true);
 
-      // Načíst farmáře
+      // Načíst aktivní prodejní místa s info o farmáři
+      const prodejniMista = await getVsechnaAktivniProdejniMista();
+
+      // Načíst všechny farmáře (pro ty, kteří nemají prodejní místa)
       const { data: pestiteleData, error: pestiteleError } = await supabase
         .from('pestitele')
         .select('id, nazev_farmy, mesto, popis, telefon, gps_lat, gps_lng')
@@ -311,7 +331,6 @@ export default function MapaScreen() {
       // Vytvoření mapy produktů podle pestitel_id
       const produktyMap = new Map<string, string[]>();
       if (produktyData) {
-        console.log('🔍 První 3 produkty z databáze:', produktyData.slice(0, 3));
         produktyData.forEach((p) => {
           const key = String(p.pestitel_id);
           if (!produktyMap.has(key)) {
@@ -319,27 +338,53 @@ export default function MapaScreen() {
           }
           produktyMap.get(key)?.push(p.nazev);
         });
-        console.log('🗺️ Mapa produktů podle pestitel_id:', Array.from(produktyMap.entries()));
       }
 
-      // Přidání produktů k farmářům
-      const pestiteleWithProducts = (pestiteleData || []).map((p) => ({
-        ...p,
-        produkty: produktyMap.get(String(p.id)) || [],
-      }));
+      // Vytvořit seznam položek pro mapu
+      const mapaPolozky: MapaPolozka[] = [];
 
-      // Debug: Výpis počtu farmářů s produkty
-      const countWithProducts = pestiteleWithProducts.filter(p => p.produkty.length > 0).length;
-      console.log(`📊 Načteno ${pestiteleWithProducts.length} farmářů, ${countWithProducts} má přidané produkty`);
-      console.log(`📦 Celkem produktů v databázi: ${produktyData?.length || 0}`);
-      console.log('👨‍🌾 Farmáři s jejich produkty:', pestiteleWithProducts.map(p => ({
-        id: p.id,
-        nazev: p.nazev_farmy,
-        pocet_produktu: p.produkty.length,
-        produkty: p.produkty
-      })));
+      // Přidat prodejní místa jako samostatné položky
+      prodejniMista.forEach((misto) => {
+        if (misto.lat && misto.lng) {
+          mapaPolozky.push({
+            id: `misto-${misto.id}`,
+            pestitel_id: misto.pestitel_id,
+            prodejni_misto_id: misto.id,
+            nazev_farmy: misto.pestitel?.nazev_farmy || 'Neznámý farmář',
+            nazev_mista: misto.nazev,
+            mesto: misto.adresa || misto.pestitel?.mesto || '',
+            popis: misto.pestitel?.popis || null,
+            telefon: misto.pestitel?.telefon || '',
+            gps_lat: misto.lat,
+            gps_lng: misto.lng,
+            produkty: produktyMap.get(String(misto.pestitel_id)) || [],
+          });
+        }
+      });
 
-      setPestitele(pestiteleWithProducts as any);
+      // Přidat farmáře, kteří nemají žádná prodejní místa (ale mají GPS)
+      const farmariSMisty = new Set(prodejniMista.map(m => m.pestitel_id));
+      (pestiteleData || []).forEach((p) => {
+        if (!farmariSMisty.has(Number(p.id)) && p.gps_lat && p.gps_lng) {
+          mapaPolozky.push({
+            id: `farmar-${p.id}`,
+            pestitel_id: Number(p.id),
+            prodejni_misto_id: null,
+            nazev_farmy: p.nazev_farmy,
+            nazev_mista: null,
+            mesto: p.mesto,
+            popis: p.popis,
+            telefon: p.telefon,
+            gps_lat: p.gps_lat,
+            gps_lng: p.gps_lng,
+            produkty: produktyMap.get(String(p.id)) || [],
+          });
+        }
+      });
+
+      console.log(`📍 Načteno ${mapaPolozky.length} bodů pro mapu (${prodejniMista.length} prodejních míst)`);
+
+      setPestitele(mapaPolozky);
     } catch (error) {
       console.error('Chyba:', error);
     } finally {
@@ -406,6 +451,7 @@ export default function MapaScreen() {
       const matchesSearch = !query || (
         removeAccents(p.nazev_farmy).includes(queryNormalized) ||
         removeAccents(p.mesto).includes(queryNormalized) ||
+        (p.nazev_mista && removeAccents(p.nazev_mista).includes(queryNormalized)) ||
         (p.popis && removeAccents(p.popis).includes(queryNormalized)) ||
         (p.produkty && p.produkty.length > 0 && p.produkty.some((produktNazev: string) =>
           removeAccents(produktNazev).includes(queryNormalized)
@@ -662,10 +708,13 @@ export default function MapaScreen() {
                     <TouchableOpacity
                       key={farmer.id}
                       style={styles.farmerRow}
-                      onPress={() => router.push(`/farmar/${farmer.id}`)}
+                      onPress={() => router.push(`/farmar/${farmer.pestitel_id}`)}
                     >
                       <View style={styles.farmerRowInfo}>
                         <Text style={styles.farmerRowName}>{farmer.nazev_farmy}</Text>
+                        {farmer.nazev_mista && (
+                          <Text style={styles.farmerRowMistoName}>📍 {farmer.nazev_mista}</Text>
+                        )}
                         <Text style={styles.farmerRowMesto}>{farmer.mesto}</Text>
                       </View>
                       <View style={styles.farmerRowRight}>
@@ -1047,6 +1096,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#ffffff',
+    marginBottom: 2,
+  },
+  farmerRowMistoName: {
+    fontSize: 12,
+    color: '#FF9800',
+    fontWeight: '500',
     marginBottom: 2,
   },
   farmerRowMesto: {
