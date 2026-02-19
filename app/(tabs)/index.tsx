@@ -67,6 +67,7 @@ export default function HomeScreen() {
           <Text style={styles.footerText}>
             Spojujeme pěstitele s lidmi, kteří chtějí jíst zdravě a lokálně
           </Text>
+          <Text style={styles.footerEmail}>info@samopestitele.cz</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -200,5 +201,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(255,255,255,0.6)',
     textAlign: 'center',
+  },
+  footerEmail: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    textAlign: 'center',
+    marginTop: 8,
   },
 });
