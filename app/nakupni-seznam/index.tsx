@@ -389,7 +389,7 @@ export default function NakupniSeznamScreen() {
               testID="send-order"
             >
               <Ionicons name="chatbubble" size={20} color="#ffffff" />
-              <Text style={styles.sendSmsBtnText}>Odeslat žádost o objednávku</Text>
+              <Text style={styles.sendSmsBtnText}>Odeslat objednávku jako SMS</Text>
             </TouchableOpacity>
             <Text style={styles.hintText}>
               Farmář musí vaši žádost potvrdit
