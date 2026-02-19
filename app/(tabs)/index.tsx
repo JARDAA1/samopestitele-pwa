@@ -19,10 +19,15 @@ export default function HomeScreen() {
         {/* Hero sekce */}
         <View style={[styles.hero, isDesktop && styles.heroDesktop]}>
         <Text style={[styles.title, isDesktop && styles.titleDesktop]}>
-          Čerstvé produkty{'\n'}od pěstitelů
+          Čerstvé produkty přímo od pěstitelů v okolí
         </Text>
         <Text style={[styles.subtitle, isDesktop && styles.subtitleDesktop]}>
-          Najděte lokální farmáře ve vašem okolí, nebo nabídněte v prodejně své produkty
+          Najděte lokální nabídku tam, kde právě jste.{'\n'}
+          Nejde o e-shop ani doručení domů.{'\n'}
+          Produkty si vyzvednete přímo u pěstitele.
+        </Text>
+        <Text style={[styles.subtitleSecondary, isDesktop && styles.subtitleSecondaryDesktop]}>
+          Ideální pro návštěvníky regionu, chalupáře i místní.
         </Text>
       </View>
 
@@ -35,8 +40,8 @@ export default function HomeScreen() {
           <View style={styles.pathCardRow}>
             <Text style={styles.pathEmoji}>🍎</Text>
             <View style={styles.pathCardContent}>
-              <Text style={styles.pathTitle}>Hledám produkty</Text>
-              <Text style={styles.pathDescription}>Nabídka od lokálních pěstitelů</Text>
+              <Text style={styles.pathTitle}>Hledám produkty v okolí</Text>
+              <Text style={styles.pathDescription}>Najít pěstitele na mapě</Text>
             </View>
             <Text style={styles.pathArrow}>→</Text>
           </View>
@@ -49,8 +54,8 @@ export default function HomeScreen() {
           <View style={styles.pathCardRow}>
             <Text style={styles.pathEmoji}>🧺</Text>
             <View style={styles.pathCardContent}>
-              <Text style={styles.pathTitle}>Moje prodejna</Text>
-              <Text style={styles.pathDescription}>Nabídni své produkty</Text>
+              <Text style={styles.pathTitle}>Chci nabízet své produkty</Text>
+              <Text style={styles.pathDescription}>Založit prodejnu</Text>
             </View>
             <Text style={styles.pathArrow}>→</Text>
           </View>
@@ -106,14 +111,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 14,
     color: 'rgba(255,255,255,0.8)',
-    marginBottom: 20,
+    lineHeight: 22,
+    marginBottom: 8,
   },
   subtitleDesktop: {
-    fontSize: 18,
+    fontSize: 17,
     textAlign: 'center',
-    marginBottom: 32,
+    lineHeight: 26,
+    marginBottom: 12,
+  },
+  subtitleSecondary: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    fontStyle: 'italic',
+    marginBottom: 16,
+  },
+  subtitleSecondaryDesktop: {
+    fontSize: 15,
+    textAlign: 'center',
+    marginBottom: 24,
   },
 
   // Cesty (karty) - kompaktní horizontální layout pro mobil
