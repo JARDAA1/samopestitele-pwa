@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform, TextInput, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform, TextInput, Linking, Modal } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
@@ -32,6 +32,7 @@ export default function DetailObjednavkyScreen() {
   const [polozky, setPolozky] = useState<ObjednavkaPolozka[]>([]);
   const [poznamka, setPoznamka] = useState('');
   const [savingPoznamka, setSavingPoznamka] = useState(false);
+  const [showSMSModal, setShowSMSModal] = useState(false);
 
   useEffect(() => {
     console.log('Detail objednavky - ID:', objednavkaId);
@@ -303,44 +304,69 @@ export default function DetailObjednavkyScreen() {
     }
   };
 
+  const getSMSMessage = () => {
+    if (!objednavka) return '';
+
+    let message = '';
+    const stavText = getStavText(objednavka.stav);
+
+    switch (objednavka.stav) {
+      case 'potvrzena':
+        message = `Dobrý den, vaše objednávka byla potvrzena! ✅`;
+        break;
+      case 'zpracovana':
+        message = `Dobrý den, vaše objednávka je připravena k vyzvednutí! 🧺`;
+        break;
+      case 'dokoncena':
+        message = `Děkujeme za nákup! 🙏`;
+        break;
+      case 'odmitnuta':
+        message = `Omlouváme se, vaši objednávku bohužel nemůžeme splnit.`;
+        break;
+      default:
+        message = `Informace k vaší objednávce (${stavText}):`;
+    }
+
+    // Přidat datum vyzvednutí pokud existuje
+    if (objednavka.datum_vyzvednuti && objednavka.stav !== 'dokoncena') {
+      const datum = new Date(objednavka.datum_vyzvednuti).toLocaleDateString('cs-CZ');
+      message += `\nDatum vyzvednutí: ${datum}`;
+    }
+
+    // Přidat odkaz na detail
+    if (objednavka.anon_customer_code) {
+      message += `\n\nDetail: https://samopestitele.vercel.app/vyzvednuti/${objednavka.anon_customer_code}`;
+    }
+
+    return message;
+  };
+
   const odeslstSMSoStavu = () => {
     if (objednavka?.zakaznik_telefon) {
-      // Sestavit zprávu podle stavu objednávky
-      let message = '';
-      const stavText = getStavText(objednavka.stav);
+      const message = getSMSMessage();
 
-      switch (objednavka.stav) {
-        case 'potvrzena':
-          message = `Dobrý den, vaše objednávka byla potvrzena! ✅`;
-          break;
-        case 'zpracovana':
-          message = `Dobrý den, vaše objednávka je připravena k vyzvednutí! 🧺`;
-          break;
-        case 'dokoncena':
-          message = `Děkujeme za nákup! 🙏`;
-          break;
-        case 'odmitnuta':
-          message = `Omlouváme se, vaši objednávku bohužel nemůžeme splnit.`;
-          break;
-        default:
-          message = `Informace k vaší objednávce (${stavText}):`;
+      // Na webu zobrazit modal s textem ke zkopírování
+      if (Platform.OS === 'web') {
+        setShowSMSModal(true);
+        return;
       }
 
-      // Přidat datum vyzvednutí pokud existuje
-      if (objednavka.datum_vyzvednuti && objednavka.stav !== 'dokoncena') {
-        const datum = new Date(objednavka.datum_vyzvednuti).toLocaleDateString('cs-CZ');
-        message += `\nDatum vyzvednutí: ${datum}`;
-      }
-
-      // Přidat odkaz na detail
-      if (objednavka.anon_customer_code) {
-        message += `\n\nDetail: https://samopestitele.vercel.app/vyzvednuti/${objednavka.anon_customer_code}`;
-      }
-
+      // Na mobilu otevřít SMS aplikaci
       const smsUrl = `sms:${objednavka.zakaznik_telefon}?body=${encodeURIComponent(message)}`;
       Linking.openURL(smsUrl).catch(() => {
         showAlert('Chyba', 'Nelze otevřít SMS aplikaci');
       });
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    if (Platform.OS === 'web') {
+      try {
+        await navigator.clipboard.writeText(text);
+        showAlert('Zkopírováno', 'Text byl zkopírován do schránky');
+      } catch {
+        showAlert('Chyba', 'Nepodařilo se zkopírovat text');
+      }
     }
   };
 
@@ -563,6 +589,54 @@ export default function DetailObjednavkyScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* SMS Modal pro web */}
+      <Modal
+        visible={showSMSModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSMSModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>📱 Odeslat SMS</Text>
+            <Text style={styles.modalSubtitle}>
+              SMS nelze odeslat přímo z webu. Zkopírujte údaje a odešlete ručně:
+            </Text>
+
+            <View style={styles.modalSection}>
+              <Text style={styles.modalLabel}>Telefon:</Text>
+              <View style={styles.modalCopyRow}>
+                <Text style={styles.modalValue}>{objednavka?.zakaznik_telefon}</Text>
+                <TouchableOpacity
+                  style={styles.copyButton}
+                  onPress={() => copyToClipboard(objednavka?.zakaznik_telefon || '')}
+                >
+                  <Text style={styles.copyButtonText}>📋 Kopírovat</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.modalSection}>
+              <Text style={styles.modalLabel}>Text zprávy:</Text>
+              <Text style={styles.modalMessageText}>{getSMSMessage()}</Text>
+              <TouchableOpacity
+                style={styles.copyButton}
+                onPress={() => copyToClipboard(getSMSMessage())}
+              >
+                <Text style={styles.copyButtonText}>📋 Kopírovat zprávu</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowSMSModal(false)}
+            >
+              <Text style={styles.modalCloseButtonText}>Zavřít</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -858,6 +932,91 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#ffffff',
     fontSize: 14,
+    fontWeight: '600',
+  },
+  // SMS Modal styly
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#6A1B9A',
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  modalSection: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+  },
+  modalLabel: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    fontWeight: '600',
+  },
+  modalCopyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalValue: {
+    fontSize: 18,
+    color: '#4FC3F7',
+    fontWeight: '700',
+  },
+  modalMessageText: {
+    fontSize: 14,
+    color: '#ffffff',
+    lineHeight: 20,
+    marginBottom: 10,
+  },
+  copyButton: {
+    backgroundColor: '#FF9800',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
+  copyButtonText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  modalCloseButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  modalCloseButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
     fontWeight: '600',
   },
 });
