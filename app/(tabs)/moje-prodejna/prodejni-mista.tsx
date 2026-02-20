@@ -119,7 +119,7 @@ export default function ProdejniMistaScreen() {
 
     setSaving(true);
     try {
-      const data = {
+      const baseData = {
         nazev: nazev.trim(),
         adresa: adresa.trim() || null,
         lat: lat ? parseFloat(lat) : null,
@@ -127,14 +127,29 @@ export default function ProdejniMistaScreen() {
         aktivni,
         platne_od: platneOd ? platneOd.toISOString().split('T')[0] : null,
         platne_do: platneDo ? platneDo.toISOString().split('T')[0] : null,
+      };
+
+      // Přidat cas_od/cas_do - funguje až po spuštění migrace 002_prodejni_mista_cas.sql
+      const dataWithCas = {
+        ...baseData,
         cas_od: casOd.trim() || null,
         cas_do: casDo.trim() || null,
       };
 
+      let success = false;
+
       if (editingMisto) {
-        await updateProdejniMisto(editingMisto.id, data);
+        success = await updateProdejniMisto(editingMisto.id, dataWithCas);
+        // Fallback: pokud selže (migrace ještě neproběhla), ulož bez cas polí
+        if (!success) {
+          success = await updateProdejniMisto(editingMisto.id, baseData);
+        }
       } else {
-        await createProdejniMisto(farmar.id, data);
+        const result = await createProdejniMisto(farmar.id, dataWithCas);
+        if (!result) {
+          // Fallback bez cas polí
+          await createProdejniMisto(farmar.id, baseData);
+        }
       }
 
       setModalVisible(false);

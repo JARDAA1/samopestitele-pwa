@@ -12,7 +12,6 @@ export default function MojeProdejnaLayout() {
       <Stack.Screen name="pridat-produkt" />
       <Stack.Screen name="upravit-produkt" />
       <Stack.Screen name="seznam-produktu" />
-      <Stack.Screen name="objednavky" />
       <Stack.Screen name="detail-objednavky" />
       <Stack.Screen name="dokoncene-objednavky" />
     </Stack>

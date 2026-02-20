@@ -139,18 +139,19 @@ function MojeProdejnaScreenContent() {
       }
 
       // Načíst časovou dostupnost z prvního aktivního prodejního místa
-      const { data: mistoData } = await supabase
+      // Poznámka: cas_od/cas_do sloupce vyžadují spuštění migrace 002_prodejni_mista_cas.sql
+      const { data: mistoData, error: casError } = await supabase
         .from('prodejni_mista')
         .select('cas_od, cas_do')
         .eq('pestitel_id', pestitelId)
         .eq('aktivni', true)
-        .not('cas_od', 'is', null)
         .order('created_at', { ascending: true })
         .limit(1)
         .maybeSingle();
 
-      if (mistoData?.cas_od) {
-        setCasovaDostupnost(`${mistoData.cas_od} – ${mistoData.cas_do || '?'}`);
+      if (!casError && (mistoData as any)?.cas_od) {
+        const d = mistoData as any;
+        setCasovaDostupnost(`${d.cas_od} – ${d.cas_do || '?'}`);
       } else {
         setCasovaDostupnost(null);
       }
