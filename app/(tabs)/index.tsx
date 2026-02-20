@@ -14,12 +14,19 @@ export default function HomeScreen() {
   }, []);
 
   // Role-based redirect pro autentizované sellery
+  // Na mobilu přesměrovat na operativu, na desktopu na plný dashboard
+  const isMobile = isMounted && width < 768;
+
   useFocusEffect(
     useCallback(() => {
-      if (isSessionChecked && isAuthenticated) {
-        router.replace('/(tabs)/moje-prodejna');
+      if (isSessionChecked && isAuthenticated && isMounted) {
+        if (isMobile) {
+          router.replace('/(tabs)/moje-prodejna/operativa');
+        } else {
+          router.replace('/(tabs)/moje-prodejna');
+        }
       }
-    }, [isSessionChecked, isAuthenticated])
+    }, [isSessionChecked, isAuthenticated, isMobile, isMounted])
   );
 
   const isDesktop = isMounted && width >= 768;

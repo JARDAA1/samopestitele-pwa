@@ -8,6 +8,7 @@ export default function MojeProdejnaLayout() {
       }}
     >
       <Stack.Screen name="index" />
+      <Stack.Screen name="operativa" />
       <Stack.Screen name="pridat-produkt" />
       <Stack.Screen name="upravit-produkt" />
       <Stack.Screen name="seznam-produktu" />
