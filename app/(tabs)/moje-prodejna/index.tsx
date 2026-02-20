@@ -264,58 +264,96 @@ function MojeProdejnaScreenContent() {
     );
   }
 
+  // Mobile detection a počet nových objednávek
+  const isMobile = !isDesktop;
+  const newOrdersCount = objednavky.filter(
+    o => o.stav === 'nova' || o.stav === 'cekajici_na_potvrzeni'
+  ).length;
+
   // Vybraná objednávka pro detail panel (desktop)
   const selectedOrder = selectedOrderId
     ? objednavky.find(o => o.id === selectedOrderId)
     : null;
 
+  // Render navigačních tlačítek (Produkty, Místa)
+  const renderNavButtons = () => (
+    <View style={styles.navButtonsContainer}>
+      {/* Tlačítko Moje produkty */}
+      <TouchableOpacity
+        style={styles.produktyButton}
+        onPress={() => router.push('/moje-prodejna/seznam-produktu')}
+        testID="nav-produkty"
+      >
+        <View style={styles.produktyButtonContent}>
+          <Text style={styles.produktyIcon}>📦</Text>
+          <View style={styles.produktyTextContainer}>
+            <Text style={styles.produktyButtonText}>Moje produkty</Text>
+            <Text style={styles.produktyCount}>{pocetProduktu} aktivních</Text>
+          </View>
+        </View>
+        <Text style={styles.produktyArrow}>→</Text>
+      </TouchableOpacity>
+
+      {/* Tlačítko Prodejní místa */}
+      <TouchableOpacity
+        style={styles.mistaButton}
+        onPress={() => router.push('/moje-prodejna/prodejni-mista')}
+        testID="nav-mista"
+      >
+        <View style={styles.produktyButtonContent}>
+          <Text style={styles.produktyIcon}>📍</Text>
+          <View style={styles.produktyTextContainer}>
+            <Text style={styles.mistaButtonText}>Prodejní místa</Text>
+            <Text style={styles.produktyCount}>{pocetProdejnichMist} míst</Text>
+            <Text style={styles.dostupnostText}>
+              {casovaDostupnost
+                ? `Otevřeno: ${casovaDostupnost.split('\n')[0]}`
+                : 'Časová dostupnost není nastavena'}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.produktyArrow}>→</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Render priority boxu pro nové objednávky (pouze mobile)
+  const renderPriorityBox = () => {
+    if (!isMobile || newOrdersCount === 0) return null;
+
+    return (
+      <View style={styles.priorityBox}>
+        <Text style={styles.priorityTitle}>
+          🔔 Máte {newOrdersCount} {newOrdersCount === 1 ? 'novou objednávku' : newOrdersCount < 5 ? 'nové objednávky' : 'nových objednávek'}
+        </Text>
+        <Text style={styles.prioritySubtext}>Vyžadují vaši pozornost</Text>
+      </View>
+    );
+  };
+
+  // Render nadpisu objednávek
+  const renderOrdersHeader = () => (
+    <View style={styles.sectionHeader} testID="orders-section">
+      <Text style={styles.sectionTitle}>📋 Objednávky ({objednavky.length})</Text>
+    </View>
+  );
+
   // Render seznamu objednávek (levý sloupec)
   const renderOrdersList = () => (
     <>
-      {/* Navigační tlačítka */}
-      <View style={styles.navButtonsContainer}>
-        {/* Tlačítko Moje produkty */}
-        <TouchableOpacity
-          style={styles.produktyButton}
-          onPress={() => router.push('/moje-prodejna/seznam-produktu')}
-          testID="nav-produkty"
-        >
-          <View style={styles.produktyButtonContent}>
-            <Text style={styles.produktyIcon}>📦</Text>
-            <View style={styles.produktyTextContainer}>
-              <Text style={styles.produktyButtonText}>Moje produkty</Text>
-              <Text style={styles.produktyCount}>{pocetProduktu} aktivních</Text>
-            </View>
-          </View>
-          <Text style={styles.produktyArrow}>→</Text>
-        </TouchableOpacity>
+      {/* MOBILE: Priority box + Objednávky PRVNÍ, pak navigace */}
+      {isMobile && (
+        <>
+          {renderPriorityBox()}
+          {renderOrdersHeader()}
+        </>
+      )}
 
-        {/* Tlačítko Prodejní místa */}
-        <TouchableOpacity
-          style={styles.mistaButton}
-          onPress={() => router.push('/moje-prodejna/prodejni-mista')}
-          testID="nav-mista"
-        >
-          <View style={styles.produktyButtonContent}>
-            <Text style={styles.produktyIcon}>📍</Text>
-            <View style={styles.produktyTextContainer}>
-              <Text style={styles.mistaButtonText}>Prodejní místa</Text>
-              <Text style={styles.produktyCount}>{pocetProdejnichMist} míst</Text>
-              <Text style={styles.dostupnostText}>
-                {casovaDostupnost
-                  ? `Otevřeno: ${casovaDostupnost.split('\n')[0]}`
-                  : 'Časová dostupnost není nastavena'}
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.produktyArrow}>→</Text>
-        </TouchableOpacity>
-      </View>
+      {/* DESKTOP: Navigační tlačítka první */}
+      {!isMobile && renderNavButtons()}
 
-      {/* Nadpis objednávek */}
-      <View style={styles.sectionHeader} testID="orders-section">
-        <Text style={styles.sectionTitle}>📋 Objednávky ({objednavky.length})</Text>
-      </View>
+      {/* DESKTOP: Nadpis objednávek */}
+      {!isMobile && renderOrdersHeader()}
 
       {/* Seznam objednávek */}
       <ScrollView
@@ -463,6 +501,13 @@ function MojeProdejnaScreenContent() {
         >
           <Text style={styles.archiveLinkText}>📚 Zobrazit dokončené objednávky</Text>
         </TouchableOpacity>
+
+        {/* MOBILE: Navigační tlačítka na konci */}
+        {isMobile && (
+          <View style={styles.mobileNavSection}>
+            {renderNavButtons()}
+          </View>
+        )}
       </ScrollView>
     </>
   );
@@ -662,6 +707,33 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#FFFFFF',
     fontWeight: '500',
+  },
+
+  // Priority box pro nové objednávky (mobile)
+  priorityBox: {
+    backgroundColor: '#F44336',
+    marginHorizontal: 12,
+    marginTop: 12,
+    padding: 16,
+    borderRadius: 12,
+  },
+  priorityTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffffff',
+    textAlign: 'center',
+  },
+  prioritySubtext: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.8)',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+
+  // Mobile nav section (na konci scrollu)
+  mobileNavSection: {
+    marginTop: 8,
+    marginBottom: 16,
   },
 
   // Navigační tlačítka
