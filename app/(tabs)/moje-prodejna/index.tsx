@@ -6,6 +6,7 @@ import { useFarmarAuth } from '../../utils/farmarAuthContext';
 import { ProtectedRoute } from '../../utils/ProtectedRoute';
 import { Feather } from '@expo/vector-icons';
 import { useLayoutMode } from '../../components/AppLayout';
+import { useRealtimeOrders } from '../../utils/useRealtimeOrders';
 
 interface ObjednavkaPolozka {
   id: string;
@@ -41,6 +42,21 @@ function MojeProdejnaScreenContent() {
   const [casovaDostupnost, setCasovaDostupnost] = useState<string | null>(null);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  // Handler pro novou realtime objednávku
+  const handleNewOrder = useCallback((newOrder: any) => {
+    // Přidat novou objednávku na začátek seznamu
+    setObjednavky(prev => [{
+      ...newOrder,
+      polozky: [] // Položky se načtou při rozbalení
+    }, ...prev]);
+
+    // Automaticky rozbalit novou objednávku
+    setExpandedOrders(prev => new Set([...prev, newOrder.id]));
+  }, []);
+
+  // Realtime subscription pro nové objednávky
+  useRealtimeOrders(farmar?.id, handleNewOrder);
 
   useFocusEffect(
     useCallback(() => {
