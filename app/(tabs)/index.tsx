@@ -1,17 +1,42 @@
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useState, useEffect, useCallback } from 'react';
+import { useFarmarAuth } from '../utils/farmarAuthContext';
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const [isMounted, setIsMounted] = useState(false);
+  const { isAuthenticated, isSessionChecked } = useFarmarAuth();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  // Role-based redirect pro autentizované sellery
+  useFocusEffect(
+    useCallback(() => {
+      if (isSessionChecked && isAuthenticated) {
+        router.replace('/(tabs)/moje-prodejna');
+      }
+    }, [isSessionChecked, isAuthenticated])
+  );
+
   const isDesktop = isMounted && width >= 768;
+
+  // Loading state - čekáme na session check
+  if (!isSessionChecked) {
+    return (
+      <SafeAreaView style={[styles.safeArea, styles.centerContent]} edges={['top']}>
+        <ActivityIndicator size="large" color="#FF9800" />
+      </SafeAreaView>
+    );
+  }
+
+  // Pokud je autentizován, nerendrovat homepage (probíhá redirect)
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -78,6 +103,10 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#6A1B9A',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   container: {
     flex: 1,
