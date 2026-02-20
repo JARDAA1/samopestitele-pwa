@@ -43,6 +43,10 @@ export default function ProdejniMistaScreen() {
   const [webOdText, setWebOdText] = useState('');
   const [webDoText, setWebDoText] = useState('');
 
+  // Otevírací doba (HH:MM)
+  const [casOd, setCasOd] = useState('');
+  const [casDo, setCasDo] = useState('');
+
   useFocusEffect(
     useCallback(() => {
       if (isAuthenticated && farmar?.id) {
@@ -89,6 +93,8 @@ export default function ProdejniMistaScreen() {
     setPlatneDo(null);
     setWebOdText('');
     setWebDoText('');
+    setCasOd('');
+    setCasDo('');
     setModalVisible(true);
   };
 
@@ -103,6 +109,8 @@ export default function ProdejniMistaScreen() {
     setPlatneDo(misto.platne_do ? new Date(misto.platne_do) : null);
     setWebOdText(misto.platne_od ? new Date(misto.platne_od).toLocaleDateString('cs-CZ') : '');
     setWebDoText(misto.platne_do ? new Date(misto.platne_do).toLocaleDateString('cs-CZ') : '');
+    setCasOd(misto.cas_od || '');
+    setCasDo(misto.cas_do || '');
     setModalVisible(true);
   };
 
@@ -119,6 +127,8 @@ export default function ProdejniMistaScreen() {
         aktivni,
         platne_od: platneOd ? platneOd.toISOString().split('T')[0] : null,
         platne_do: platneDo ? platneDo.toISOString().split('T')[0] : null,
+        cas_od: casOd.trim() || null,
+        cas_do: casDo.trim() || null,
       };
 
       if (editingMisto) {
@@ -269,6 +279,11 @@ export default function ProdejniMistaScreen() {
                         {misto.adresa && (
                           <Text style={styles.mistoAdresa}>📍 {misto.adresa}</Text>
                         )}
+                        {(misto.cas_od || misto.cas_do) && (
+                          <Text style={styles.mistoCas}>
+                            🕐 {misto.cas_od || '?'} – {misto.cas_do || '?'}
+                          </Text>
+                        )}
                         {(misto.platne_od || misto.platne_do) && (
                           <Text style={styles.mistoPlatnost}>
                             📅 {misto.platne_od ? formatDate(misto.platne_od) : '...'}
@@ -394,6 +409,35 @@ export default function ProdejniMistaScreen() {
                   trackColor={{ false: 'rgba(255,255,255,0.2)', true: 'rgba(76,175,80,0.5)' }}
                   thumbColor={aktivni ? '#4CAF50' : '#9E9E9E'}
                 />
+              </View>
+
+              {/* Otevírací doba */}
+              <Text style={styles.sectionLabel}>Otevírací doba (volitelné)</Text>
+              <View style={styles.dateRow}>
+                <View style={styles.webDateInputWrapper}>
+                  <Text style={styles.dateButtonLabel}>Od:</Text>
+                  <TextInput
+                    style={styles.webDateInput}
+                    value={casOd}
+                    onChangeText={setCasOd}
+                    placeholder="09:00"
+                    placeholderTextColor="rgba(255,255,255,0.35)"
+                    maxLength={5}
+                    keyboardType="numbers-and-punctuation"
+                  />
+                </View>
+                <View style={styles.webDateInputWrapper}>
+                  <Text style={styles.dateButtonLabel}>Do:</Text>
+                  <TextInput
+                    style={styles.webDateInput}
+                    value={casDo}
+                    onChangeText={setCasDo}
+                    placeholder="17:00"
+                    placeholderTextColor="rgba(255,255,255,0.35)"
+                    maxLength={5}
+                    keyboardType="numbers-and-punctuation"
+                  />
+                </View>
               </View>
 
               <Text style={styles.sectionLabel}>Sezónní platnost (volitelné)</Text>
@@ -653,6 +697,12 @@ const styles = StyleSheet.create({
   mistoAdresa: {
     fontSize: 13,
     color: 'rgba(255,255,255,0.7)',
+  },
+  mistoCas: {
+    fontSize: 14,
+    color: '#FF9800',
+    fontWeight: '600',
+    marginTop: 2,
   },
   mistoPlatnost: {
     fontSize: 12,

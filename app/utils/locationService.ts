@@ -13,6 +13,8 @@ export interface ProdejniMisto {
   aktivni: boolean;
   platne_od: string | null; // ISO date string
   platne_do: string | null; // ISO date string
+  cas_od: string | null;    // Otevírací doba od, formát HH:MM (např. '09:00')
+  cas_do: string | null;    // Otevírací doba do, formát HH:MM (např. '17:00')
   created_at: string;
 }
 
@@ -134,6 +136,8 @@ export async function createProdejniMisto(
       aktivni: data.aktivni,
       platne_od: data.platne_od,
       platne_do: data.platne_do,
+      cas_od: data.cas_od ?? null,
+      cas_do: data.cas_do ?? null,
     })
     .select()
     .single();

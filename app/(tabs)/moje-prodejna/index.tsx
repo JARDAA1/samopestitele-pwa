@@ -138,15 +138,21 @@ function MojeProdejnaScreenContent() {
         setPocetProdejnichMist(mistaCount || 0);
       }
 
-      // Načíst časovou dostupnost
-      const { data: pestitelData, error: pestitelError } = await supabase
-        .from('pestitele')
-        .select('casova_dostupnost')
-        .eq('id', pestitelId)
-        .single();
+      // Načíst časovou dostupnost z prvního aktivního prodejního místa
+      const { data: mistoData } = await supabase
+        .from('prodejni_mista')
+        .select('cas_od, cas_do')
+        .eq('pestitel_id', pestitelId)
+        .eq('aktivni', true)
+        .not('cas_od', 'is', null)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
 
-      if (!pestitelError && pestitelData) {
-        setCasovaDostupnost(pestitelData.casova_dostupnost || null);
+      if (mistoData?.cas_od) {
+        setCasovaDostupnost(`${mistoData.cas_od} – ${mistoData.cas_do || '?'}`);
+      } else {
+        setCasovaDostupnost(null);
       }
     } catch (error) {
       console.error('Chyba:', error);
