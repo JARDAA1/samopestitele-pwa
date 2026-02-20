@@ -38,6 +38,7 @@ function MojeProdejnaScreenContent() {
   const [objednavky, setObjednavky] = useState<Objednavka[]>([]);
   const [pocetProduktu, setPocetProduktu] = useState(0);
   const [pocetProdejnichMist, setPocetProdejnichMist] = useState(0);
+  const [casovaDostupnost, setCasovaDostupnost] = useState<string | null>(null);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
@@ -119,6 +120,17 @@ function MojeProdejnaScreenContent() {
 
       if (!mistaError) {
         setPocetProdejnichMist(mistaCount || 0);
+      }
+
+      // Načíst časovou dostupnost
+      const { data: pestitelData, error: pestitelError } = await supabase
+        .from('pestitele')
+        .select('casova_dostupnost')
+        .eq('id', pestitelId)
+        .single();
+
+      if (!pestitelError && pestitelData) {
+        setCasovaDostupnost(pestitelData.casova_dostupnost || null);
       }
     } catch (error) {
       console.error('Chyba:', error);
@@ -289,6 +301,11 @@ function MojeProdejnaScreenContent() {
             <View style={styles.produktyTextContainer}>
               <Text style={styles.mistaButtonText}>Prodejní místa</Text>
               <Text style={styles.produktyCount}>{pocetProdejnichMist} míst</Text>
+              <Text style={styles.dostupnostText}>
+                {casovaDostupnost
+                  ? `Otevřeno: ${casovaDostupnost.split('\n')[0]}`
+                  : 'Časová dostupnost není nastavena'}
+              </Text>
             </View>
           </View>
           <Text style={styles.produktyArrow}>→</Text>
@@ -560,7 +577,8 @@ function MojeProdejnaScreenContent() {
             onPress={() => router.push('/muj-profil')}
             testID="nav-profil"
           >
-            <Feather name="user" size={22} color="#FFFFFF" />
+            <Feather name="user" size={20} color="#FFFFFF" />
+            <Text style={styles.profileLabel}>Profil</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -635,11 +653,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6
   },
   profileButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 4,
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center'
+    gap: 4,
+  },
+  profileLabel: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
 
   // Navigační tlačítka
@@ -692,6 +714,11 @@ const styles = StyleSheet.create({
   produktyCount: {
     fontSize: 13,
     color: 'rgba(255,255,255,0.8)',
+  },
+  dostupnostText: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 2,
   },
   produktyArrow: {
     fontSize: 20,
