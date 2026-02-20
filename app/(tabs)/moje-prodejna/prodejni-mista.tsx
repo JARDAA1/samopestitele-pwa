@@ -39,6 +39,10 @@ export default function ProdejniMistaScreen() {
   // Date picker state
   const [showDatePicker, setShowDatePicker] = useState<'od' | 'do' | null>(null);
 
+  // Web: textové vstupy pro datum (DD.MM.RRRR) - DateTimePicker na webu nefunguje
+  const [webOdText, setWebOdText] = useState('');
+  const [webDoText, setWebDoText] = useState('');
+
   useFocusEffect(
     useCallback(() => {
       if (isAuthenticated && farmar?.id) {
@@ -83,6 +87,8 @@ export default function ProdejniMistaScreen() {
     setAktivni(true);
     setPlatneOd(null);
     setPlatneDo(null);
+    setWebOdText('');
+    setWebDoText('');
     setModalVisible(true);
   };
 
@@ -95,6 +101,8 @@ export default function ProdejniMistaScreen() {
     setAktivni(misto.aktivni);
     setPlatneOd(misto.platne_od ? new Date(misto.platne_od) : null);
     setPlatneDo(misto.platne_do ? new Date(misto.platne_do) : null);
+    setWebOdText(misto.platne_od ? new Date(misto.platne_od).toLocaleDateString('cs-CZ') : '');
+    setWebDoText(misto.platne_do ? new Date(misto.platne_do).toLocaleDateString('cs-CZ') : '');
     setModalVisible(true);
   };
 
@@ -166,6 +174,22 @@ export default function ProdejniMistaScreen() {
         setPlatneDo(selectedDate);
       }
     }
+  };
+
+  // Parsuje datum zadané uživatelem ve formátu DD.MM.RRRR nebo RRRR-MM-DD
+  const parseWebDate = (text: string): Date | null => {
+    const trimmed = text.trim();
+    // Formát DD.MM.RRRR
+    const czMatch = trimmed.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (czMatch) {
+      const [, d, m, y] = czMatch;
+      const date = new Date(Number(y), Number(m) - 1, Number(d));
+      if (!isNaN(date.getTime())) return date;
+    }
+    // Formát RRRR-MM-DD (ISO)
+    const isoDate = new Date(trimmed);
+    if (!isNaN(isoDate.getTime())) return isoDate;
+    return null;
   };
 
   const getMistoStatus = (misto: ProdejniMisto) => {
@@ -377,53 +401,100 @@ export default function ProdejniMistaScreen() {
                 Nastavte, pokud prodáváte pouze v určitém období
               </Text>
 
-              <View style={styles.dateRow}>
-                <TouchableOpacity
-                  style={styles.dateButton}
-                  onPress={() => setShowDatePicker('od')}
-                >
-                  <Text style={styles.dateButtonLabel}>Od:</Text>
-                  <Text style={styles.dateButtonValue}>
-                    {platneOd ? platneOd.toLocaleDateString('cs-CZ') : 'Nenastaveno'}
-                  </Text>
-                </TouchableOpacity>
+              {Platform.OS === 'web' ? (
+                // WEB: TextInput – nativní DateTimePicker na webu nefunguje
+                <View style={styles.dateRow}>
+                  <View style={styles.webDateInputWrapper}>
+                    <Text style={styles.dateButtonLabel}>Od:</Text>
+                    <TextInput
+                      style={styles.webDateInput}
+                      value={webOdText}
+                      onChangeText={(text) => {
+                        setWebOdText(text);
+                        const parsed = parseWebDate(text);
+                        if (parsed) setPlatneOd(parsed);
+                        else if (!text.trim()) setPlatneOd(null);
+                      }}
+                      placeholder="DD.MM.RRRR"
+                      placeholderTextColor="rgba(255,255,255,0.35)"
+                      maxLength={10}
+                    />
+                  </View>
 
-                <TouchableOpacity
-                  style={styles.dateButton}
-                  onPress={() => setShowDatePicker('do')}
-                >
-                  <Text style={styles.dateButtonLabel}>Do:</Text>
-                  <Text style={styles.dateButtonValue}>
-                    {platneDo ? platneDo.toLocaleDateString('cs-CZ') : 'Nenastaveno'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                  <View style={styles.webDateInputWrapper}>
+                    <Text style={styles.dateButtonLabel}>Do:</Text>
+                    <TextInput
+                      style={styles.webDateInput}
+                      value={webDoText}
+                      onChangeText={(text) => {
+                        setWebDoText(text);
+                        const parsed = parseWebDate(text);
+                        if (parsed) setPlatneDo(parsed);
+                        else if (!text.trim()) setPlatneDo(null);
+                      }}
+                      placeholder="DD.MM.RRRR"
+                      placeholderTextColor="rgba(255,255,255,0.35)"
+                      maxLength={10}
+                    />
+                  </View>
+                </View>
+              ) : (
+                // NATIVNÍ (iOS / Android): původní TouchableOpacity + DateTimePicker
+                <>
+                  <View style={styles.dateRow}>
+                    <TouchableOpacity
+                      style={styles.dateButton}
+                      onPress={() => setShowDatePicker('od')}
+                    >
+                      <Text style={styles.dateButtonLabel}>Od:</Text>
+                      <Text style={styles.dateButtonValue}>
+                        {platneOd ? platneOd.toLocaleDateString('cs-CZ') : 'Nenastaveno'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.dateButton}
+                      onPress={() => setShowDatePicker('do')}
+                    >
+                      <Text style={styles.dateButtonLabel}>Do:</Text>
+                      <Text style={styles.dateButtonValue}>
+                        {platneDo ? platneDo.toLocaleDateString('cs-CZ') : 'Nenastaveno'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={showDatePicker === 'od' ? (platneOd || new Date()) : (platneDo || new Date())}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleDateChange}
+                      locale="cs-CZ"
+                    />
+                  )}
+
+                  {Platform.OS === 'ios' && showDatePicker && (
+                    <TouchableOpacity
+                      style={styles.dateConfirmButton}
+                      onPress={() => setShowDatePicker(null)}
+                    >
+                      <Text style={styles.dateConfirmText}>Potvrdit</Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              )}
 
               {(platneOd || platneDo) && (
                 <TouchableOpacity
                   style={styles.clearDatesButton}
-                  onPress={() => { setPlatneOd(null); setPlatneDo(null); }}
+                  onPress={() => {
+                    setPlatneOd(null);
+                    setPlatneDo(null);
+                    setWebOdText('');
+                    setWebDoText('');
+                  }}
                 >
                   <Text style={styles.clearDatesText}>Zrušit sezónní omezení</Text>
-                </TouchableOpacity>
-              )}
-
-              {showDatePicker && (
-                <DateTimePicker
-                  value={showDatePicker === 'od' ? (platneOd || new Date()) : (platneDo || new Date())}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
-                  locale="cs-CZ"
-                />
-              )}
-
-              {Platform.OS === 'ios' && showDatePicker && (
-                <TouchableOpacity
-                  style={styles.dateConfirmButton}
-                  onPress={() => setShowDatePicker(null)}
-                >
-                  <Text style={styles.dateConfirmText}>Potvrdit</Text>
                 </TouchableOpacity>
               )}
             </ScrollView>
@@ -757,6 +828,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#ffffff',
     fontWeight: '500',
+  },
+  // Web: textové vstupy pro datum (místo nativního DateTimePicker)
+  webDateInputWrapper: {
+    flex: 1,
+  },
+  webDateInput: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: '#ffffff',
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    marginTop: 4,
   },
   clearDatesButton: {
     marginTop: 12,
