@@ -291,7 +291,28 @@ function MojeProdejnaScreenContent() {
     ? objednavky.find(o => o.id === selectedOrderId)
     : null;
 
-  // Render navigačních tlačítek (Produkty, Místa)
+  // Minimální navigační položky pro mobil (místo velkých karet)
+  const renderMobileNavItems = () => (
+    <View style={styles.mobileNavItems}>
+      <TouchableOpacity
+        style={styles.mobileNavItem}
+        onPress={() => router.push('/moje-prodejna/seznam-produktu')}
+      >
+        <Text style={styles.mobileNavItemText}>📦 Moje produkty</Text>
+        <Text style={styles.mobileNavItemCount}>{pocetProduktu} aktivních →</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.mobileNavItem}
+        onPress={() => router.push('/moje-prodejna/prodejni-mista')}
+      >
+        <Text style={styles.mobileNavItemText}>📍 Prodejní místa</Text>
+        <Text style={styles.mobileNavItemCount}>{pocetProdejnichMist} míst →</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Render navigačních tlačítek (Produkty, Místa) - desktop verze
   const renderNavButtons = () => (
     <View style={styles.navButtonsContainer}>
       {/* Tlačítko Moje produkty */}
@@ -518,10 +539,10 @@ function MojeProdejnaScreenContent() {
           <Text style={styles.archiveLinkText}>📚 Zobrazit dokončené objednávky</Text>
         </TouchableOpacity>
 
-        {/* MOBILE: Navigační tlačítka na konci */}
+        {/* MOBILE: Minimální navigační položky na konci */}
         {isMobile && (
           <View style={styles.mobileNavSection}>
-            {renderNavButtons()}
+            {renderMobileNavItems()}
           </View>
         )}
       </ScrollView>
@@ -750,6 +771,31 @@ const styles = StyleSheet.create({
   mobileNavSection: {
     marginTop: 8,
     marginBottom: 16,
+  },
+
+  // Mobilní minimální navigační položky
+  mobileNavItems: {
+    paddingHorizontal: 12,
+    gap: 2,
+  },
+  mobileNavItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 8,
+    marginBottom: 2,
+  },
+  mobileNavItemText: {
+    fontSize: 15,
+    color: '#ffffff',
+    fontWeight: '500',
+  },
+  mobileNavItemCount: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.5)',
   },
 
   // Navigační tlačítka
