@@ -1,9 +1,12 @@
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert, SafeAreaView } from 'react-native';
+import SegmentedSearchMode from '../components/SegmentedSearchMode';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import * as Location from 'expo-location';
-import { ProdejniMistoSFarmarem, getVsechnaAktivniProdejniMista } from '../utils/locationService';
+import { fetchProdejniMistaProMapu } from '../utils/locationService';
+import { fetchFarmariProMapu } from '@/features/farmari/services/farmariService';
+import { searchCitiesHybrid, HybridCityResult } from '@/features/mapa/services/citySearchHybridService';
 
 interface Pestitel {
   id: string;
@@ -30,6 +33,7 @@ interface MapaPolozka {
   gps_lng: number | null;
   distance?: number;
   produkty?: string[];
+  foto_url?: string | null;
 }
 
 interface PredefinovanyProdukt {
@@ -57,6 +61,26 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * c;
 }
 
+/**
+ * Vzdálenost bodu P od úsečky A→B (equirectangular, přesnost OK pro CZ < 500 km).
+ * @returns vzdálenost v km
+ */
+function pointToSegmentKm(
+  pLat: number, pLng: number,
+  aLat: number, aLng: number,
+  bLat: number, bLng: number
+): number {
+  const cosLat = Math.cos(((aLat + bLat) / 2) * Math.PI / 180);
+  const R = 6371;
+  const bx = (bLng - aLng) * cosLat * R * Math.PI / 180;
+  const by = (bLat - aLat) * R * Math.PI / 180;
+  const px = (pLng - aLng) * cosLat * R * Math.PI / 180;
+  const py = (pLat - aLat) * R * Math.PI / 180;
+  const lenSq = bx * bx + by * by;
+  const t = lenSq === 0 ? 0 : Math.max(0, Math.min(1, (px * bx + py * by) / lenSq));
+  return Math.sqrt((px - t * bx) ** 2 + (py - t * by) ** 2);
+}
+
 export default function MapaScreen() {
   // Odstraněna desktop detection - používáme pouze mobile-first layout
   // Tablet layout je řešen globálně přes AppLayout wrapper
@@ -78,6 +102,13 @@ export default function MapaScreen() {
   const [geocoding, setGeocoding] = useState(false);
   const [locationSource, setLocationSource] = useState<'gps' | 'address' | null>(null); // Zdroj polohy
   const [locationLabel, setLocationLabel] = useState<string>(''); // Popis aktuální polohy
+
+  // Stánky po cestě – mód a cíl
+  const [mode, setMode] = useState<'okolí' | 'cesta'>('okolí');
+  const [destinationQuery, setDestinationQuery] = useState('');
+  const [destinationSuggestions, setDestinationSuggestions] = useState<HybridCityResult[]>([]);
+  const [destination, setDestination] = useState<{ lat: number; lng: number; label: string } | null>(null);
+  const [corridorKm, setCorridorKm] = useState(10);
 
   // Pevné pořadí produktů
   const productOrder: { [key: string]: number } = {
@@ -301,25 +332,44 @@ export default function MapaScreen() {
     setTimeout(() => setFiltering(false), 800);
   };
 
+  // Stánky po cestě – destination search
+  const handleDestinationSearch = async (query: string) => {
+    setDestinationQuery(query);
+    if (query.length < 2) { setDestinationSuggestions([]); return; }
+    try {
+      const results = await searchCitiesHybrid(query, 5);
+      setDestinationSuggestions(results);
+    } catch {
+      setDestinationSuggestions([]);
+    }
+  };
+
+  const handleSelectDestination = (city: HybridCityResult) => {
+    setDestination({ lat: city.gps_lat, lng: city.gps_lng, label: city.nazev });
+    setDestinationQuery(city.nazev);
+    setDestinationSuggestions([]);
+    setFiltering(true);
+    setTimeout(() => setFiltering(false), 600);
+  };
+
+  const handleResetMode = () => {
+    setMode('okolí');
+    setDestination(null);
+    setDestinationQuery('');
+    setDestinationSuggestions([]);
+  };
+
   const loadPestitele = async () => {
     try {
       setLoading(true);
 
-      // Načíst aktivní prodejní místa s info o farmáři
-      const prodejniMista = await getVsechnaAktivniProdejniMista();
+      // Paralelně: aktivní prodejní místa + všichni farmáři s GPS
+      const [prodejniMistaData, pestiteleData] = await Promise.all([
+        fetchProdejniMistaProMapu(),
+        fetchFarmariProMapu(),
+      ]);
 
-      // Načíst všechny farmáře (pro ty, kteří nemají prodejní místa)
-      const { data: pestiteleData, error: pestiteleError } = await supabase
-        .from('pestitele')
-        .select('id, nazev_farmy, mesto, popis, telefon, gps_lat, gps_lng')
-        .order('nazev_farmy', { ascending: true });
-
-      if (pestiteleError) {
-        console.error('Chyba při načítání pěstitelů:', pestiteleError);
-        return;
-      }
-
-      // Načíst produkty pro každého farmáře
+      // Produkty pro filtrování (každý farmář → seznam názvů produktů)
       const { data: produktyData, error: produktyError } = await supabase
         .from('produkty')
         .select('pestitel_id, nazev');
@@ -328,61 +378,51 @@ export default function MapaScreen() {
         console.error('Chyba při načítání produktů:', produktyError);
       }
 
-      // Vytvoření mapy produktů podle pestitel_id
       const produktyMap = new Map<string, string[]>();
-      if (produktyData) {
-        produktyData.forEach((p) => {
-          const key = String(p.pestitel_id);
-          if (!produktyMap.has(key)) {
-            produktyMap.set(key, []);
-          }
-          produktyMap.get(key)?.push(p.nazev);
-        });
-      }
-
-      // Vytvořit seznam položek pro mapu
-      const mapaPolozky: MapaPolozka[] = [];
-
-      // Přidat prodejní místa jako samostatné položky
-      prodejniMista.forEach((misto) => {
-        if (misto.lat && misto.lng) {
-          mapaPolozky.push({
-            id: `misto-${misto.id}`,
-            pestitel_id: misto.pestitel_id,
-            prodejni_misto_id: misto.id,
-            nazev_farmy: misto.pestitel?.nazev_farmy || 'Neznámý farmář',
-            nazev_mista: misto.nazev,
-            mesto: misto.adresa || misto.pestitel?.mesto || '',
-            popis: misto.pestitel?.popis || null,
-            telefon: misto.pestitel?.telefon || '',
-            gps_lat: misto.lat,
-            gps_lng: misto.lng,
-            produkty: produktyMap.get(String(misto.pestitel_id)) || [],
-          });
-        }
+      produktyData?.forEach((p) => {
+        const key = String(p.pestitel_id);
+        if (!produktyMap.has(key)) produktyMap.set(key, []);
+        produktyMap.get(key)?.push(p.nazev);
       });
 
-      // Přidat farmáře, kteří nemají žádná prodejní místa (ale mají GPS)
-      const farmariSMisty = new Set(prodejniMista.map(m => m.pestitel_id));
-      (pestiteleData || []).forEach((p) => {
-        if (!farmariSMisty.has(Number(p.id)) && p.gps_lat && p.gps_lng) {
+      // Prodejní místa = primární body na mapě
+      const farmariSMisty = new Set(prodejniMistaData.map(m => m.pestitel_id));
+      const mapaPolozky: MapaPolozka[] = prodejniMistaData.map((misto) => ({
+        id: `misto-${misto.id}`,
+        pestitel_id: misto.pestitel_id,
+        prodejni_misto_id: misto.id,
+        nazev_farmy: misto.pestitel?.nazev_farmy ?? 'Neznámý farmář',
+        nazev_mista: misto.nazev,
+        mesto: misto.adresa ?? '',
+        popis: misto.pestitel?.popis ?? null,
+        telefon: misto.pestitel?.telefon ?? '',
+        gps_lat: misto.lat,
+        gps_lng: misto.lng,
+        foto_url: misto.pestitel?.foto_url ?? null,
+        produkty: produktyMap.get(String(misto.pestitel_id)) ?? [],
+      }));
+
+      // Farmáři BEZ aktivního prodejního místa = záložní body
+      pestiteleData.forEach((p) => {
+        if (!farmariSMisty.has(Number(p.id))) {
           mapaPolozky.push({
             id: `farmar-${p.id}`,
             pestitel_id: Number(p.id),
             prodejni_misto_id: null,
-            nazev_farmy: p.nazev_farmy,
+            nazev_farmy: p.nazev_farmy ?? 'Neznámý farmář',
             nazev_mista: null,
-            mesto: p.mesto,
+            mesto: p.mesto ?? '',
             popis: p.popis,
-            telefon: p.telefon,
+            telefon: p.telefon ?? '',
             gps_lat: p.gps_lat,
             gps_lng: p.gps_lng,
-            produkty: produktyMap.get(String(p.id)) || [],
+            foto_url: null,
+            produkty: produktyMap.get(String(p.id)) ?? [],
           });
         }
       });
 
-      console.log(`📍 Načteno ${mapaPolozky.length} bodů pro mapu (${prodejniMista.length} prodejních míst)`);
+      console.log(`📍 ${mapaPolozky.length} bodů (${prodejniMistaData.length} míst, ${mapaPolozky.length - prodejniMistaData.length} farmářů bez místa)`);
 
       setPestitele(mapaPolozky);
     } catch (error) {
@@ -458,10 +498,22 @@ export default function MapaScreen() {
         ))
       );
 
-      // Filtr podle vzdálenosti
-      const matchesDistance =
-        selectedDistance === null ||
-        (p.distance !== undefined && p.distance <= selectedDistance);
+      // Filtr podle vzdálenosti / koridoru:
+      let matchesDistance: boolean;
+      if (mode === 'cesta' && destination && userLocation && p.gps_lat && p.gps_lng) {
+        // Mód "Po cestě": vzdálenost bodu od úsečky start→cíl
+        matchesDistance = pointToSegmentKm(
+          p.gps_lat, p.gps_lng,
+          userLocation.lat, userLocation.lng,
+          destination.lat, destination.lng
+        ) <= corridorKm;
+      } else {
+        // Normální mód: vzdálenost od výchozí pozice
+        matchesDistance =
+          userLocation === null ||
+          selectedDistance === null ||
+          (p.distance !== undefined && p.distance <= selectedDistance);
+      }
 
       // Filtr podle produktů - zobrazit všechny, kteří mají alespoň 1 produkt
       const matchesProdukty = selectedProdukty.length === 0 || p.matchScore > 0;
@@ -571,6 +623,65 @@ export default function MapaScreen() {
               </View>
             )}
 
+            {/* Přepínač módů: V okolí / Po cestě */}
+            <View style={styles.modeToggleRow}>
+              <SegmentedSearchMode
+                mode={mode === 'okolí' ? 'near' : 'route'}
+                onChange={(m) => {
+                  if (m === 'near') handleResetMode();
+                  else setMode('cesta');
+                }}
+              />
+            </View>
+
+            {/* Karta cíle – jen v módu 'cesta' */}
+            {mode === 'cesta' && (
+              <View style={styles.destinationCard}>
+                <Text style={styles.destinationCardTitle}>🎯 Cíl cesty</Text>
+                <TextInput
+                  style={styles.destinationInput}
+                  placeholder="Praha, Brno, Ostrava..."
+                  placeholderTextColor="rgba(255,255,255,0.5)"
+                  value={destinationQuery}
+                  onChangeText={handleDestinationSearch}
+                />
+                {destinationSuggestions.length > 0 && (
+                  <View style={styles.suggestionsBox}>
+                    {destinationSuggestions.map(s => (
+                      <TouchableOpacity
+                        key={String(s.id)}
+                        style={styles.suggestionRow}
+                        onPress={() => handleSelectDestination(s)}
+                      >
+                        <Text style={styles.suggestionText}>
+                          {s.nazev}{s.okres ? `, ${s.okres}` : ''}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                {destination && (
+                  <View style={styles.corridorRow}>
+                    <Text style={styles.corridorLabel}>Koridor:</Text>
+                    {[5, 10, 20].map(km => (
+                      <TouchableOpacity
+                        key={km}
+                        style={[styles.corridorBtn, corridorKm === km && styles.corridorBtnActive]}
+                        onPress={() => { setCorridorKm(km); setFiltering(true); setTimeout(() => setFiltering(false), 400); }}
+                      >
+                        <Text style={[styles.corridorBtnText, corridorKm === km && styles.corridorBtnTextActive]}>
+                          {km} km
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                {!userLocation && (
+                  <Text style={styles.warningText}>⚠️ Povolte sdílení polohy pro funkci Po cestě</Text>
+                )}
+              </View>
+            )}
+
             {/* Sekce Kde hledat */}
             <View style={styles.locationCard}>
               <Text style={styles.locationCardTitle}>Kde hledat</Text>
@@ -646,8 +757,8 @@ export default function MapaScreen() {
               )}
             </View>
 
-            {/* Sekce Perimetr */}
-            <View style={styles.perimeterCard}>
+            {/* Sekce Perimetr – skryta v cestovním módu */}
+            {mode === 'okolí' && <View style={styles.perimeterCard}>
               <Text style={styles.perimeterCardTitle}>Maximální vzdálenost od výchozí pozice</Text>
 
               <View style={styles.perimeterRow}>
@@ -684,12 +795,16 @@ export default function MapaScreen() {
                   Bez omezení
                 </Text>
               </TouchableOpacity>
-            </View>
+            </View>}
 
             {/* Sekce Výsledky - Nalezení farmáři */}
             <View style={styles.resultsCard}>
               <Text style={styles.resultsCardTitle}>
-                {filtering ? 'Hledám...' : `Nalezeno ${filteredPestitele.length} farmářů`}
+                {filtering
+                  ? 'Hledám...'
+                  : mode === 'cesta' && destination
+                    ? `${filteredPestitele.length} míst po cestě do ${destination.label}`
+                    : `Nalezeno ${filteredPestitele.length} farmářů`}
               </Text>
 
               {filtering ? (
@@ -1918,5 +2033,108 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#222222',
     fontWeight: '600',
+  },
+
+  // Stánky po cestě
+  modeToggleRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  modeBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  modeBtnActive: {
+    backgroundColor: 'rgba(255,152,0,0.3)',
+    borderColor: '#FF9800',
+  },
+  modeBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
+  },
+  modeBtnTextActive: {
+    color: '#FF9800',
+  },
+  destinationCard: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  destinationCardTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 8,
+  },
+  destinationInput: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 15,
+    color: '#fff',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  suggestionsBox: {
+    marginTop: 4,
+    backgroundColor: 'rgba(50,0,80,0.97)',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  suggestionRow: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  suggestionText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  corridorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  corridorLabel: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  corridorBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  corridorBtnActive: {
+    backgroundColor: 'rgba(255,152,0,0.3)',
+    borderColor: '#FF9800',
+  },
+  corridorBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
+  },
+  corridorBtnTextActive: {
+    color: '#FF9800',
+  },
+  warningText: {
+    color: '#FFB74D',
+    fontSize: 13,
+    marginTop: 8,
   },
 });
