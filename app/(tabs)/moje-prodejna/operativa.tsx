@@ -2,24 +2,37 @@ import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
   ActivityIndicator, RefreshControl, Alert, Platform, Linking,
 } from 'react-native';
-import { router } from 'expo-router';
-import { ProtectedRoute } from '../../utils/ProtectedRoute';
-import { useNoveObjednavky } from '@/features/objednavky/hooks/useNoveObjednavky';
-import { poslatSMSPotvrzeni } from '@/features/objednavky/services/objednavkyService';
+import { router, useFocusEffect } from 'expo-router';
+import { ProtectedRoute } from '../../_utils/ProtectedRoute';
+import { fetchVsechnyAktivniObjednavky, poslatSMSPotvrzeni, potvrditObjednavku, odmitnoutObjednavku } from '@/features/objednavky/services/objednavkyService';
 import type { NoveObjednavky } from '@/features/objednavky/types';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useFarmarAuth } from '../../_utils/farmarAuthContext';
 
 function OperativaContent() {
-  const {
-    loading,
-    refreshing,
-    noveObjednavky,
-    potvrdit,
-    odmitnout,
-    refresh,
-  } = useNoveObjednavky();
-
+  const { farmar } = useFarmarAuth();
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [objednavky, setObjednavky] = useState<NoveObjednavky[]>([]);
   const [processingId, setProcessingId] = useState<string | null>(null);
+
+  const load = useCallback(async (isRefresh = false) => {
+    if (!farmar?.id) { setLoading(false); return; }
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const data = await fetchVsechnyAktivniObjednavky(farmar.id);
+      setObjednavky(data);
+    } catch (err) {
+      console.error('[Operativa] load error:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [farmar?.id]);
+
+  useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  const refresh = useCallback(() => load(true), [load]);
 
   const showAlert = (title: string, message: string, buttons?: any[]) => {
     if (Platform.OS === 'web') {
@@ -37,38 +50,27 @@ function OperativaContent() {
   const handlePotvrdit = async (item: NoveObjednavky) => {
     setProcessingId(item.id);
     try {
-      await potvrdit(item.id);
+      await potvrditObjednavku(item.id);
+      setObjednavky(prev => prev.map(o => o.id === item.id ? { ...o, stav: 'potvrzena' } : o));
 
       if (item.zakaznik_telefon) {
-        // Odešle SMS přes API; fallback na sms: link
         const odeslatSMS = async () => {
-          const sent = await poslatSMSPotvrzeni(
-            item.zakaznik_telefon!,
-            item.anon_customer_code
-          );
+          const sent = await poslatSMSPotvrzeni(item.zakaznik_telefon!, item.anon_customer_code);
           if (sent) {
             showAlert('Hotovo', 'Objednávka potvrzena, zákazník informován SMS ✓');
           } else {
-            // API selhalo nebo chybí credentials – otevřeme nativní SMS
             const msg = `Dobrý den, vaše objednávka byla potvrzena! ✅${
               item.anon_customer_code
                 ? `\n\nStav: https://samopestitele.cz/vyzvednuti/${item.anon_customer_code}`
                 : ''
             }`;
-            Linking.openURL(
-              `sms:${item.zakaznik_telefon}?body=${encodeURIComponent(msg)}`
-            ).catch(() => {});
+            Linking.openURL(`sms:${item.zakaznik_telefon}?body=${encodeURIComponent(msg)}`).catch(() => {});
           }
         };
-
-        showAlert(
-          'Objednávka potvrzena ✓',
-          'Odeslat zákazníkovi SMS s potvrzením?',
-          [
-            { text: 'Ne', style: 'cancel' },
-            { text: 'Odeslat SMS', onPress: odeslatSMS },
-          ]
-        );
+        showAlert('Objednávka potvrzena ✓', 'Odeslat zákazníkovi SMS s potvrzením?', [
+          { text: 'Ne', style: 'cancel' },
+          { text: 'Odeslat SMS', onPress: odeslatSMS },
+        ]);
       } else {
         showAlert('Hotovo', 'Objednávka byla potvrzena ✓');
       }
@@ -80,37 +82,46 @@ function OperativaContent() {
   };
 
   const handleOdmitnout = (id: string) => {
-    showAlert(
-      'Odmítnout objednávku',
-      'Opravdu chcete odmítnout tuto objednávku?',
-      [
-        { text: 'Zrušit', style: 'cancel' },
-        {
-          text: 'Odmítnout',
-          style: 'destructive',
-          onPress: async () => {
-            setProcessingId(id);
-            try {
-              await odmitnout(id);
-            } catch {
-              showAlert('Chyba', 'Nepodařilo se odmítnout objednávku');
-            } finally {
-              setProcessingId(null);
-            }
-          },
+    showAlert('Odmítnout objednávku', 'Opravdu chcete odmítnout tuto objednávku?', [
+      { text: 'Zrušit', style: 'cancel' },
+      {
+        text: 'Odmítnout',
+        style: 'destructive',
+        onPress: async () => {
+          setProcessingId(id);
+          try {
+            await odmitnoutObjednavku(id);
+            setObjednavky(prev => prev.filter(o => o.id !== id));
+          } catch {
+            showAlert('Chyba', 'Nepodařilo se odmítnout objednávku');
+          } finally {
+            setProcessingId(null);
+          }
         },
-      ]
-    );
+      },
+    ]);
+  };
+
+  const getBadge = (stav: string): { text: string; color: string } => {
+    switch (stav) {
+      case 'nova':
+      case 'cekajici_na_potvrzeni':
+        return { text: 'NOVÁ', color: '#F44336' };
+      case 'potvrzena':
+        return { text: 'POTVRZENA', color: '#2196F3' };
+      case 'ceka_na_vyzvednuti':
+        return { text: 'ČEKÁ NA VYZVEDNUTÍ', color: '#FF9800' };
+      default:
+        return { text: 'AKTIVNÍ', color: '#9E9E9E' };
+    }
   };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
+    const diffMins = Math.floor((now.getTime() - date.getTime()) / 60000);
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
-
     if (diffMins < 1) return 'Právě teď';
     if (diffMins < 60) return `Před ${diffMins} min`;
     if (diffHours < 24) return `Před ${diffHours} hod`;
@@ -118,17 +129,16 @@ function OperativaContent() {
     return date.toLocaleDateString('cs-CZ');
   };
 
-  const renderOrderCard = ({ item }: { item: (typeof noveObjednavky)[0] }) => {
+  const renderOrderCard = ({ item }: { item: NoveObjednavky }) => {
     const isProcessing = processingId === item.id;
-    const customerName =
-      item.poznamka_farmare || item.anon_customer_code || 'Zákazník';
+    const isNova = item.stav === 'nova' || item.stav === 'cekajici_na_potvrzeni';
+    const customerName = item.poznamka_farmare || item.anon_customer_code || 'Zákazník';
+    const badge = getBadge(item.stav);
 
     return (
       <TouchableOpacity
-        style={styles.orderCard}
-        onPress={() =>
-          router.push(`/moje-prodejna/detail-objednavky?id=${item.id}`)
-        }
+        style={[styles.orderCard, isNova && styles.orderCardNew]}
+        onPress={() => router.push(`/moje-prodejna/detail-objednavky?id=${item.id}`)}
         disabled={isProcessing}
       >
         <View style={styles.orderHeader}>
@@ -136,8 +146,8 @@ function OperativaContent() {
             <Text style={styles.customerName}>{customerName}</Text>
             <Text style={styles.orderTime}>{formatTime(item.created_at)}</Text>
           </View>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>NOVÁ</Text>
+          <View style={[styles.badge, { backgroundColor: badge.color }]}>
+            <Text style={styles.badgeText}>{badge.text}</Text>
           </View>
         </View>
 
@@ -148,27 +158,34 @@ function OperativaContent() {
           )}
         </View>
 
-        <View style={styles.actionButtons}>
+        {isNova ? (
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={[styles.confirmButton, isProcessing && styles.buttonDisabled]}
+              onPress={() => handlePotvrdit(item)}
+              disabled={isProcessing}
+            >
+              {isProcessing
+                ? <ActivityIndicator size="small" color="#ffffff" />
+                : <Text style={styles.confirmButtonText}>✓ Potvrdit</Text>
+              }
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.rejectButton, isProcessing && styles.buttonDisabled]}
+              onPress={() => handleOdmitnout(item.id)}
+              disabled={isProcessing}
+            >
+              <Text style={styles.rejectButtonText}>✗ Odmítnout</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
           <TouchableOpacity
-            style={[styles.confirmButton, isProcessing && styles.buttonDisabled]}
-            onPress={() => handlePotvrdit(item)}
-            disabled={isProcessing}
+            style={styles.detailButton}
+            onPress={() => router.push(`/moje-prodejna/detail-objednavky?id=${item.id}`)}
           >
-            {isProcessing ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <Text style={styles.confirmButtonText}>✓ Potvrdit</Text>
-            )}
+            <Text style={styles.detailButtonText}>Otevřít detail →</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.rejectButton, isProcessing && styles.buttonDisabled]}
-            onPress={() => handleOdmitnout(item.id)}
-            disabled={isProcessing}
-          >
-            <Text style={styles.rejectButtonText}>✗ Odmítnout</Text>
-          </TouchableOpacity>
-        </View>
+        )}
       </TouchableOpacity>
     );
   };
@@ -184,14 +201,14 @@ function OperativaContent() {
     );
   }
 
-  if (noveObjednavky.length === 0) {
+  if (objednavky.length === 0) {
     return (
       <View style={styles.container}>
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>✅</Text>
           <Text style={styles.emptyTitle}>Vše vyřízeno!</Text>
           <Text style={styles.emptySubtitle}>
-            Nemáte žádné nové objednávky k vyřízení.
+            Nemáte žádné aktivní objednávky.
           </Text>
           <TouchableOpacity
             style={styles.dashboardButton}
@@ -207,16 +224,17 @@ function OperativaContent() {
     );
   }
 
+  const novychCount = objednavky.filter(
+    o => o.stav === 'nova' || o.stav === 'cekajici_na_potvrzeni'
+  ).length;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
-          🔔 {noveObjednavky.length}{' '}
-          {noveObjednavky.length === 1
-            ? 'nová objednávka'
-            : noveObjednavky.length < 5
-            ? 'nové objednávky'
-            : 'nových objednávek'}
+          {novychCount > 0
+            ? `🔔 ${novychCount} nová${novychCount > 1 ? (novychCount < 5 ? ' objednávky' : ' objednávek') : ' objednávka'}`
+            : `📋 ${objednavky.length} aktivních`}
         </Text>
         <TouchableOpacity
           style={styles.headerButton}
@@ -227,7 +245,7 @@ function OperativaContent() {
       </View>
 
       <FlatList
-        data={noveObjednavky}
+        data={objednavky}
         renderItem={renderOrderCard}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
@@ -275,10 +293,14 @@ const styles = StyleSheet.create({
   headerButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
   listContent: { padding: 12 },
   orderCard: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  orderCardNew: {
     borderWidth: 2,
     borderColor: '#F44336',
   },
@@ -288,40 +310,47 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 12,
   },
-  orderInfo: { flex: 1 },
-  customerName: { fontSize: 18, fontWeight: '700', color: '#ffffff', marginBottom: 4 },
+  orderInfo: { flex: 1, marginRight: 8 },
+  customerName: { fontSize: 17, fontWeight: '700', color: '#ffffff', marginBottom: 4 },
   orderTime: { fontSize: 13, color: 'rgba(255,255,255,0.6)' },
   badge: {
-    backgroundColor: '#F44336',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
+    alignSelf: 'flex-start',
   },
-  badgeText: { color: '#ffffff', fontSize: 12, fontWeight: '700' },
-  orderMeta: { flexDirection: 'row', gap: 16, marginBottom: 16 },
+  badgeText: { color: '#ffffff', fontSize: 11, fontWeight: '700' },
+  orderMeta: { flexDirection: 'row', gap: 16, marginBottom: 14 },
   metaText: { fontSize: 14, color: 'rgba(255,255,255,0.8)' },
   actionButtons: { flexDirection: 'row', gap: 10 },
   confirmButton: {
     flex: 1,
     backgroundColor: '#4CAF50',
-    paddingVertical: 14,
+    paddingVertical: 13,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    minHeight: 46,
   },
-  confirmButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
+  confirmButtonText: { color: '#ffffff', fontSize: 15, fontWeight: '700' },
   rejectButton: {
     flex: 1,
-    backgroundColor: 'rgba(244,67,54,0.3)',
-    paddingVertical: 14,
+    backgroundColor: 'rgba(244,67,54,0.2)',
+    paddingVertical: 13,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#F44336',
   },
-  rejectButtonText: { color: '#F44336', fontSize: 16, fontWeight: '600' },
+  rejectButtonText: { color: '#F44336', fontSize: 15, fontWeight: '600' },
+  detailButton: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingVertical: 11,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  detailButtonText: { color: 'rgba(255,255,255,0.8)', fontSize: 14, fontWeight: '600' },
   buttonDisabled: { opacity: 0.6 },
   emptyContainer: {
     flex: 1,

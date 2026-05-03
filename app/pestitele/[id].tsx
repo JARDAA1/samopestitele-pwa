@@ -1,12 +1,19 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Image, Linking, Platform } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useShoppingList } from '../utils/cartContext';
+import {
+  fetchPestitelDetail,
+  fetchPestitelProdukty,
+  checkOblibeny,
+  addOblibeny,
+  removeOblibeny,
+} from '@/features/farmari/services/farmariService';
+import { formatKc, formatCenaJednotka } from '../_utils/formatKc';
+import { useShoppingList } from '../_utils/cartContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DrawerMenu } from '../utils/DrawerMenu';
-import { useDrawerMenu } from '../utils/useDrawerMenu';
-import { responsive, spacing, fontSize, borderRadius } from '../utils/responsive';
+import { DrawerMenu } from '../_utils/DrawerMenu';
+import { useDrawerMenu } from '../_utils/useDrawerMenu';
+import { responsive, spacing, fontSize, borderRadius } from '../_utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Pestitel {
@@ -39,7 +46,7 @@ export default function PestitelDetailScreen() {
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
-  const { addToList, shoppingList, itemCount } = useShoppingList();
+  const { addToList, clearAndAddToList, shoppingList, itemCount } = useShoppingList();
 
   // Pevné pořadí produktů
   const productOrder: { [key: string]: number } = {
@@ -72,39 +79,20 @@ export default function PestitelDetailScreen() {
     try {
       console.log('Načítám data farmáře ID:', id);
 
-      // Načteme reálná data ze Supabase
-      const { data: pestitelData, error: pestitelError } = await supabase
-        .from('pestitele')
-        .select('id, nazev_farmy, jmeno, mesto, adresa, popis, telefon, gps_lat, gps_lng, foto_url')
-        .eq('id', id)
-        .single();
-
-      if (pestitelError) {
-        console.error('Chyba při načítání dat:', pestitelError);
-        throw pestitelError;
-      }
+      const pestitelData = await fetchPestitelDetail(String(id));
 
       if (!pestitelData) {
         throw new Error('Farmář nebyl nalezen');
       }
 
       console.log('Farmář načten:', pestitelData);
-      setPestitel(pestitelData);
+      setPestitel(pestitelData as unknown as Pestitel);
 
-      // Načteme produkty
-      const { data: produktyData, error: produktyError } = await supabase
-        .from('produkty')
-        .select('id, nazev, popis, cena, jednotka, dostupnost, foto_url')
-        .eq('pestitel_id', id)
-        .eq('dostupnost', true);
-
-      if (produktyError) {
-        console.error('Chyba při načítání produktů:', produktyError);
-        throw produktyError;
-      }
+      // Načteme dostupné produkty
+      const produktyData = await fetchPestitelProdukty(String(id));
 
       // Seřadíme produkty podle pevného pořadí
-      const sortedProdukty = (produktyData || []).sort((a, b) => {
+      const sortedProdukty = (produktyData as unknown as Produkt[]).sort((a, b) => {
         const orderA = productOrder[a.nazev] || 999;
         const orderB = productOrder[b.nazev] || 999;
         return orderA - orderB;
@@ -129,16 +117,8 @@ export default function PestitelDetailScreen() {
       }
 
       const zakaznikId = await getOrCreateUserId();
-
-      const { data, error } = await supabase
-        .from('oblibeni_farmari')
-        .select('id')
-        .eq('zakaznik_telefon', zakaznikId)
-        .eq('pestitel_id', id)
-        .maybeSingle();
-
-      if (error) throw error;
-      setIsFavorite(!!data);
+      const zaznamId = await checkOblibeny(zakaznikId, String(id));
+      setIsFavorite(zaznamId !== null);
     } catch (error) {
       console.error('Chyba při kontrole oblíbených:', error);
     }
@@ -162,13 +142,7 @@ export default function PestitelDetailScreen() {
 
       if (isFavorite) {
         // Odebrat z oblíbených
-        const { error } = await supabase
-          .from('oblibeni_farmari')
-          .delete()
-          .eq('zakaznik_telefon', zakaznikId)
-          .eq('pestitel_id', pestitel.id);
-
-        if (error) throw error;
+        await removeOblibeny(zakaznikId, pestitel.id);
         setIsFavorite(false);
         Alert.alert('✓ Odebráno', `${pestitel.nazev_farmy} byl odebrán z oblíbených`);
       } else {
@@ -184,22 +158,7 @@ export default function PestitelDetailScreen() {
     if (!pestitel) return;
 
     try {
-      const { error } = await supabase
-        .from('oblibeni_farmari')
-        .insert({
-          zakaznik_telefon: telefon,
-          pestitel_id: pestitel.id,
-        });
-
-      if (error) {
-        // Pokud už je v oblíbených (unique constraint), ignorujeme
-        if (error.message.includes('unique')) {
-          setIsFavorite(true);
-          return;
-        }
-        throw error;
-      }
-
+      await addOblibeny(telefon, pestitel.id);
       setIsFavorite(true);
       Alert.alert('⭐ Uloženo', `${pestitel.nazev_farmy} byl přidán do oblíbených!`);
     } catch (error) {
@@ -208,11 +167,10 @@ export default function PestitelDetailScreen() {
     }
   };
 
-  const handleAddToList = async (produkt: Produkt) => {
+  const handleAddToList = (produkt: Produkt) => {
     if (!pestitel) return;
 
-    // Přidáme produkt do nákupního seznamu s kontaktními informacemi farmáře
-    addToList({
+    const item = {
       produkt_id: produkt.id,
       nazev: produkt.nazev,
       cena: produkt.cena,
@@ -221,31 +179,36 @@ export default function PestitelDetailScreen() {
       pestitelId: pestitel.id,
       pestitelTelefon: pestitel.telefon,
       pestitelMesto: pestitel.mesto,
-    });
+    };
 
-    Alert.alert('Přidáno do seznamu', `${produkt.nazev} byl přidán do nákupního seznamu`);
+    const result = addToList(item);
+
+    if (result.blocked) {
+      Alert.alert(
+        'Košík obsahuje produkty jiného farmáře',
+        `Máte v košíku produkty od ${result.existingFarmerNazev}. Chcete košík vymazat a přidat produkty od ${pestitel.nazev_farmy}?`,
+        [
+          { text: 'Ne, zachovat', style: 'cancel' },
+          {
+            text: 'Vymazat a přidat',
+            style: 'destructive',
+            onPress: () => {
+              clearAndAddToList(item);
+              Alert.alert('Přidáno do seznamu', `${produkt.nazev} byl přidán do nákupního seznamu`);
+            },
+          },
+        ]
+      );
+    } else {
+      Alert.alert('Přidáno do seznamu', `${produkt.nazev} byl přidán do nákupního seznamu`);
+    }
   };
 
   const savePreviousFarmer = async (farmerId: number) => {
     try {
       const zakaznikId = await getOrCreateUserId();
-
-      // Uložíme předchozího farmáře do oblíbených
-      const { error } = await supabase
-        .from('oblibeni_farmari')
-        .insert({
-          zakaznik_telefon: zakaznikId,
-          pestitel_id: farmerId,
-        });
-
-      if (error) {
-        // Pokud už je v oblíbených (unique constraint), ignorujeme
-        if (!error.message.includes('unique')) {
-          console.error('Chyba při ukládání předchozího farmáře:', error);
-        }
-      } else {
-        console.log('Předchozí farmář byl automaticky uložen do oblíbených');
-      }
+      await addOblibeny(zakaznikId, farmerId);
+      console.log('Předchozí farmář byl automaticky uložen do oblíbených');
     } catch (error) {
       console.error('Chyba při ukládání předchozího farmáře:', error);
     }
@@ -422,7 +385,7 @@ export default function PestitelDetailScreen() {
                   <View style={styles.productHeader}>
                     <Text style={styles.productName}>{produkt.nazev}</Text>
                     <Text style={styles.productPrice}>
-                      {produkt.cena ? produkt.cena.toFixed(0) : '0'} Kč/{produkt.jednotka}
+                      {produkt.cena ? formatCenaJednotka(produkt.cena, produkt.jednotka) : `0 Kč / ${produkt.jednotka}`}
                     </Text>
                   </View>
                   {produkt.popis && (

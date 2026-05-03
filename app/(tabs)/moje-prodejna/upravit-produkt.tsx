@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../../lib/supabase';
-import { useFarmarAuth } from '../../utils/farmarAuthContext';
+import { useFarmarAuth } from '../../_utils/farmarAuthContext';
+import { fetchProduktById, checkDuplicateExcluding, updateProdukt, archivujProdukt } from '@/features/produkty/services/produktyService';
 
 // Sada ikon pro produkty
 const PRODUCT_ICONS = [
@@ -13,44 +13,6 @@ const PRODUCT_ICONS = [
   '🍞', '🥖', '🥨', '🥐', '🥯', '🫓', '🥞', '🧇', '🥔', '🌾'
 ];
 
-// Helper funkce pro normalizaci názvu produktu
-const normalizeProductName = (name: string): string => {
-  return name
-    .toLowerCase()
-    .trim()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, ' ');
-};
-
-// Levenshtein distance pro detekci překlepů
-const levenshteinDistance = (str1: string, str2: string): number => {
-  const matrix: number[][] = [];
-
-  for (let i = 0; i <= str2.length; i++) {
-    matrix[i] = [i];
-  }
-
-  for (let j = 0; j <= str1.length; j++) {
-    matrix[0][j] = j;
-  }
-
-  for (let i = 1; i <= str2.length; i++) {
-    for (let j = 1; j <= str1.length; j++) {
-      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1
-        );
-      }
-    }
-  }
-
-  return matrix[str2.length][str1.length];
-};
 
 export default function UpravitProduktScreen() {
   const { farmar, isAuthenticated } = useFarmarAuth();
@@ -68,6 +30,7 @@ export default function UpravitProduktScreen() {
   const [dostupnost, setDostupnost] = useState(true);
   const [selectedEmoji, setSelectedEmoji] = useState<string>('📦');
   const [archivovano, setArchivovano] = useState(false);
+  const [originalNazev, setOriginalNazev] = useState('');
 
   useEffect(() => {
     if (produktId) {
@@ -79,26 +42,15 @@ export default function UpravitProduktScreen() {
   const loadProdukt = async () => {
     try {
       console.log('🔍 Loading product with ID:', produktId);
-      const { data, error } = await supabase
-        .from('produkty')
-        .select('*')
-        .eq('id', produktId)
-        .single();
+      const data = await fetchProduktById(produktId);
 
       console.log('📦 Product data:', data);
-      console.log('❌ Error:', error);
-
-      if (error) {
-        console.error('Chyba při načítání produktu:', error);
-        Alert.alert('Chyba', 'Nepodařilo se načíst produkt');
-        router.push('/moje-prodejna');
-        return;
-      }
 
       // Předvyplň formulář
       setNazev(data.nazev);
+      setOriginalNazev(data.nazev);
       setPopis(data.popis || '');
-      setCena(String(data.cena));
+      setCena(data.jednotka === 'g' ? String(Math.round(data.cena * 100 * 100) / 100) : String(data.cena));
       // setMnozstvi(data.mnozstvi ? String(data.mnozstvi) : ''); // ZAKOMENTOVÁNO
       setJednotka(data.jednotka);
       setKategorie(data.kategorie || 'Zelenina');
@@ -138,42 +90,11 @@ export default function UpravitProduktScreen() {
         return;
       }
 
-      // Kontrola duplicitních názvů s normalizací a detekcí překlepů
-      const { data: allProducts, error: checkError } = await supabase
-        .from('produkty')
-        .select('id, nazev')
-        .eq('pestitel_id', Number(farmar.id))
-        .eq('archivovano', false) // Kontrolujeme pouze aktivní produkty
-        .neq('id', produktId); // Vyloučíme upravovaný produkt
-
-      if (checkError) {
-        console.error('Chyba při kontrole duplicitních produktů:', checkError);
-        Alert.alert('Chyba', 'Nepodařilo se zkontrolovat existující produkty');
-        setSaving(false);
-        return;
-      }
-
-      // Normalizovaný název upravovaného produktu
-      const normalizedNewName = normalizeProductName(nazev.trim());
-
-      // Kontrola na duplicitu nebo překlep
-      const similarProduct = allProducts?.find(product => {
-        const normalizedExisting = normalizeProductName(product.nazev);
-
-        // 1. Přesná shoda po normalizaci
-        if (normalizedExisting === normalizedNewName) {
-          return true;
-        }
-
-        // 2. Detekce překlepů - pokud se liší max o 2 znaky
-        const distance = levenshteinDistance(normalizedExisting, normalizedNewName);
-        const maxLength = Math.max(normalizedExisting.length, normalizedNewName.length);
-
-        // Povolíme max 2 odlišné znaky, nebo 20% délky slova (co je menší)
-        const threshold = Math.min(2, Math.ceil(maxLength * 0.2));
-
-        return distance <= threshold;
-      });
+      // Kontrola duplicitních názvů – pouze pokud uživatel název změnil
+      const nazevZmenen = nazev.trim() !== originalNazev;
+      const similarProduct = nazevZmenen
+        ? await checkDuplicateExcluding(farmar.id, nazev.trim(), produktId)
+        : null;
 
       if (similarProduct) {
         Alert.alert(
@@ -185,31 +106,20 @@ export default function UpravitProduktScreen() {
       }
 
       // Aktualizuj produkt v databázi
-      const { error } = await supabase
-        .from('produkty')
-        .update({
-          nazev: nazev.trim(),
-          popis: popis.trim() || null,
-          cena: Number(cena),
-          mnozstvi: null, // ZAKOMENTOVÁNO - nepoužíváme
-          jednotka: jednotka,
-          kategorie: kategorie,
-          dostupnost: dostupnost,
-          emoji: selectedEmoji,
-          archivovano: archivovano
-        })
-        .eq('id', produktId);
+      await updateProdukt(produktId, {
+        nazev: nazev.trim(),
+        popis: popis.trim() || null,
+        cena: jednotka === 'g' ? Number(cena) / 100 : Number(cena),
+        mnozstvi: null,
+        jednotka: jednotka,
+        kategorie: kategorie,
+        dostupnost: dostupnost,
+        emoji: selectedEmoji,
+        archivovano: archivovano,
+      });
 
-      if (error) {
-        console.error('Chyba při aktualizaci produktu:', error);
-        Alert.alert('Chyba', 'Nepodařilo se uložit změny: ' + error.message);
-        setSaving(false);
-        return;
-      }
-
-      Alert.alert('Úspěch', 'Změny byly uloženy', [
-        { text: 'OK', onPress: () => router.push('/moje-prodejna') }
-      ]);
+      setOriginalNazev(nazev.trim());
+      router.push('/moje-prodejna');
     } catch (error: any) {
       console.error('Chyba:', error);
       Alert.alert('Chyba', error.message || 'Nepodařilo se uložit změny');
@@ -249,30 +159,11 @@ export default function UpravitProduktScreen() {
       console.log('🔍 Debug archivace:', {
         produktId,
         farmarId: farmar.id,
-        farmarIdType: typeof farmar.id,
         novyStav,
-        puvodniStav: archivovano
+        puvodniStav: archivovano,
       });
 
-      const { data, error } = await supabase
-        .from('produkty')
-        .update({ archivovano: novyStav })
-        .eq('id', produktId)
-        .select();
-
-      console.log('📊 Supabase response:', { data, error });
-
-      if (error) {
-        console.error(`❌ Chyba při ${akce}:`, error);
-        alert(`Nepodařilo se ${akce} produkt.\n\nDetail: ${error.message}`);
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        console.error('❌ Produkt nebyl nalezen nebo nemáte oprávnění');
-        alert('Produkt nebyl nalezen nebo nemáte oprávnění k této akci');
-        return;
-      }
+      await archivujProdukt(produktId, novyStav);
 
       // Aktualizuj lokální state
       setArchivovano(novyStav);
@@ -359,7 +250,7 @@ export default function UpravitProduktScreen() {
             textAlignVertical="top"
           />
 
-          <Text style={styles.label}>Cena *</Text>
+          <Text style={styles.label}>{jednotka === 'g' ? 'Cena za 100g *' : 'Cena *'}</Text>
           <View style={styles.row}>
             <TextInput
               style={[styles.input, styles.inputPrice]}
@@ -368,7 +259,7 @@ export default function UpravitProduktScreen() {
               onChangeText={setCena}
               keyboardType="numeric"
             />
-            <Text style={styles.currency}>Kč</Text>
+            <Text style={styles.currency}>{jednotka === 'g' ? 'Kč / 100g' : 'Kč'}</Text>
           </View>
 
           {/* ZAKOMENTOVÁNO - Množství na skladě
@@ -405,7 +296,7 @@ export default function UpravitProduktScreen() {
 
           <Text style={styles.label}>Jednotka</Text>
           <View style={styles.unitButtons}>
-            {['kg', 'ks', 'l', 'balení'].map((unit) => (
+            {['kg', 'g', 'ks', 'l', 'balení'].map((unit) => (
               <TouchableOpacity
                 key={unit}
                 style={[

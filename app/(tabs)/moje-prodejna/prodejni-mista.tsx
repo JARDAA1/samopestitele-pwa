@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, TextInput, Modal, Switch, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, TextInput, Modal, Switch, Platform, Alert } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
-import { useFarmarAuth } from '../../utils/farmarAuthContext';
-import { useLayoutMode } from '../../components/AppLayout';
+import { useFarmarAuth } from '../../_utils/farmarAuthContext';
+import { useLayoutMode } from '../../_components/AppLayout';
 import {
   ProdejniMisto,
   getProdejniMistaFarmare,
@@ -10,7 +10,7 @@ import {
   updateProdejniMisto,
   deleteProdejniMisto,
   isProdejniMistoAktivniDnes
-} from '../../utils/locationService';
+} from '../../_utils/locationService';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function ProdejniMistaScreen() {
@@ -161,12 +161,29 @@ export default function ProdejniMistaScreen() {
     }
   };
 
-  const handleDelete = async (mistoId: number) => {
-    try {
-      await deleteProdejniMisto(mistoId);
-      loadMista();
-    } catch (error) {
-      console.error('Chyba při mazání:', error);
+  const handleDelete = (mistoId: number) => {
+    if (Platform.OS === 'web') {
+      if (!window.confirm('Opravdu chcete smazat toto místo?')) return;
+      deleteProdejniMisto(mistoId)
+        .then(() => loadMista())
+        .catch((error) => console.error('Chyba při mazání:', error));
+    } else {
+      Alert.alert(
+        'Smazat místo',
+        'Opravdu chcete smazat toto místo?',
+        [
+          { text: 'Ne', style: 'cancel' },
+          {
+            text: 'Ano',
+            style: 'destructive',
+            onPress: () => {
+              deleteProdejniMisto(mistoId)
+                .then(() => loadMista())
+                .catch((error) => console.error('Chyba při mazání:', error));
+            },
+          },
+        ]
+      );
     }
   };
 

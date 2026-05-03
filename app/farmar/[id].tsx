@@ -1,9 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Linking, Platform, Alert, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Linking, Platform, Alert, Modal, TextInput, KeyboardAvoidingView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetchFarmarDetail, fetchFarmarProdukty } from '@/features/farmari/services/farmariService';
 import { Ionicons } from '@expo/vector-icons';
+import { useCustomerList, type CustomerListItem } from '@/shared/context/CustomerListContext';
+import { formatKc, getKrokJednotky } from '../_utils/formatKc';
 
 interface Farmar {
   id: string;
@@ -14,6 +15,7 @@ interface Farmar {
   email: string | null;
   gps_lat: number | null;
   gps_lng: number | null;
+  casova_dostupnost: string | null;
 }
 
 interface Produkt {
@@ -23,21 +25,6 @@ interface Produkt {
   cena: number | null;
   jednotka: string | null;
   dostupnost: string | null;
-}
-
-interface SeznamItem {
-  produktId: string;
-  produktNazev: string;
-  farmarId: string;
-  farmarNazev: string;
-  farmarTelefon: string;
-  cena: number | null;
-  jednotka: string | null;
-  mnozstvi: number;
-  mnozstviJednotka: string;
-  pridanoV: string; // ISO timestamp kdy bylo přidáno
-  preferovaneVyzvednutiDatum?: string; // volitelné preferované datum vyzvednutí
-  preferovaneVyzvednutiCas?: string; // volitelný preferovaný čas vyzvednutí
 }
 
 const JEDNOTKY = ['ks', 'kg', 'l', 'g', 'ml'];
@@ -59,10 +46,11 @@ const formatTime = (date: Date) => {
 
 export default function FarmarDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { items, addItem, removeItem: removeFromList, hasItem } = useCustomerList();
+
   const [farmar, setFarmar] = useState<Farmar | null>(null);
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [loading, setLoading] = useState(true);
-  const [seznam, setSeznam] = useState<SeznamItem[]>([]);
 
   // Modal pro výběr množství
   const [modalVisible, setModalVisible] = useState(false);
@@ -70,47 +58,18 @@ export default function FarmarDetailScreen() {
   const [mnozstvi, setMnozstvi] = useState('1');
   const [vybranaJednotka, setVybranaJednotka] = useState('ks');
 
-  // Preferované vyzvednutí
-  const [chciVyzvednutiTermin, setChciVyzvednutiTermin] = useState(false);
-  const [vyzvednutiDatum, setVyzvednutiDatum] = useState('');
-  const [vyzvednutiCas, setVyzvednutiCas] = useState('');
 
   useEffect(() => {
     if (id) {
       loadFarmarDetail();
-      loadSeznam();
     }
   }, [id]);
 
-  const loadSeznam = async () => {
-    try {
-      const stored = await AsyncStorage.getItem('nakupni_seznam');
-      if (stored) {
-        setSeznam(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error('Chyba při načítání seznamu:', error);
-    }
-  };
-
-  const saveSeznam = async (newSeznam: SeznamItem[]) => {
-    try {
-      await AsyncStorage.setItem('nakupni_seznam', JSON.stringify(newSeznam));
-      setSeznam(newSeznam);
-    } catch (error) {
-      console.error('Chyba při ukládání seznamu:', error);
-    }
-  };
-
-  const isInSeznam = (produktId: string) => {
-    return seznam.some(item => item.produktId === produktId);
-  };
 
   const openMnozstviModal = (produkt: Produkt) => {
-    if (isInSeznam(produkt.id)) {
+    if (hasItem(produkt.id)) {
       // Odebrat ze seznamu
-      const newSeznam = seznam.filter(item => item.produktId !== produkt.id);
-      saveSeznam(newSeznam);
+      removeFromList(produkt.id);
       if (Platform.OS === 'web') {
         alert(`${produkt.nazev} odebráno ze seznamu`);
       } else {
@@ -126,10 +85,6 @@ export default function FarmarDetailScreen() {
       } else {
         setVybranaJednotka('ks');
       }
-      // Reset preferovaného vyzvednutí
-      setChciVyzvednutiTermin(false);
-      setVyzvednutiDatum('');
-      setVyzvednutiCas('');
       setModalVisible(true);
     }
   };
@@ -137,9 +92,9 @@ export default function FarmarDetailScreen() {
   const pridatDoSeznamu = () => {
     if (!farmar || !selectedProdukt) return;
 
-    const mnozstviNum = parseFloat(mnozstvi) || 1;
+    const mnozstviNum = parseFloat(mnozstvi.replace(',', '.')) || 1;
 
-    const newItem: SeznamItem = {
+    const newItem: CustomerListItem = {
       produktId: selectedProdukt.id,
       produktNazev: selectedProdukt.nazev,
       farmarId: farmar.id,
@@ -150,12 +105,9 @@ export default function FarmarDetailScreen() {
       mnozstvi: mnozstviNum,
       mnozstviJednotka: vybranaJednotka,
       pridanoV: new Date().toISOString(),
-      preferovaneVyzvednutiDatum: chciVyzvednutiTermin && vyzvednutiDatum ? vyzvednutiDatum : undefined,
-      preferovaneVyzvednutiCas: chciVyzvednutiTermin && vyzvednutiCas ? vyzvednutiCas : undefined,
     };
 
-    const newSeznam = [...seznam, newItem];
-    saveSeznam(newSeznam);
+    addItem(newItem);
 
     setModalVisible(false);
     setSelectedProdukt(null);
@@ -172,30 +124,17 @@ export default function FarmarDetailScreen() {
       setLoading(true);
 
       // Načíst data farmáře
-      const { data: farmarData, error: farmarError } = await supabase
-        .from('pestitele')
-        .select('id, nazev_farmy, mesto, popis, telefon, email, gps_lat, gps_lng')
-        .eq('id', id)
-        .single();
-
-      if (farmarError) {
-        console.error('Chyba při načítání farmáře:', farmarError);
+      const farmarData = await fetchFarmarDetail(id);
+      if (!farmarData) {
+        console.error('Chyba při načítání farmáře');
         return;
       }
-
-      setFarmar(farmarData);
+      setFarmar(farmarData as unknown as Farmar);
 
       // Načíst produkty farmáře
-      const { data: produktyData, error: produktyError } = await supabase
-        .from('produkty')
-        .select('id, nazev, popis, cena, jednotka, dostupnost')
-        .eq('pestitel_id', id)
-        .order('nazev', { ascending: true });
-
-      if (produktyError) {
-        console.error('Chyba při načítání produktů:', produktyError);
-      } else {
-        setProdukty(produktyData || []);
+      const produktyData = await fetchFarmarProdukty(id);
+      {
+        setProdukty(produktyData as unknown as Produkt[]);
       }
     } catch (error) {
       console.error('Chyba:', error);
@@ -279,6 +218,13 @@ export default function FarmarDetailScreen() {
             <Text style={styles.farmaPopis}>{farmar.popis}</Text>
           )}
 
+          {farmar.casova_dostupnost && (
+            <View style={styles.dostupnostCard}>
+              <Text style={styles.dostupnostLabel}>🕐 Dostupnost</Text>
+              <Text style={styles.dostupnostText}>{farmar.casova_dostupnost}</Text>
+            </View>
+          )}
+
           {/* Kontaktní tlačítka */}
           <View style={styles.contactRow}>
             {farmar.telefon && (
@@ -347,7 +293,7 @@ export default function FarmarDetailScreen() {
                     {produkt.cena !== null && (
                       <View style={styles.produktCena}>
                         <Text style={styles.produktCenaText}>
-                          {produkt.cena} Kč
+                          {formatKc(produkt.cena)} Kč
                         </Text>
                         {produkt.jednotka && (
                           <Text style={styles.produktJednotka}>
@@ -359,13 +305,13 @@ export default function FarmarDetailScreen() {
                     <TouchableOpacity
                       style={[
                         styles.addToListBtn,
-                        isInSeznam(produkt.id) && styles.addToListBtnActive
+                        hasItem(produkt.id) && styles.addToListBtnActive
                       ]}
                       onPress={() => openMnozstviModal(produkt)}
                       testID="add-product"
                     >
                       <Text style={styles.addToListBtnText}>
-                        {isInSeznam(produkt.id) ? '✓' : '+'}
+                        {hasItem(produkt.id) ? '✓' : '+'}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -376,14 +322,14 @@ export default function FarmarDetailScreen() {
         </View>
 
         {/* Plovoucí tlačítko - Zobrazit seznam */}
-        {seznam.length > 0 && (
+        {items.length > 0 && (
           <TouchableOpacity
             style={styles.floatingSeznamBtn}
             onPress={() => router.push('/nakupni-seznam')}
             testID="cart-badge"
           >
             <Text style={styles.floatingSeznamBtnText}>
-              Zobrazit seznam ({seznam.length})
+              Zobrazit seznam ({items.length})
             </Text>
           </TouchableOpacity>
         )}
@@ -396,121 +342,126 @@ export default function FarmarDetailScreen() {
         animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {selectedProdukt?.nazev}
-            </Text>
-
-            <Text style={styles.modalLabel}>Množství:</Text>
-            <View style={styles.mnozstviRow}>
-              <TouchableOpacity
-                style={styles.mnozstviBtn}
-                onPress={() => {
-                  const num = parseFloat(mnozstvi) || 1;
-                  if (num > 1) setMnozstvi(String(num - 1));
-                }}
-              >
-                <Text style={styles.mnozstviBtnText}>-</Text>
-              </TouchableOpacity>
-
-              <TextInput
-                style={styles.mnozstviInput}
-                value={mnozstvi}
-                onChangeText={setMnozstvi}
-                keyboardType="numeric"
-                selectTextOnFocus
-                testID="quantity-input"
-              />
-
-              <TouchableOpacity
-                style={styles.mnozstviBtn}
-                onPress={() => {
-                  const num = parseFloat(mnozstvi) || 0;
-                  setMnozstvi(String(num + 1));
-                }}
-              >
-                <Text style={styles.mnozstviBtnText}>+</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.modalLabel}>Jednotka:</Text>
-            <View style={styles.jednotkyRow}>
-              {JEDNOTKY.map((j) => (
-                <TouchableOpacity
-                  key={j}
-                  style={[
-                    styles.jednotkaBtn,
-                    vybranaJednotka === j && styles.jednotkaBtnActive
-                  ]}
-                  onPress={() => setVybranaJednotka(j)}
-                >
-                  <Text style={[
-                    styles.jednotkaBtnText,
-                    vybranaJednotka === j && styles.jednotkaBtnTextActive
-                  ]}>
-                    {j}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Preferované vyzvednutí */}
-            <TouchableOpacity
-              style={styles.vyzvednutiCheckbox}
-              onPress={() => setChciVyzvednutiTermin(!chciVyzvednutiTermin)}
-            >
-              <View style={[styles.checkbox, chciVyzvednutiTermin && styles.checkboxActive]}>
-                {chciVyzvednutiTermin && <Text style={styles.checkboxMark}>✓</Text>}
-              </View>
-              <Text style={styles.vyzvednutiCheckboxLabel}>
-                Chci zadat preferovaný termín vyzvednutí
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                {selectedProdukt?.nazev}
               </Text>
-            </TouchableOpacity>
 
-            {chciVyzvednutiTermin && (
-              <View style={styles.vyzvednutiInputsRow}>
-                <View style={styles.vyzvednutiInputContainer}>
-                  <Text style={styles.vyzvednutiInputLabel}>Datum:</Text>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                bounces={false}
+              >
+                {/* Rychlé předvolby pro kg/g produkty */}
+                {(selectedProdukt?.jednotka === 'kg' || selectedProdukt?.jednotka === 'g') && (
+                  <View style={styles.presetsRow}>
+                    {[
+                      { label: '100 g', mnozstvi: '100', jednotka: 'g' },
+                      { label: '250 g', mnozstvi: '250', jednotka: 'g' },
+                      { label: '500 g', mnozstvi: '500', jednotka: 'g' },
+                      { label: '1 kg',  mnozstvi: '1',   jednotka: 'kg' },
+                      { label: '2 kg',  mnozstvi: '2',   jednotka: 'kg' },
+                      { label: '2.5 kg',mnozstvi: '2.5', jednotka: 'kg' },
+                      { label: '3 kg',  mnozstvi: '3',   jednotka: 'kg' },
+                    ].map((p) => {
+                      const active = mnozstvi === p.mnozstvi && vybranaJednotka === p.jednotka;
+                      return (
+                        <TouchableOpacity
+                          key={p.label}
+                          style={[styles.presetChip, active && styles.presetChipActive]}
+                          onPress={() => { setMnozstvi(p.mnozstvi); setVybranaJednotka(p.jednotka); }}
+                        >
+                          <Text style={[styles.presetChipText, active && styles.presetChipTextActive]}>
+                            {p.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
+
+                <Text style={styles.modalLabel}>Množství:</Text>
+                <View style={styles.mnozstviRow}>
+                  <TouchableOpacity
+                    style={styles.mnozstviBtn}
+                    onPress={() => {
+                      const krok = getKrokJednotky(vybranaJednotka);
+                      const num = parseFloat(mnozstvi) || krok;
+                      if (num > krok) setMnozstvi(String(Math.round((num - krok) * 100) / 100));
+                    }}
+                  >
+                    <Text style={styles.mnozstviBtnText}>-</Text>
+                  </TouchableOpacity>
+
                   <TextInput
-                    style={styles.vyzvednutiInput}
-                    placeholder="např. 15.2.2026"
-                    placeholderTextColor="#999"
-                    value={vyzvednutiDatum}
-                    onChangeText={setVyzvednutiDatum}
+                    style={styles.mnozstviInput}
+                    value={mnozstvi}
+                    onChangeText={(t) => setMnozstvi(t.replace(',', '.'))}
+                    keyboardType="decimal-pad"
+                    selectTextOnFocus
+                    testID="quantity-input"
                   />
+
+                  <TouchableOpacity
+                    style={styles.mnozstviBtn}
+                    onPress={() => {
+                      const krok = getKrokJednotky(vybranaJednotka);
+                      const num = parseFloat(mnozstvi) || 0;
+                      setMnozstvi(String(Math.round((num + krok) * 100) / 100));
+                    }}
+                  >
+                    <Text style={styles.mnozstviBtnText}>+</Text>
+                  </TouchableOpacity>
                 </View>
-                <View style={styles.vyzvednutiInputContainer}>
-                  <Text style={styles.vyzvednutiInputLabel}>Čas:</Text>
-                  <TextInput
-                    style={styles.vyzvednutiInput}
-                    placeholder="např. 14:00"
-                    placeholderTextColor="#999"
-                    value={vyzvednutiCas}
-                    onChangeText={setVyzvednutiCas}
-                  />
+
+                <Text style={styles.modalLabel}>Jednotka:</Text>
+                <View style={styles.jednotkyRow}>
+                  {JEDNOTKY.map((j) => (
+                    <TouchableOpacity
+                      key={j}
+                      style={[
+                        styles.jednotkaBtn,
+                        vybranaJednotka === j && styles.jednotkaBtnActive
+                      ]}
+                      onPress={() => setVybranaJednotka(j)}
+                    >
+                      <Text style={[
+                        styles.jednotkaBtnText,
+                        vybranaJednotka === j && styles.jednotkaBtnTextActive
+                      ]}>
+                        {j}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
+
+                <View style={{ height: 8 }} />
+              </ScrollView>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.modalCancelBtn}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.modalCancelBtnText}>Zrušit</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.modalConfirmBtn}
+                  onPress={pridatDoSeznamu}
+                  testID="confirm-add-product"
+                >
+                  <Text style={styles.modalConfirmBtnText}>Přidat</Text>
+                </TouchableOpacity>
               </View>
-            )}
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.modalCancelBtnText}>Zrušit</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.modalConfirmBtn}
-                onPress={pridatDoSeznamu}
-                testID="confirm-add-product"
-              >
-                <Text style={styles.modalConfirmBtnText}>Přidat</Text>
-              </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -633,6 +584,26 @@ const styles = StyleSheet.create({
     paddingTop: 6,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.1)',
+  },
+  dostupnostCard: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF9800',
+  },
+  dostupnostLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FF9800',
+    marginBottom: 4,
+    letterSpacing: 0.5,
+  },
+  dostupnostText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.85)',
+    lineHeight: 18,
   },
   contactRow: {
     flexDirection: 'row',
@@ -793,9 +764,12 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
-    padding: 20,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
     width: '100%',
-    maxWidth: 320,
+    maxWidth: 340,
+    maxHeight: '88%',
   },
   modalTitle: {
     fontSize: 18,
@@ -896,56 +870,32 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 
-  // Preferované vyzvednutí styly
-  vyzvednutiCheckbox: {
+  // Rychlé předvolby
+  presetsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    marginTop: 4,
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 14,
   },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#6A1B9A',
-    marginRight: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+  presetChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 11,
+    borderRadius: 16,
+    backgroundColor: '#f0e8f8',
+    borderWidth: 1.5,
+    borderColor: '#d0b8e8',
   },
-  checkboxActive: {
+  presetChipActive: {
     backgroundColor: '#6A1B9A',
+    borderColor: '#6A1B9A',
   },
-  checkboxMark: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  vyzvednutiCheckboxLabel: {
+  presetChipText: {
     fontSize: 13,
-    color: '#555',
-    flex: 1,
-  },
-  vyzvednutiInputsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
-  },
-  vyzvednutiInputContainer: {
-    flex: 1,
-  },
-  vyzvednutiInputLabel: {
-    fontSize: 12,
     fontWeight: '600',
-    color: '#555',
-    marginBottom: 4,
+    color: '#6A1B9A',
   },
-  vyzvednutiInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 6,
-    padding: 10,
-    fontSize: 14,
-    color: '#333',
+  presetChipTextActive: {
+    color: '#ffffff',
   },
+
 });

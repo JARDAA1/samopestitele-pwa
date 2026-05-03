@@ -9,12 +9,16 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { DrawerMenu } from '../utils/DrawerMenu';
-import { useDrawerMenu } from '../utils/useDrawerMenu';
+import { DrawerMenu } from '../_utils/DrawerMenu';
+import { formatKc, formatMnozstvi, getKrokJednotky, formatCenaJednotka } from '../_utils/formatKc';
+import { useDrawerMenu } from '../_utils/useDrawerMenu';
 import { useState, useEffect } from 'react';
-import { useCart } from '../utils/cartContext';
-import { supabase } from '../../lib/supabase';
-import { ProdejniMisto, getAktivniProdejniMistaFarmare } from '../utils/locationService';
+import { useCart } from '../_utils/cartContext';
+import { ProdejniMisto, getAktivniProdejniMistaFarmare } from '../_utils/locationService';
+import { createObjednavka, createObjednavkyPolozky, deleteObjednavka } from '@/features/objednavky/services/objednavkyService';
+import * as Crypto from 'expo-crypto';
+import { addOblibeny } from '@/features/farmari/services/farmariService';
+import { saveMojeObjednavka } from '@/shared/utils/mojeObjednavkyStorage';
 
 export default function KosikScreen() {
   const { cart, removeFromCart, updateQuantity, clearCart, totalPrice, itemCount } = useCart();
@@ -55,11 +59,12 @@ export default function KosikScreen() {
     }
   };
 
-  const handleQuantityChange = (produkt_id: number, change: number) => {
+  const handleQuantityChange = (produkt_id: number, direction: 1 | -1) => {
     const item = cart.find((i) => i.produkt_id === produkt_id);
     if (!item) return;
 
-    const newQuantity = item.mnozstvi + change;
+    const step = getKrokJednotky(item.jednotka);
+    const newQuantity = Math.round((item.mnozstvi + direction * step) * 100) / 100;
     if (newQuantity <= 0) {
       Alert.alert(
         'Odebrat produkt',
@@ -107,54 +112,51 @@ export default function KosikScreen() {
       // Získáme ID farmáře z prvního produktu v košíku
       const pestitelId = cart[0].pestitelId;
 
-      // 1. Vytvoříme objednávku s prodejnim mistem
-      const { data: objednavka, error: objednavkaError } = await supabase
-        .from('objednavky')
-        .insert({
-          pestitel_id: pestitelId,
-          zakaznik_jmeno: jmeno,
-          zakaznik_telefon: telefon,
-          stav: 'nova',
-          celkova_cena: totalPrice,
-          poznamka: poznamka || null,
-          zpusob_kontaktu: 'telefon',
-          prodejni_misto_id: selectedMistoId || (prodejniMista.length === 1 ? prodejniMista[0].id : null),
-        })
-        .select()
-        .single();
+      // Vygenerujeme kryptograficky bezpečný 32-znakový token (128 bitů)
+      const tokenBytes = await Crypto.getRandomBytesAsync(16);
+      const publicToken = Array.from(tokenBytes)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
 
-      if (objednavkaError) throw objednavkaError;
+      // 1. Vytvoříme objednávku
+      const objednavkaId = await createObjednavka({
+        pestitel_id: pestitelId,
+        zakaznik_jmeno: jmeno,
+        zakaznik_telefon: telefon,
+        stav: 'nova',
+        celkova_cena: totalPrice,
+        poznamka: poznamka || null,
+        zpusob_kontaktu: 'telefon',
+        prodejni_misto_id: selectedMistoId || (prodejniMista.length === 1 ? prodejniMista[0].id : null),
+        public_token: publicToken,
+        phone_consent: telefon.trim().length > 0,
+      });
 
-      // 2. Přidáme položky objednávky
-      const polozky = cart.map((item) => ({
-        objednavka_id: objednavka.id,
-        produkt_id: item.produkt_id,
-        nazev_produktu: item.nazev,
-        cena: item.cena,
-        mnozstvi: item.mnozstvi,
-        jednotka: item.jednotka,
-      }));
-
-      const { error: polozkyError } = await supabase
-        .from('objednavky_polozky')
-        .insert(polozky);
-
-      if (polozkyError) throw polozkyError;
+      // 2. Přidáme položky — při selhání smažeme objednávku (kompenzační rollback)
+      try {
+        await createObjednavkyPolozky(objednavkaId, cart.map((item) => ({
+          produkt_id: item.produkt_id,
+          nazev_produktu: item.nazev,
+          cena: item.cena,
+          mnozstvi: item.mnozstvi,
+          jednotka: item.jednotka,
+        })));
+      } catch (polozkyError) {
+        await deleteObjednavka(objednavkaId);
+        throw polozkyError;
+      }
 
       // 3. Přidáme farmáře do oblíbených (pokud tam ještě není)
-      const { error: oblibeniError } = await supabase
-        .from('oblibeni_farmari')
-        .insert({
-          zakaznik_telefon: telefon,
-          pestitel_id: pestitelId,
-        })
-        .select()
-        .single();
+      await addOblibeny(telefon, pestitelId);
 
-      // Ignorujeme chybu pokud farmář již je v oblíbených (unique constraint)
-      if (oblibeniError && !oblibeniError.message.includes('unique')) {
-        console.warn('Chyba při přidání do oblíbených:', oblibeniError);
-      }
+      // 4. Uložíme referenci na objednávku do localStorage
+      saveMojeObjednavka({
+        id: objednavkaId,
+        pestitelId: cart[0]?.pestitelId,
+        pestitelNazev: cart[0]?.pestitelNazev ?? '',
+        celkovaCena: totalPrice,
+        createdAt: new Date().toISOString(),
+      });
 
       // Úspěch!
       Alert.alert(
@@ -231,7 +233,7 @@ export default function KosikScreen() {
               <View style={styles.cartItemInfo}>
                 <Text style={styles.cartItemName}>{item.nazev}</Text>
                 <Text style={styles.cartItemPrice}>
-                  {item.cena ? item.cena.toFixed(0) : '0'} Kč/{item.jednotka}
+                  {item.cena ? formatCenaJednotka(item.cena, item.jednotka) : `0 Kč / ${item.jednotka}`}
                 </Text>
               </View>
 
@@ -243,7 +245,7 @@ export default function KosikScreen() {
                   <Text style={styles.quantityButtonText}>−</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.quantityText}>{item.mnozstvi}</Text>
+                <Text style={styles.quantityText}>{formatMnozstvi(item.mnozstvi)}</Text>
 
                 <TouchableOpacity
                   style={styles.quantityButton}
@@ -255,7 +257,7 @@ export default function KosikScreen() {
 
               <View style={styles.cartItemTotal}>
                 <Text style={styles.cartItemTotalText}>
-                  {(item.cena * item.mnozstvi).toFixed(0)} Kč
+                  {formatKc(item.cena * item.mnozstvi)} Kč
                 </Text>
                 <TouchableOpacity
                   onPress={() => removeFromCart(item.produkt_id)}
@@ -271,7 +273,7 @@ export default function KosikScreen() {
         {/* Celková cena */}
         <View style={styles.totalContainer}>
           <Text style={styles.totalLabel}>Celkem:</Text>
-          <Text style={styles.totalPrice}>{totalPrice.toFixed(0)} Kč</Text>
+          <Text style={styles.totalPrice}>{formatKc(totalPrice)} Kč</Text>
         </View>
 
         {/* Výběr prodejního místa */}

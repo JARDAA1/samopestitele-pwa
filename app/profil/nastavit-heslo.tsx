@@ -1,8 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { useFarmarAuth } from '../utils/farmarAuthContext';
-import { supabase } from '../../lib/supabase';
+import { useFarmarAuth } from '../_utils/farmarAuthContext';
+import { updateHesloHash } from '@/features/profil/services/profilService';
+import { validatePassword } from '../_utils/passwordValidation';
+import { showAlert } from '../_utils/pinValidation';
 import bcrypt from 'bcryptjs';
 
 /**
@@ -16,68 +18,31 @@ export default function NastavitHesloScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const showAlert = (title: string, message: string) => {
-    if (Platform.OS === 'web') {
-      alert(`${title}\n\n${message}`);
-    } else {
-      Alert.alert(title, message);
-    }
-  };
-
-  const validatePassword = (password: string): string | null => {
-    if (password.length < 8) {
-      return 'Heslo musí mít alespoň 8 znaků';
-    }
-    if (!/[A-Z]/.test(password)) {
-      return 'Heslo musí obsahovat alespoň jedno velké písmeno';
-    }
-    if (!/[0-9]/.test(password)) {
-      return 'Heslo musí obsahovat alespoň jednu číslici';
-    }
-    return null;
-  };
-
   const handleSetPassword = async () => {
     setError('');
 
-    if (!newPassword) {
-      setError('Zadejte nové heslo');
-      return;
-    }
+    if (!newPassword) { setError('Zadejte nové heslo'); return; }
 
     const validationError = validatePassword(newPassword);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
+    if (validationError) { setError(validationError); return; }
 
-    if (newPassword !== confirmPassword) {
-      setError('Hesla se neshodují');
-      return;
-    }
+    if (newPassword !== confirmPassword) { setError('Hesla se neshodují'); return; }
 
     setLoading(true);
 
     try {
-      // Zahashovat nové heslo
       const salt = await bcrypt.genSalt(10);
       const newHash = await bcrypt.hash(newPassword, salt);
 
-      // Uložit nové heslo
-      const { error: updateError } = await supabase
-        .from('pestitele')
-        .update({ heslo_hash: newHash })
-        .eq('id', farmar?.id);
-
-      if (updateError) {
+      try {
+        await updateHesloHash(farmar?.id!, newHash);
+      } catch {
         setError('Nepodařilo se nastavit heslo');
-        setLoading(false);
         return;
       }
 
       showAlert('Heslo nastaveno', 'Vaše nové heslo bylo úspěšně nastaveno.');
       router.replace('/muj-profil');
-
     } catch (err: any) {
       console.error('Chyba při nastavování hesla:', err);
       setError('Nastala neočekávaná chyba');
@@ -92,7 +57,6 @@ export default function NastavitHesloScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerSpacer} />
         <Text style={styles.headerTitle}>Nastavit heslo</Text>
@@ -156,9 +120,7 @@ export default function NastavitHesloScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.secondaryButton} onPress={handleSkip}>
-            <Text style={styles.secondaryButtonText}>
-              Přeskočit a pokračovat
-            </Text>
+            <Text style={styles.secondaryButtonText}>Přeskočit a pokračovat</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -167,146 +129,50 @@ export default function NastavitHesloScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#6A1B9A',
-  },
+  container: { flex: 1, backgroundColor: '#6A1B9A' },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 44,
-    paddingBottom: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#6A1B9A',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingTop: 44, paddingBottom: 8, paddingHorizontal: 12,
+    backgroundColor: '#6A1B9A', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
   },
-  headerSpacer: {
-    width: 70,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  skipButton: {
-    padding: 6,
-  },
-  skipText: {
-    fontSize: 14,
-    color: '#FF9800',
-    fontWeight: '600',
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 12,
-    paddingBottom: 30,
-  },
+  headerSpacer: { width: 70 },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: '#ffffff' },
+  skipButton: { padding: 6 },
+  skipText: { fontSize: 14, color: '#FF9800', fontWeight: '600' },
+  scrollContainer: { flex: 1 },
+  scrollContent: { padding: 12, paddingBottom: 30 },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12,
+    padding: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
   },
   iconContainer: {
-    alignSelf: 'center',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,152,0,0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+    alignSelf: 'center', width: 60, height: 60, borderRadius: 30,
+    backgroundColor: 'rgba(255,152,0,0.3)', alignItems: 'center',
+    justifyContent: 'center', marginBottom: 16,
   },
-  iconText: {
-    fontSize: 28,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#ffffff',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 20,
-  },
+  iconText: { fontSize: 28 },
+  title: { fontSize: 20, fontWeight: '700', color: '#ffffff', textAlign: 'center', marginBottom: 8 },
+  subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: 20, lineHeight: 20 },
   errorBox: {
-    backgroundColor: 'rgba(244,67,54,0.2)',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderLeftWidth: 3,
-    borderLeftColor: '#ef9a9a',
+    backgroundColor: 'rgba(244,67,54,0.2)', padding: 12, borderRadius: 8,
+    marginBottom: 16, borderLeftWidth: 3, borderLeftColor: '#ef9a9a',
   },
-  errorText: {
-    fontSize: 13,
-    color: '#ef9a9a',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#ffffff',
-    marginBottom: 8,
-    marginTop: 8,
-  },
+  errorText: { fontSize: 13, color: '#ef9a9a' },
+  label: { fontSize: 14, fontWeight: '600', color: '#ffffff', marginBottom: 8, marginTop: 8 },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    marginBottom: 12,
-    color: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 14,
+    fontSize: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+    marginBottom: 12, color: '#ffffff',
   },
   requirementsBox: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-    marginBottom: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)', padding: 12, borderRadius: 8,
+    marginTop: 8, marginBottom: 20,
   },
-  requirementsTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: 6,
-  },
-  requirementsText: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
-    marginBottom: 2,
-  },
-  primaryButton: {
-    backgroundColor: '#FF9800',
-    borderRadius: 10,
-    padding: 14,
-    alignItems: 'center',
-  },
-  primaryButtonDisabled: {
-    opacity: 0.6,
-  },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    marginTop: 12,
-    padding: 14,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 14,
-  },
+  requirementsTitle: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.9)', marginBottom: 6 },
+  requirementsText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 2 },
+  primaryButton: { backgroundColor: '#FF9800', borderRadius: 10, padding: 14, alignItems: 'center' },
+  primaryButtonDisabled: { opacity: 0.6 },
+  primaryButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
+  secondaryButton: { marginTop: 12, padding: 14, alignItems: 'center' },
+  secondaryButtonText: { color: 'rgba(255,255,255,0.7)', fontSize: 14 },
 });

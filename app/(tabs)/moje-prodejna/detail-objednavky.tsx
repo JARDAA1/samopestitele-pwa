@@ -1,7 +1,15 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform, TextInput, Linking, Modal } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../../lib/supabase';
+import {
+  fetchObjednavkaDetail,
+  fetchObjednavkaPolozky,
+  zmeniStavObjednavky,
+  ulozitPoznamkuFarmare,
+  oznacitObjednavkuJakoPripravena,
+  poslatSMSPripraveno,
+} from '@/features/objednavky/services/objednavkyService';
+import { formatKc, formatMnozstvi } from '../../_utils/formatKc';
 
 interface Objednavka {
   id: string;
@@ -12,6 +20,8 @@ interface Objednavka {
   created_at: string;
   zakaznik_telefon?: string;
   poznamka_farmare?: string;
+  phone_consent?: boolean;
+  ready_at?: string;
 }
 
 interface ObjednavkaPolozka {
@@ -49,35 +59,14 @@ export default function DetailObjednavkyScreen() {
       console.log('Načítám objednávku s ID:', objednavkaId);
 
       // Načti objednávku
-      const { data: objednavkaData, error: objednavkaError } = await supabase
-        .from('objednavky')
-        .select('id, stav, datum_vyzvednuti, anon_customer_code, celkova_cena, created_at, zakaznik_telefon, poznamka_farmare')
-        .eq('id', objednavkaId)
-        .single();
-
-      console.log('Odpověď ze Supabase:', { data: objednavkaData, error: objednavkaError });
-
-      if (objednavkaError) {
-        console.error('Chyba při načítání objednávky:', objednavkaError);
-        setError(`Nepodařilo se načíst objednávku: ${objednavkaError.message}`);
-        setLoading(false);
-        return;
-      }
+      const objednavkaData = await fetchObjednavkaDetail(objednavkaId);
 
       setObjednavka(objednavkaData);
       setPoznamka(objednavkaData.poznamka_farmare || '');
 
       // Načti položky objednávky
-      const { data: polozkyData, error: polozkyError } = await supabase
-        .from('objednavky_polozky')
-        .select('id, nazev_produktu, mnozstvi, jednotka, cena')
-        .eq('objednavka_id', objednavkaId);
-
-      if (polozkyError) {
-        console.error('Chyba při načítání položek:', polozkyError);
-      } else {
-        setPolozky(polozkyData || []);
-      }
+      const polozkyData = await fetchObjednavkaPolozky(objednavkaId);
+      setPolozky(polozkyData);
     } catch (error) {
       console.error('Chyba:', error);
       showAlert('Chyba', 'Nepodařilo se načíst data');
@@ -125,6 +114,8 @@ export default function DetailObjednavkyScreen() {
         return '#F44336';
       case 'nova':
         return '#2196F3';
+      case 'ceka_na_vyzvednuti':
+        return '#FF9800';
       case 'zpracovana':
         return '#9C27B0';
       case 'dokoncena':
@@ -146,6 +137,8 @@ export default function DetailObjednavkyScreen() {
         return 'Odmítnutá';
       case 'nova':
         return 'Nová';
+      case 'ceka_na_vyzvednuti':
+        return 'Čeká na vyzvednutí';
       case 'zpracovana':
         return 'Zpracovaná';
       case 'dokoncena':
@@ -159,17 +152,7 @@ export default function DetailObjednavkyScreen() {
 
   const zmeniStav = async (novyStav: string) => {
     try {
-      const { error } = await supabase
-        .from('objednavky')
-        .update({ stav: novyStav })
-        .eq('id', objednavkaId);
-
-      if (error) {
-        console.error('Supabase error:', error);
-        showAlert('Chyba', 'Nepodařilo se změnit stav objednávky');
-        return;
-      }
-
+      await zmeniStavObjednavky(objednavkaId, novyStav);
       setObjednavka(prev => prev ? { ...prev, stav: novyStav } : null);
       showAlert('Úspěch', `Stav změněn na "${getStavText(novyStav)}"`);
     } catch (error) {
@@ -220,10 +203,37 @@ export default function DetailObjednavkyScreen() {
     }
   };
 
+  const odeslstOdmitnutiSMS = () => {
+    if (!objednavka?.zakaznik_telefon) return;
+    const message = `Omlouváme se, vaši objednávku bohužel nemůžeme splnit. 🙏`;
+    const smsUrl = `sms:${objednavka.zakaznik_telefon}?body=${encodeURIComponent(message)}`;
+    Linking.openURL(smsUrl).catch(() => showAlert('Chyba', 'Nelze otevřít SMS aplikaci'));
+  };
+
   const odmitnoutObjednavku = () => {
+    const provest = async () => {
+      await zmeniStav('odmitnuta');
+      if (objednavka?.zakaznik_telefon) {
+        if (Platform.OS === 'web') {
+          if (confirm('Chcete odeslat zákazníkovi SMS o odmítnutí?')) {
+            odeslstOdmitnutiSMS();
+          }
+        } else {
+          Alert.alert(
+            'Odeslat SMS?',
+            'Chcete zákazníkovi odeslat SMS o odmítnutí objednávky?',
+            [
+              { text: 'Ne', style: 'cancel' },
+              { text: 'Ano, odeslat', onPress: odeslstOdmitnutiSMS },
+            ]
+          );
+        }
+      }
+    };
+
     if (Platform.OS === 'web') {
       if (confirm('Opravdu chcete odmítnout tuto objednávku?')) {
-        zmeniStav('odmitnuta');
+        provest();
       }
     } else {
       Alert.alert(
@@ -231,7 +241,7 @@ export default function DetailObjednavkyScreen() {
         'Opravdu chcete odmítnout tuto objednávku?',
         [
           { text: 'Zrušit', style: 'cancel' },
-          { text: 'Odmítnout', style: 'destructive', onPress: () => zmeniStav('odmitnuta') },
+          { text: 'Odmítnout', style: 'destructive', onPress: provest },
         ]
       );
     }
@@ -275,16 +285,7 @@ export default function DetailObjednavkyScreen() {
 
     setSavingPoznamka(true);
     try {
-      const { error } = await supabase
-        .from('objednavky')
-        .update({ poznamka_farmare: poznamka.trim() || null })
-        .eq('id', objednavkaId);
-
-      if (error) {
-        showAlert('Chyba', 'Nepodařilo se uložit poznámku');
-        return;
-      }
-
+      await ulozitPoznamkuFarmare(objednavkaId, poznamka.trim() || null);
       setObjednavka(prev => prev ? { ...prev, poznamka_farmare: poznamka.trim() || undefined } : null);
       showAlert('Uloženo', 'Poznámka byla uložena');
     } catch (error) {
@@ -292,6 +293,28 @@ export default function DetailObjednavkyScreen() {
       showAlert('Chyba', 'Nepodařilo se uložit poznámku');
     } finally {
       setSavingPoznamka(false);
+    }
+  };
+
+  const oznacitPripraveno = async () => {
+    if (!objednavka) return;
+
+    const bylaPotvrzena = objednavka.stav === 'potvrzena';
+
+    try {
+      await zmeniStavObjednavky(objednavkaId, 'ceka_na_vyzvednuti');
+      setObjednavka(prev =>
+        prev ? { ...prev, stav: 'ceka_na_vyzvednuti', ready_at: new Date().toISOString() } : null
+      );
+
+      // Send SMS only when transitioning from confirmed → ready and consent given
+      if (bylaPotvrzena && objednavka.phone_consent && objednavka.zakaznik_telefon) {
+        await poslatSMSPripraveno(objednavka.zakaznik_telefon);
+      }
+
+      showAlert('Hotovo', 'Objednávka označena jako připravena k vyzvednutí.');
+    } catch {
+      showAlert('Chyba', 'Nepodařilo se označit objednávku jako připravenou.');
     }
   };
 
@@ -313,6 +336,9 @@ export default function DetailObjednavkyScreen() {
     switch (objednavka.stav) {
       case 'potvrzena':
         message = `Dobrý den, vaše objednávka byla potvrzena! ✅`;
+        break;
+      case 'ceka_na_vyzvednuti':
+        message = `Dobrý den, vaše objednávka je připravena k vyzvednutí! 🧺`;
         break;
       case 'zpracovana':
         message = `Dobrý den, vaše objednávka je připravena k vyzvednutí! 🧺`;
@@ -494,7 +520,7 @@ export default function DetailObjednavkyScreen() {
 
           {objednavka.celkova_cena && objednavka.celkova_cena > 0 && (
             <Text style={styles.priceText}>
-              Celková cena: {objednavka.celkova_cena.toFixed(0)} Kč
+              Celková cena: {formatKc(objednavka.celkova_cena)} Kč
             </Text>
           )}
         </View>
@@ -512,12 +538,12 @@ export default function DetailObjednavkyScreen() {
                   <Text style={styles.productName}>{polozka.nazev_produktu}</Text>
                   {polozka.cena && polozka.cena > 0 && (
                     <Text style={styles.productPrice}>
-                      {(polozka.cena * polozka.mnozstvi).toFixed(0)} Kč
+                      {formatKc(polozka.cena * polozka.mnozstvi)} Kč
                     </Text>
                   )}
                 </View>
                 <Text style={styles.productQuantity}>
-                  {polozka.mnozstvi} {polozka.jednotka}
+                  {formatMnozstvi(polozka.mnozstvi)} {polozka.jednotka}
                 </Text>
               </View>
             ))
@@ -568,25 +594,24 @@ export default function DetailObjednavkyScreen() {
           </View>
         )}
 
-        {/* Změna stavu pro potvrzené objednávky */}
-        {!isCekajici && objednavka.stav !== 'odmitnuta' && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Změnit stav</Text>
-            <View style={styles.statusButtons}>
-              <TouchableOpacity
-                style={[styles.statusButton, { backgroundColor: '#9C27B0' }]}
-                onPress={() => zmeniStav('zpracovana')}
-              >
-                <Text style={styles.statusButtonText}>Zpracovaná</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.statusButton, { backgroundColor: '#4CAF50' }]}
-                onPress={dokoncitObjednavku}
-              >
-                <Text style={styles.statusButtonText}>Dokončená</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+        {/* Tlačítko "Připraveno k vyzvednutí" – pro nové a potvrzené objednávky */}
+        {(objednavka.stav === 'potvrzena' || objednavka.stav === 'nova') && (
+          <TouchableOpacity
+            style={styles.pripravenoBtnPrimary}
+            onPress={oznacitPripraveno}
+          >
+            <Text style={styles.pripravenoBtnText}>✔ Připraveno k vyzvednutí</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Tlačítko "Uložit do archivu" – objednávka vyzvednuta */}
+        {objednavka.stav === 'ceka_na_vyzvednuti' && (
+          <TouchableOpacity
+            style={[styles.pripravenoBtnPrimary, { backgroundColor: '#4CAF50', borderColor: '#2E7D32' }]}
+            onPress={dokoncitObjednavku}
+          >
+            <Text style={styles.pripravenoBtnText}>📦 Uložit do archivu</Text>
+          </TouchableOpacity>
         )}
       </ScrollView>
 
@@ -853,6 +878,22 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  pripravenoBtnPrimary: {
+    backgroundColor: '#4CAF50',
+    marginHorizontal: 0,
+    marginBottom: 12,
+    paddingVertical: 16,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#2E7D32',
+  },
+  pripravenoBtnText: {
+    color: '#ffffff',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   statusButtons: {
     flexDirection: 'row',

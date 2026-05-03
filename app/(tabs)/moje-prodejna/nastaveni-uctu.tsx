@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { useFarmarAuth } from '../../utils/farmarAuthContext';
-import { supabase } from '../../../lib/supabase';
+import { useFarmarAuth } from '../../_utils/farmarAuthContext';
+import { fetchFarmNumber } from '@/features/profil/services/profilService';
 
 export default function NastaveniUctuScreen() {
   const { farmar } = useFarmarAuth();
@@ -17,15 +17,8 @@ export default function NastaveniUctuScreen() {
     if (!farmar?.id) return;
 
     try {
-      const { data, error } = await supabase
-        .from('pestitele')
-        .select('farm_number')
-        .eq('id', farmar.id)
-        .single();
-
-      if (!error && data) {
-        setFarmNumber(data.farm_number || '');
-      }
+      const farmNum = await fetchFarmNumber(farmar.id);
+      setFarmNumber(farmNum || '');
     } catch (error) {
       console.error('Chyba při načítání farm_number:', error);
     }

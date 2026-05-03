@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { useFarmarAuth } from './utils/farmarAuthContext';
-import { DrawerMenu } from './utils/DrawerMenu';
-import { useDrawerMenu } from './utils/useDrawerMenu';
+import { useFarmarAuth } from './_utils/farmarAuthContext';
+import { DrawerMenu } from './_utils/DrawerMenu';
+import { useDrawerMenu } from './_utils/useDrawerMenu';
 import { Feather } from '@expo/vector-icons';
-import { responsive, spacing, fontSize, borderRadius, layout } from './utils/responsive';
+import { responsive, spacing, fontSize, borderRadius, layout } from './_utils/responsive';
 
 export default function MujProfilScreen() {
   const { isAuthenticated, farmar, logout } = useFarmarAuth();

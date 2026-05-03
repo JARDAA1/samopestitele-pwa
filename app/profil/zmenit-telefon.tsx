@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useFarmarAuth } from '../utils/farmarAuthContext';
+import { useFarmarAuth } from '../_utils/farmarAuthContext';
+import { checkTelefonExists, updateTelefon } from '@/features/profil/services/profilService';
 
 export default function ZmenitTelefonScreen() {
   const { farmar, updateFarmarData } = useFarmarAuth();
@@ -50,13 +50,9 @@ export default function ZmenitTelefonScreen() {
     }
 
     // Kontrola, zda číslo již neexistuje
-    const { data: existingUser } = await supabase
-      .from('pestitele')
-      .select('id')
-      .eq('telefon', formattedPhone)
-      .single();
+    const telefonExists = await checkTelefonExists(formattedPhone);
 
-    if (existingUser) {
+    if (telefonExists) {
       showAlert('Chyba', 'Toto telefonní číslo je již registrováno u jiného účtu');
       return;
     }
@@ -65,12 +61,7 @@ export default function ZmenitTelefonScreen() {
 
     try {
       // Aktualizace telefonu v databázi
-      const { error } = await supabase
-        .from('pestitele')
-        .update({ telefon: formattedPhone })
-        .eq('id', farmar?.id);
-
-      if (error) throw error;
+      await updateTelefon(farmar?.id!, formattedPhone);
 
       // Aktualizace lokálního stavu
       if (updateFarmarData) {

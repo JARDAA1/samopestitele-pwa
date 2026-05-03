@@ -1,7 +1,9 @@
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Linking } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { fetchObjednavkaByKod, fetchPolozkyVyzvednuti } from '@/features/objednavky/services/objednavkyService';
+import { fetchPestitelVyzvednuti } from '@/features/profil/services/profilService';
+import { formatKc, formatMnozstvi } from '../_utils/formatKc';
 
 interface Objednavka {
   id: string;
@@ -56,13 +58,9 @@ export default function VyzvednutiScreen() {
   const loadData = async () => {
     try {
       // Najdi objednávku podle anon_customer_code
-      const { data: objednavkaData, error: objednavkaError } = await supabase
-        .from('objednavky')
-        .select('id, stav, datum_vyzvednuti, anon_customer_code, celkova_cena, created_at, pestitel_id')
-        .eq('anon_customer_code', kod)
-        .single();
+      const objednavkaData = await fetchObjednavkaByKod(kod).catch(() => null) as Objednavka | null;
 
-      if (objednavkaError || !objednavkaData) {
+      if (!objednavkaData) {
         setError('Objednávka nenalezena');
         setLoading(false);
         return;
@@ -71,25 +69,14 @@ export default function VyzvednutiScreen() {
       setObjednavka(objednavkaData);
 
       // Načti info o pěstiteli
-      const { data: pestitelData } = await supabase
-        .from('pestitele')
-        .select('id, nazev_farmy, jmeno, prijmeni, telefon, email, mesto, adresa, gps_lat, gps_lng')
-        .eq('id', objednavkaData.pestitel_id)
-        .single();
-
+      const pestitelData = await fetchPestitelVyzvednuti(objednavkaData.pestitel_id);
       if (pestitelData) {
-        setPestitel(pestitelData);
+        setPestitel(pestitelData as unknown as Pestitel);
       }
 
       // Načti položky
-      const { data: polozkyData } = await supabase
-        .from('objednavky_polozky')
-        .select('id, nazev_produktu, mnozstvi, jednotka, cena')
-        .eq('objednavka_id', objednavkaData.id);
-
-      if (polozkyData) {
-        setPolozky(polozkyData);
-      }
+      const polozkyData = await fetchPolozkyVyzvednuti(objednavkaData.id);
+      setPolozky(polozkyData);
     } catch (err) {
       console.error('Chyba:', err);
       setError('Nepodařilo se načíst objednávku');
@@ -261,12 +248,12 @@ export default function VyzvednutiScreen() {
             <View style={styles.productInfo}>
               <Text style={styles.productName}>{polozka.nazev_produktu}</Text>
               <Text style={styles.productQuantity}>
-                {polozka.mnozstvi} {polozka.jednotka}
+                {formatMnozstvi(polozka.mnozstvi)} {polozka.jednotka}
               </Text>
             </View>
             {polozka.cena && polozka.cena > 0 && (
               <Text style={styles.productPrice}>
-                {(polozka.cena * polozka.mnozstvi).toFixed(0)} Kč
+                {formatKc(polozka.cena * polozka.mnozstvi)} Kč
               </Text>
             )}
           </View>
@@ -275,7 +262,7 @@ export default function VyzvednutiScreen() {
         {objednavka.celkova_cena && objednavka.celkova_cena > 0 && (
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Celkem:</Text>
-            <Text style={styles.totalPrice}>{objednavka.celkova_cena.toFixed(0)} Kč</Text>
+            <Text style={styles.totalPrice}>{formatKc(objednavka.celkova_cena)} Kč</Text>
           </View>
         )}
       </View>

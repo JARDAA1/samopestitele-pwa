@@ -1,8 +1,24 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert, Platform, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useFarmarAuth } from '../utils/farmarAuthContext';
+import { useFarmarAuth } from '../_utils/farmarAuthContext';
+import { checkUsernameExists } from '@/features/profil/services/profilService';
+import { geocodeAddress } from '@/features/mapa/services/geocodingService';
+
+async function reverseGeocode(lat: number, lng: number): Promise<{ mesto: string | null; display: string }> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'Samopestitele-App/1.0' } });
+    if (!res.ok) return { mesto: null, display: `${lat.toFixed(5)}, ${lng.toFixed(5)}` };
+    const data = await res.json();
+    const addr = data?.address;
+    const mesto = addr?.city || addr?.town || addr?.village || addr?.municipality || null;
+    const display = [mesto, addr?.county, addr?.state].filter(Boolean).join(', ') || data?.display_name?.split(',').slice(0, 2).join(', ') || '';
+    return { mesto, display };
+  } catch {
+    return { mesto: null, display: `${lat.toFixed(5)}, ${lng.toFixed(5)}` };
+  }
+}
 
 // Zakázané sekvence hesel
 const FORBIDDEN_PASSWORDS = [
@@ -65,29 +81,32 @@ export default function RegistraceScreen() {
   const [jmeno, setJmeno] = useState('');
   const [nazevFarmy, setNazevFarmy] = useState('');
 
+  // KROK 3: Poloha (volitelné)
+  const [adresaInput, setAdresaInput] = useState('');
+  const [gpsLat, setGpsLat] = useState<number | null>(null);
+  const [gpsLng, setGpsLng] = useState<number | null>(null);
+  const [lokaceMesto, setLokaceMesto] = useState<string | null>(null);
+  const [lokaceDisplay, setLokaceDisplay] = useState<string | null>(null);
+  const [geocodingLoading, setGeocodingLoading] = useState(false);
+  const [gpsLoading, setGpsLoading] = useState(false);
+
   // KROK 4: Souhlasy
   const [souhlasGDPR, setSouhlasGDPR] = useState(false);
   const [souhlasOdpovednost, setSouhlasOdpovednost] = useState(false);
+
+  // KROK 5: Znovu odeslat email
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
 
   /**
    * Kontrola unikátnosti uživatelského jména
    */
   const checkUsernameAvailability = async (name: string): Promise<boolean> => {
     try {
-      const { data, error } = await supabase
-        .from('pestitele')
-        .select('id')
-        .eq('username', name.toLowerCase())
-        .maybeSingle();
-
-      if (error) {
-        console.error('Chyba při kontrole uživatelského jména:', error);
-        return false;
-      }
-
-      return data === null; // Dostupné pokud neexistuje
+      const exists = await checkUsernameExists(name.toLowerCase());
+      return !exists; // Dostupné pokud neexistuje
     } catch (error) {
-      console.error('Chyba:', error);
+      console.error('Chyba při kontrole uživatelského jména:', error);
       return false;
     }
   };
@@ -159,6 +178,70 @@ export default function RegistraceScreen() {
     }
 
     setKrok(3);
+  };
+
+  /**
+   * KROK 3: Najít polohu podle zadané adresy
+   */
+  const najitPolohuPodleAdresy = async () => {
+    const text = adresaInput.trim();
+    if (!text) return;
+
+    setGeocodingLoading(true);
+    setLokaceDisplay(null);
+    setGpsLat(null);
+    setGpsLng(null);
+
+    // Pokus o geocoding — text může být "Město", "Ulice, Město" nebo "Název farmy, PSČ Město"
+    const parts = text.split(',').map(s => s.trim());
+    const ulice = parts.length > 1 ? parts.slice(0, -1).join(', ') : '';
+    const mesto = parts[parts.length - 1];
+
+    const result = await geocodeAddress(ulice, mesto);
+    setGeocodingLoading(false);
+
+    if (result) {
+      setGpsLat(result.lat);
+      setGpsLng(result.lng);
+      // Extrahovat město z display_name
+      const prvniCast = result.display_name.split(',').slice(0, 2).join(',').trim();
+      setLokaceMesto(mesto);
+      setLokaceDisplay(prvniCast);
+    } else {
+      if (Platform.OS === 'web') {
+        alert('Adresu se nepodařilo najít. Zkuste jiný formát, např. "Praha" nebo "Náměstí, Brno".');
+      } else {
+        Alert.alert('Nenalezeno', 'Adresu se nepodařilo najít. Zkuste jiný formát.');
+      }
+    }
+  };
+
+  /**
+   * KROK 3: Použít GPS polohu zařízení
+   */
+  const pouzitMojuPolohu = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      alert('GPS poloha není v tomto prohlížeči dostupná.');
+      return;
+    }
+    setGpsLoading(true);
+    setLokaceDisplay(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const { mesto, display } = await reverseGeocode(latitude, longitude);
+        setGpsLat(latitude);
+        setGpsLng(longitude);
+        setLokaceMesto(mesto);
+        setLokaceDisplay(display || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+        setGpsLoading(false);
+      },
+      () => {
+        setGpsLoading(false);
+        alert('Nepodařilo se získat polohu. Zkontrolujte oprávnění v prohlížeči.');
+      },
+      { timeout: 10000 }
+    );
   };
 
   /**
@@ -236,8 +319,11 @@ export default function RegistraceScreen() {
         nazev_farmy: nazevFarmy,
         jmeno,
         email: email,
-        pin: heslo, // Nyní je to heslo, ne PIN
+        pin: heslo,
         username: username,
+        gps_lat: gpsLat ?? undefined,
+        gps_lng: gpsLng ?? undefined,
+        mesto: lokaceMesto ?? undefined,
       });
 
       if (result.success && result.farmNumber) {
@@ -260,6 +346,31 @@ export default function RegistraceScreen() {
       console.error('Registrace error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const znoveOdeslatEmail = async () => {
+    if (!email || resendLoading) return;
+    setResendLoading(true);
+    setResendSent(false);
+    try {
+      const { supabase } = require('@/lib/supabaseClient');
+      const redirectUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://samopestitele.cz'}/auth/callback?mode=verify`;
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: redirectUrl, shouldCreateUser: true },
+      });
+      if (error) {
+        console.error('Resend email error:', error);
+        alert(`Nepodařilo se odeslat email: ${error.message}`);
+        return;
+      }
+      setResendSent(true);
+    } catch (err: any) {
+      console.error('Resend email exception:', err);
+      alert('Nepodařilo se odeslat email. Zkuste to za chvíli.');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -451,6 +562,55 @@ export default function RegistraceScreen() {
               onChangeText={setNazevFarmy}
             />
 
+            {/* Poloha farmy */}
+            <Text style={[styles.label, { marginTop: 20 }]}>Poloha farmy</Text>
+            <Text style={styles.hintText}>Nepovinné — zákazníci vás snáze najdou na mapě</Text>
+
+            <View style={styles.lokaceRow}>
+              <TextInput
+                style={[styles.input, { flex: 1, marginTop: 8 }]}
+                placeholder="Město nebo adresa"
+                placeholderTextColor="rgba(255,255,255,0.5)"
+                value={adresaInput}
+                onChangeText={(t) => { setAdresaInput(t); setLokaceDisplay(null); setGpsLat(null); setGpsLng(null); }}
+                onSubmitEditing={najitPolohuPodleAdresy}
+                returnKeyType="search"
+              />
+            </View>
+
+            <View style={styles.lokaceBtnRow}>
+              <TouchableOpacity
+                style={[styles.lokaceBtn, geocodingLoading && styles.lokaceBtnDisabled]}
+                onPress={najitPolohuPodleAdresy}
+                disabled={geocodingLoading || !adresaInput.trim()}
+              >
+                {geocodingLoading
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Text style={styles.lokaceBtnText}>🔍 Najít adresu</Text>
+                }
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.lokaceBtn, gpsLoading && styles.lokaceBtnDisabled]}
+                onPress={pouzitMojuPolohu}
+                disabled={gpsLoading}
+              >
+                {gpsLoading
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Text style={styles.lokaceBtnText}>📍 Moje poloha</Text>
+                }
+              </TouchableOpacity>
+            </View>
+
+            {lokaceDisplay && (
+              <View style={styles.lokaceNalezena}>
+                <Text style={styles.lokaceNalezenaText}>✓ {lokaceDisplay}</Text>
+                <TouchableOpacity onPress={() => { setLokaceDisplay(null); setGpsLat(null); setGpsLng(null); }}>
+                  <Text style={styles.lokaceZrusit}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             <View style={styles.buttonRow}>
               <TouchableOpacity
                 style={styles.secondaryButton}
@@ -546,41 +706,31 @@ export default function RegistraceScreen() {
           </View>
         )}
 
-        {/* KROK 5: Úspěšná registrace */}
+        {/* KROK 5: Úspěšná registrace — výzva k ověření emailu */}
         {krok === 5 && registrationSuccess && (
           <View style={styles.card}>
             <View style={styles.successIconContainer}>
-              <Text style={styles.successIconText}>✅</Text>
+              <Text style={styles.successIconText}>✉️</Text>
             </View>
-            <Text style={styles.successTitle}>Registrace úspěšná!</Text>
+            <Text style={styles.successTitle}>Zkontrolujte email!</Text>
             <Text style={styles.successSubtitle}>
-              Váš účet byl vytvořen. Uložte si přihlašovací údaje:
+              Poslali jsme uvítací email na{'\n'}
+              <Text style={{ color: '#FF9800', fontWeight: '700' }}>{email}</Text>
             </Text>
 
             <View style={styles.credentialsBox}>
-              <Text style={styles.credentialsTitle}>Vaše přihlašovací údaje:</Text>
-
-              <View style={styles.credentialItem}>
-                <Text style={styles.credentialLabel}>Uživatelské jméno:</Text>
-                <View style={styles.credentialValue}>
-                  <Text style={styles.credentialValueText}>{username}</Text>
-                </View>
-              </View>
-
-              <View style={styles.credentialItem}>
-                <Text style={styles.credentialLabel}>Kód farmy:</Text>
-                <View style={styles.credentialValue}>
-                  <Text style={styles.credentialValueText}>{farmNumber}</Text>
-                </View>
-              </View>
+              <Text style={styles.credentialsTitle}>Co teď?</Text>
+              <Text style={styles.stepItem}>1️⃣  Otevřete svůj email</Text>
+              <Text style={styles.stepItem}>2️⃣  Klikněte na odkaz „Ověřit email"</Text>
+              <Text style={styles.stepItem}>3️⃣  Přihlaste se a vyplňte profil farmy</Text>
             </View>
 
             <View style={styles.warningBox}>
-              <Text style={styles.warningTitle}>Důležité</Text>
+              <Text style={styles.warningTitle}>Vaše přihlašovací údaje</Text>
               <Text style={styles.warningText}>
-                • Pro přihlášení použijte uživatelské jméno a heslo{'\n'}
-                • Kód farmy je váš unikátní identifikátor{'\n'}
-                • Zapomenuté heslo obnovíte přes email
+                • Uživatelské jméno: <Text style={{ fontWeight: '700', color: '#fff' }}>{username}</Text>{'\n'}
+                • Heslo: které jste zadali při registraci{'\n'}
+                • Email není ověřen → přihlášení nebude fungovat
               </Text>
             </View>
 
@@ -588,7 +738,20 @@ export default function RegistraceScreen() {
               style={styles.primaryButton}
               onPress={() => router.replace('/prihlaseni')}
             >
-              <Text style={styles.primaryButtonText}>Přihlásit se →</Text>
+              <Text style={styles.primaryButtonText}>Mám ověřeno → Přihlásit se</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.resendButton, (resendLoading || resendSent) && styles.lokaceBtnDisabled]}
+              onPress={znoveOdeslatEmail}
+              disabled={resendLoading || resendSent}
+            >
+              {resendLoading
+                ? <ActivityIndicator size="small" color="rgba(255,255,255,0.6)" />
+                : <Text style={styles.resendButtonText}>
+                    {resendSent ? '✓ Email odeslán' : 'Nedorazil email? Odeslat znovu'}
+                  </Text>
+              }
             </TouchableOpacity>
           </View>
         )}
@@ -874,6 +1037,72 @@ const styles = StyleSheet.create({
     color: '#FF9800',
     marginBottom: 16,
     textAlign: 'center',
+  },
+  stepItem: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+    marginBottom: 10,
+    lineHeight: 20,
+  },
+  lokaceRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  lokaceBtnRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  lokaceBtn: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  lokaceBtnDisabled: {
+    opacity: 0.5,
+  },
+  lokaceBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  lokaceNalezena: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(76,175,80,0.2)',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(76,175,80,0.5)',
+  },
+  lokaceNalezenaText: {
+    color: '#a5d6a7',
+    fontSize: 13,
+    flex: 1,
+  },
+  lokaceZrusit: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 16,
+    paddingLeft: 8,
+  },
+  resendButton: {
+    marginTop: 12,
+    padding: 12,
+    alignItems: 'center',
+  },
+  resendButtonText: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 13,
+    textDecorationLine: 'underline',
   },
   credentialItem: {
     marginBottom: 12,

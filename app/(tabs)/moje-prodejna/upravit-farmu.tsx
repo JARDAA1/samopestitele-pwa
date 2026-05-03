@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../../lib/supabase';
 import * as Location from 'expo-location';
-import { useFarmarAuth } from '../../utils/farmarAuthContext';
+import { useFarmarAuth } from '../../_utils/farmarAuthContext';
+import { fetchProfilFarmara, updateProfilFarmara } from '@/features/profil/services/profilService';
 
 interface FarmarData {
   id: string;
@@ -54,19 +54,11 @@ export default function UpravitFarmuScreen() {
 
       console.log('🔑 Loading data for farmer ID:', farmar.id);
 
-      const { data, error } = await supabase
-        .from('pestitele')
-        .select('*')
-        .eq('id', farmar.id)
-        .single();
-
-      console.log('📥 Load farmer data response:', { data, error });
-
-      if (error) throw error;
+      const data = await fetchProfilFarmara(farmar.id);
 
       if (data) {
         console.log('✅ Farmer data loaded:', data.id, data.nazev_farmy);
-        setFarmarData(data);
+        setFarmarData(data as unknown as FarmarData);
         setNazevFarmy(data.nazev_farmy || '');
         setJmeno(data.jmeno || '');
         setEmail(data.email || '');
@@ -241,23 +233,7 @@ export default function UpravitFarmuScreen() {
 
       console.log('📦 Update data:', updateData);
 
-      const { data, error } = await supabase
-        .from('pestitele')
-        .update(updateData)
-        .eq('id', farmerId)
-        .select();
-
-      console.log('📥 Supabase response:', { data, error });
-
-      if (error) {
-        console.error('❌ Supabase error:', error);
-        throw error;
-      }
-
-      if (!data || data.length === 0) {
-        console.error('❌ No data returned from update');
-        throw new Error('Nepodařilo se aktualizovat záznam. Možná nemáte oprávnění nebo záznam neexistuje.');
-      }
+      await updateProfilFarmara(farmerId, updateData);
 
       console.log('✅ Save successful!');
 

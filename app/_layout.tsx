@@ -6,9 +6,14 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
 import { useColorScheme } from '@/components/useColorScheme';
-import { ShoppingListProvider } from './utils/cartContext';
-import { FarmarAuthProvider } from './utils/farmarAuthContext';
-import { AppLayout } from './components/AppLayout';
+import { ShoppingListProvider } from './_utils/cartContext';
+import { FarmarAuthProvider } from './_utils/farmarAuthContext';
+import { CustomerListProvider } from '@/shared/context/CustomerListContext';
+import { AppLayout } from './_components/AppLayout';
+import { Sentry, initMonitoring } from '@/lib/monitoring';
+
+// Inicializace monitoringu (no-op v development, aktivní v produkci)
+initMonitoring();
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -53,24 +58,29 @@ function RootLayoutNav() {
   // Každý screen má vlastní custom header
   // AppLayout zajišťuje responzivní centrování na tabletech (>=768px)
   return (
-    <FarmarAuthProvider>
-      <ShoppingListProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <AppLayout>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="mapa/index" />
-              <Stack.Screen name="pestitele/[id]" />
-              <Stack.Screen name="kosik/index" />
-              <Stack.Screen name="registrace/index" />
-              <Stack.Screen name="prihlaseni/index" />
-              <Stack.Screen name="zapomenute-heslo/index" />
-              <Stack.Screen name="muj-profil" />
-            </Stack>
-          </AppLayout>
-        </ThemeProvider>
-      </ShoppingListProvider>
-    </FarmarAuthProvider>
+    <Sentry.ErrorBoundary>
+      <FarmarAuthProvider>
+        <ShoppingListProvider>
+          <CustomerListProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <AppLayout>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="mapa/index" />
+                <Stack.Screen name="pestitele/[id]" />
+                <Stack.Screen name="kosik/index" />
+                <Stack.Screen name="registrace/index" />
+                <Stack.Screen name="prihlaseni/index" />
+                <Stack.Screen name="zapomenute-heslo/index" />
+                <Stack.Screen name="muj-profil" />
+                <Stack.Screen name="o/[token]" />
+              </Stack>
+            </AppLayout>
+          </ThemeProvider>
+          </CustomerListProvider>
+        </ShoppingListProvider>
+      </FarmarAuthProvider>
+    </Sentry.ErrorBoundary>
   );
 }

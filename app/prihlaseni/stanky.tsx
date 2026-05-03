@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { useFarmarAuth } from '../utils/farmarAuthContext';
+import { useFarmarAuth } from '../_utils/farmarAuthContext';
 
 export default function StankyLoginScreen() {
   const { loginWithPin, isAuthenticated, authLevel } = useFarmarAuth();
@@ -10,45 +10,25 @@ export default function StankyLoginScreen() {
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Pokud je uživatel už přihlášen, přesměruj ho
   useEffect(() => {
     if (isAuthenticated && authLevel === 'pin') {
-      console.log('✅ User already authenticated, redirecting to moje-stanky...');
       router.replace('/(tabs)/moje-stanky');
     }
   }, [isAuthenticated, authLevel]);
 
   const handlePinLogin = async () => {
-    if (!farmNumber || farmNumber.trim() === '') {
+    if (!farmNumber.trim()) {
       alert('Zadejte číslo farmy');
       return;
     }
 
-    if (pin.length < 4) {
-      alert('PIN musí mít minimálně 4 číslice');
-      return;
-    }
-
-    if (!/^\d+$/.test(pin)) {
-      alert('PIN může obsahovat pouze číslice');
-      return;
-    }
-
-    const forbiddenPins = ['1234', '4321', '0000', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999', '12345678', '87654321'];
-    if (forbiddenPins.includes(pin)) {
-      alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
-      return;
-    }
-
-    if (/^(.)\1+$/.test(pin)) {
-      alert('PIN nesmí obsahovat pouze stejné číslice.');
+    if (pin.length < 4 || !/^\d+$/.test(pin)) {
+      alert('Zadejte platný PIN (min. 4 číslice)');
       return;
     }
 
     setLoading(true);
-
     const result = await loginWithPin(farmNumber, pin);
-
     setLoading(false);
 
     if (result.success) {
@@ -131,9 +111,7 @@ export default function StankyLoginScreen() {
             style={styles.forgotLink}
             onPress={() => router.push('/zapomenute-udaje')}
           >
-            <Text style={styles.forgotLinkText}>
-              Zapomenuté údaje?
-            </Text>
+            <Text style={styles.forgotLinkText}>Zapomenuté údaje?</Text>
           </TouchableOpacity>
 
           <View style={styles.helpBox}>
@@ -160,174 +138,51 @@ export default function StankyLoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#6A1B9A',
-  },
+  container: { flex: 1, backgroundColor: '#6A1B9A' },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 44,
-    paddingBottom: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#6A1B9A',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingTop: 44, paddingBottom: 8, paddingHorizontal: 12,
+    backgroundColor: '#6A1B9A', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
   },
-  backButton: {
-    padding: 6,
-  },
-  backIcon: {
-    fontSize: 22,
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 12,
-    paddingBottom: 30,
-  },
+  backButton: { padding: 6 },
+  backIcon: { fontSize: 22, color: '#ffffff', fontWeight: '600' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: '#ffffff' },
+  headerSpacer: { width: 40 },
+  scrollContainer: { flex: 1 },
+  scrollContent: { padding: 12, paddingBottom: 30 },
   card: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12,
+    padding: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
   },
   iconContainer: {
-    alignSelf: 'center',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,152,0,0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+    alignSelf: 'center', width: 60, height: 60, borderRadius: 30,
+    backgroundColor: 'rgba(255,152,0,0.3)', alignItems: 'center',
+    justifyContent: 'center', marginBottom: 16,
   },
-  iconText: {
-    fontSize: 28,
-  },
-  iconImage: {
-    width: 160,
-    height: 160,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#ffffff',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 20,
-  },
+  iconImage: { width: 160, height: 160 },
+  title: { fontSize: 20, fontWeight: '700', color: '#ffffff', textAlign: 'center', marginBottom: 8 },
+  subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: 20, lineHeight: 20 },
   infoBox: {
-    backgroundColor: 'rgba(255,152,0,0.2)',
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 20,
-    borderLeftWidth: 3,
-    borderLeftColor: '#FF9800',
+    backgroundColor: 'rgba(255,152,0,0.2)', padding: 14, borderRadius: 10,
+    marginBottom: 20, borderLeftWidth: 3, borderLeftColor: '#FF9800',
   },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FF9800',
-    marginBottom: 4,
-  },
-  infoText: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.8)',
-    lineHeight: 18,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#ffffff',
-    marginBottom: 8,
-    marginTop: 8,
-  },
+  infoTitle: { fontSize: 14, fontWeight: '600', color: '#FF9800', marginBottom: 4 },
+  infoText: { fontSize: 13, color: 'rgba(255,255,255,0.8)', lineHeight: 18 },
+  label: { fontSize: 14, fontWeight: '600', color: '#ffffff', marginBottom: 8, marginTop: 8 },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    marginBottom: 12,
-    color: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 14,
+    fontSize: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+    marginBottom: 12, color: '#ffffff',
   },
-  pinInput: {
-    fontSize: 20,
-    textAlign: 'center',
-    letterSpacing: 6,
-    fontWeight: '700',
-  },
-  primaryButton: {
-    backgroundColor: '#FF9800',
-    borderRadius: 10,
-    padding: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  primaryButtonDisabled: {
-    opacity: 0.6,
-  },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  forgotLink: {
-    padding: 12,
-    alignItems: 'center',
-  },
-  forgotLinkText: {
-    color: '#FF9800',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  helpBox: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    padding: 14,
-    borderRadius: 10,
-    marginTop: 16,
-  },
-  helpTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: 8,
-  },
-  helpText: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
-    lineHeight: 18,
-  },
-  noteBox: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 12,
-  },
-  noteText: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
-    lineHeight: 16,
-  },
+  pinInput: { fontSize: 20, textAlign: 'center', letterSpacing: 6, fontWeight: '700' },
+  primaryButton: { backgroundColor: '#FF9800', borderRadius: 10, padding: 14, alignItems: 'center', marginTop: 8 },
+  primaryButtonDisabled: { opacity: 0.6 },
+  primaryButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
+  forgotLink: { padding: 12, alignItems: 'center' },
+  forgotLinkText: { color: '#FF9800', fontSize: 14, fontWeight: '600' },
+  helpBox: { backgroundColor: 'rgba(255,255,255,0.1)', padding: 14, borderRadius: 10, marginTop: 16 },
+  helpTitle: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.9)', marginBottom: 8 },
+  helpText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 18 },
+  noteBox: { backgroundColor: 'rgba(255,255,255,0.1)', padding: 12, borderRadius: 8, marginTop: 12 },
+  noteText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', lineHeight: 16 },
 });

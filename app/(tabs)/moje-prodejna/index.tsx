@@ -1,12 +1,18 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
-import { supabase } from '../../../lib/supabase';
-import { useFarmarAuth } from '../../utils/farmarAuthContext';
-import { ProtectedRoute } from '../../utils/ProtectedRoute';
+import { useFarmarAuth } from '../../_utils/farmarAuthContext';
+import { fetchAktivniObjednavky, zmeniStavPolozky as zmeniStavPolozkyService, zmeniStavObjednavky } from '@/features/objednavky/services/objednavkyService';
+import { fetchPocetAktivnichProduktu } from '@/features/produkty/services/produktyService';
+import {
+  fetchPocetProdejnichMist,
+  fetchCasovaDostupnostMist,
+} from '@/features/prodejni-mista/services/locationService';
+import { ProtectedRoute } from '../../_utils/ProtectedRoute';
 import { Feather } from '@expo/vector-icons';
-import { useLayoutMode } from '../../components/AppLayout';
-import { useRealtimeOrders } from '../../utils/useRealtimeOrders';
+import { useLayoutMode } from '../../_components/AppLayout';
+import { useRealtimeOrders } from '../../_utils/useRealtimeOrders';
+import { formatKc, formatMnozstvi } from '../../_utils/formatKc';
 
 interface ObjednavkaPolozka {
   id: string;
@@ -40,7 +46,6 @@ function MojeProdejnaScreenContent() {
   const [pocetProduktu, setPocetProduktu] = useState(0);
   const [pocetProdejnichMist, setPocetProdejnichMist] = useState(0);
   const [casovaDostupnost, setCasovaDostupnost] = useState<string | null>(null);
-  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   // Handler pro novou realtime objednávku
@@ -48,11 +53,8 @@ function MojeProdejnaScreenContent() {
     // Přidat novou objednávku na začátek seznamu
     setObjednavky(prev => [{
       ...newOrder,
-      polozky: [] // Položky se načtou při rozbalení
+      polozky: [] // Položky se načtou při otevření detailu
     }, ...prev]);
-
-    // Automaticky rozbalit novou objednávku
-    setExpandedOrders(prev => new Set([...prev, newOrder.id]));
   }, []);
 
   // Realtime subscription pro nové objednávky
@@ -77,84 +79,20 @@ function MojeProdejnaScreenContent() {
       }
 
       // Načíst objednávky s položkami
-      const { data: objednavkyData, error: objednavkyError } = await supabase
-        .from('objednavky')
-        .select(`
-          id, stav, created_at, datum_vyzvednuti, anon_customer_code,
-          celkova_cena, zakaznik_telefon, poznamka_farmare
-        `)
-        .eq('pestitel_id', pestitelId)
-        .in('stav', ['nova', 'cekajici_na_potvrzeni', 'potvrzena', 'zpracovana'])
-        .order('created_at', { ascending: false });
-
-      if (objednavkyError) {
-        console.error('Chyba při načítání objednávek:', objednavkyError);
-      } else if (objednavkyData) {
-        // Pro každou objednávku načíst položky
-        const objednavkyWithPolozky = await Promise.all(
-          objednavkyData.map(async (obj) => {
-            const { data: polozkyData } = await supabase
-              .from('objednavky_polozky')
-              .select('id, nazev_produktu, mnozstvi, jednotka, cena, stav_polozky')
-              .eq('objednavka_id', obj.id);
-
-            return {
-              ...obj,
-              polozky: polozkyData || []
-            };
-          })
-        );
-
-        setObjednavky(objednavkyWithPolozky);
-
-        // Automaticky rozbalit nové objednávky
-        const newExpanded = new Set<string>();
-        objednavkyWithPolozky.forEach(obj => {
-          if (obj.stav === 'nova' || obj.stav === 'cekajici_na_potvrzeni') {
-            newExpanded.add(obj.id);
-          }
-        });
-        setExpandedOrders(prev => new Set([...prev, ...newExpanded]));
-      }
+      const objednavkyWithPolozky = await fetchAktivniObjednavky(pestitelId);
+      setObjednavky(objednavkyWithPolozky as Objednavka[]);
 
       // Načíst počet produktů
-      const { count, error: produktyError } = await supabase
-        .from('produkty')
-        .select('*', { count: 'exact', head: true })
-        .eq('pestitel_id', pestitelId)
-        .eq('archivovano', false);
-
-      if (!produktyError) {
-        setPocetProduktu(count || 0);
-      }
+      const pocetProd = await fetchPocetAktivnichProduktu(pestitelId);
+      setPocetProduktu(pocetProd);
 
       // Načíst počet prodejních míst
-      const { count: mistaCount, error: mistaError } = await supabase
-        .from('prodejni_mista')
-        .select('*', { count: 'exact', head: true })
-        .eq('pestitel_id', pestitelId);
-
-      if (!mistaError) {
-        setPocetProdejnichMist(mistaCount || 0);
-      }
+      const pocetMist = await fetchPocetProdejnichMist(Number(pestitelId));
+      setPocetProdejnichMist(pocetMist);
 
       // Načíst časovou dostupnost z prvního aktivního prodejního místa
-      // Poznámka: cas_od/cas_do sloupce vyžadují spuštění migrace 002_prodejni_mista_cas.sql
-      const { data: mistoData, error: casError } = await supabase
-        .from('prodejni_mista')
-        .select('cas_od, cas_do')
-        .eq('pestitel_id', pestitelId)
-        .eq('aktivni', true)
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      if (!casError && (mistoData as any)?.cas_od) {
-        const d = mistoData as any;
-        setCasovaDostupnost(`${d.cas_od} – ${d.cas_do || '?'}`);
-      } else {
-        setCasovaDostupnost(null);
-      }
+      const cas = await fetchCasovaDostupnostMist(Number(pestitelId));
+      setCasovaDostupnost(cas);
     } catch (error) {
       console.error('Chyba:', error);
     } finally {
@@ -169,29 +107,9 @@ function MojeProdejnaScreenContent() {
     }
   }, [farmar]);
 
-  const toggleExpanded = (orderId: string) => {
-    setExpandedOrders(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(orderId)) {
-        newSet.delete(orderId);
-      } else {
-        newSet.add(orderId);
-      }
-      return newSet;
-    });
-  };
-
   const zmeniStavPolozky = async (polozkaId: string, novyStav: string, objednavkaId: string) => {
     try {
-      const { error } = await supabase
-        .from('objednavky_polozky')
-        .update({ stav_polozky: novyStav })
-        .eq('id', polozkaId);
-
-      if (error) {
-        console.error('Chyba při změně stavu položky:', error);
-        return;
-      }
+      await zmeniStavPolozkyService(polozkaId, novyStav);
 
       // Aktualizovat lokální stav
       setObjednavky(prev => prev.map(obj => {
@@ -219,20 +137,14 @@ function MojeProdejnaScreenContent() {
 
         if (vsechnyVyrizene) {
           // Všechny položky mají stav -> objednávka je zpracovaná
-          await supabase
-            .from('objednavky')
-            .update({ stav: 'zpracovana' })
-            .eq('id', objednavkaId);
+          await zmeniStavObjednavky(objednavkaId, 'zpracovana');
 
           setObjednavky(prev => prev.map(obj =>
             obj.id === objednavkaId ? { ...obj, stav: 'zpracovana' } : obj
           ));
         } else if (objednavka.stav === 'nova' || objednavka.stav === 'cekajici_na_potvrzeni') {
           // Alespoň jedna položka má stav -> objednávka je potvrzená (rozpracovaná)
-          await supabase
-            .from('objednavky')
-            .update({ stav: 'potvrzena' })
-            .eq('id', objednavkaId);
+          await zmeniStavObjednavky(objednavkaId, 'potvrzena');
 
           setObjednavky(prev => prev.map(obj =>
             obj.id === objednavkaId ? { ...obj, stav: 'potvrzena' } : obj
@@ -255,15 +167,12 @@ function MojeProdejnaScreenContent() {
   };
 
   const getOrderBadge = (objednavka: Objednavka) => {
-    // Zkontrolovat, jestli má alespoň jedna položka stav
-    const maNejakyStav = objednavka.polozky.some(
-      pol => pol.stav_polozky && pol.stav_polozky !== 'novy'
-    );
-
-    if (objednavka.stav === 'zpracovana') {
+    if (objednavka.stav === 'ceka_na_vyzvednuti') {
+      return { text: 'ČEKÁ NA VYZVEDNUTÍ', color: '#FF9800' };
+    } else if (objednavka.stav === 'zpracovana' || objednavka.stav === 'dokoncena') {
       return { text: 'HOTOVO', color: '#4CAF50' };
-    } else if (maNejakyStav || objednavka.stav === 'potvrzena') {
-      return { text: 'ROZPRACOVÁNO', color: '#FF9800' };
+    } else if (objednavka.stav === 'potvrzena') {
+      return { text: 'POTVRZENA', color: '#2196F3' };
     } else {
       return { text: 'NOVÁ', color: '#F44336' };
     }
@@ -422,7 +331,6 @@ function MojeProdejnaScreenContent() {
         ) : (
           objednavky.map((objednavka) => {
             const badge = getOrderBadge(objednavka);
-            const isExpanded = expandedOrders.has(objednavka.id);
             const isSelected = isDesktop && selectedOrderId === objednavka.id;
 
             return (
@@ -437,7 +345,7 @@ function MojeProdejnaScreenContent() {
                   if (isDesktop) {
                     setSelectedOrderId(objednavka.id);
                   } else {
-                    toggleExpanded(objednavka.id);
+                    router.push(`/moje-prodejna/detail-objednavky?id=${objednavka.id}`);
                   }
                 }}
               >
@@ -468,70 +376,9 @@ function MojeProdejnaScreenContent() {
                   </View>
 
                   {!isDesktop && (
-                    <Text style={styles.expandIcon}>{isExpanded ? '▼' : '▶'}</Text>
+                    <Text style={styles.expandIcon}>▶</Text>
                   )}
                 </View>
-
-                {/* Rozbalené položky - pouze na mobile/tablet */}
-                {!isDesktop && isExpanded && (
-                  <View style={styles.polozkyContainer} testID="order-items">
-                    {objednavka.polozky.map((polozka) => (
-                      <View
-                        key={polozka.id}
-                        style={[
-                          styles.polozkaRow,
-                          polozka.stav_polozky && polozka.stav_polozky !== 'novy' && {
-                            borderLeftWidth: 3,
-                            borderLeftColor: getPolozkaStavColor(polozka.stav_polozky)
-                          }
-                        ]}
-                      >
-                        <View style={styles.polozkaInfo}>
-                          <Text style={styles.polozkaNazev}>{polozka.nazev_produktu}</Text>
-                          <Text style={styles.polozkaMnozstvi}>
-                            {polozka.mnozstvi} {polozka.jednotka}
-                            {polozka.cena ? ` • ${(polozka.cena * polozka.mnozstvi).toFixed(0)} Kč` : ''}
-                          </Text>
-                        </View>
-
-                        <View style={styles.polozkaActions}>
-                          <TouchableOpacity
-                            style={[
-                              styles.actionBtn,
-                              styles.actionBtnGreen,
-                              polozka.stav_polozky === 'pripraveno' && styles.actionBtnActive
-                            ]}
-                            onPress={() => zmeniStavPolozky(polozka.id, 'pripraveno', objednavka.id)}
-                            testID="item-prepare-btn"
-                          >
-                            <Text style={styles.actionBtnText}>✓</Text>
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            style={[
-                              styles.actionBtn,
-                              styles.actionBtnGray,
-                              polozka.stav_polozky === 'neni_k_dispozici' && styles.actionBtnActive
-                            ]}
-                            onPress={() => zmeniStavPolozky(polozka.id, 'neni_k_dispozici', objednavka.id)}
-                            testID="item-unavailable-btn"
-                          >
-                            <Text style={styles.actionBtnText}>✗</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
-
-                    {/* Tlačítko pro detail */}
-                    <TouchableOpacity
-                      style={styles.detailButton}
-                      onPress={() => router.push(`/moje-prodejna/detail-objednavky?id=${objednavka.id}`)}
-                      testID="order-detail-btn"
-                    >
-                      <Text style={styles.detailButtonText}>📝 Detail objednávky</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
               </TouchableOpacity>
             );
           })
@@ -610,8 +457,8 @@ function MojeProdejnaScreenContent() {
               <View style={styles.polozkaInfo}>
                 <Text style={styles.polozkaNazev}>{polozka.nazev_produktu}</Text>
                 <Text style={styles.polozkaMnozstvi}>
-                  {polozka.mnozstvi} {polozka.jednotka}
-                  {polozka.cena ? ` • ${(polozka.cena * polozka.mnozstvi).toFixed(0)} Kč` : ''}
+                  {formatMnozstvi(polozka.mnozstvi)} {polozka.jednotka}
+                  {polozka.cena ? ` • ${formatKc(polozka.cena * polozka.mnozstvi)} Kč` : ''}
                 </Text>
               </View>
 
@@ -1146,5 +993,48 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+
+  // Stánek banner
+  stanekBannerBtn: {
+    marginHorizontal: 12,
+    marginTop: 10,
+    marginBottom: 2,
+    backgroundColor: '#2E7D32',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+  },
+  stanekBannerBtnText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  stanekBannerActive: {
+    marginHorizontal: 12,
+    marginTop: 10,
+    marginBottom: 2,
+    backgroundColor: 'rgba(46,125,50,0.25)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  stanekBannerActiveText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  stanekBannerLink: {
+    color: '#FF9800',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

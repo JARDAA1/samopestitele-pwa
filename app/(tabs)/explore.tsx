@@ -1,11 +1,16 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import {
+  fetchOblibeni,
+  fetchFarmarDetail,
+  removeOblibenyById,
+} from '@/features/farmari/services/farmariService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DrawerMenu } from '../utils/DrawerMenu';
-import { useDrawerMenu } from '../utils/useDrawerMenu';
-import { responsive, spacing, fontSize, borderRadius } from '../utils/responsive';
+import { DrawerMenu } from '../_utils/DrawerMenu';
+import { useDrawerMenu } from '../_utils/useDrawerMenu';
+import { responsive, spacing, fontSize, borderRadius } from '../_utils/responsive';
+import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 
 interface Pestitel {
   id: number;
@@ -43,15 +48,9 @@ export default function PestiteleScreen() {
       }
 
       // Načteme oblíbené farmáře
-      const { data: oblibeniFarmariData, error: oblibeniError } = await supabase
-        .from('oblibeni_farmari')
-        .select('id, pestitel_id')
-        .eq('zakaznik_telefon', zakaznikId)
-        .order('created_at', { ascending: false });
+      const oblibeniFarmariData = await fetchOblibeni(zakaznikId);
 
-      if (oblibeniError) throw oblibeniError;
-
-      if (!oblibeniFarmariData || oblibeniFarmariData.length === 0) {
+      if (oblibeniFarmariData.length === 0) {
         setOblibeni([]);
         setLoading(false);
         return;
@@ -60,21 +59,17 @@ export default function PestiteleScreen() {
       // Pro každý oblíbený záznam načteme data farmáře
       const oblibeniWithDetails = await Promise.all(
         oblibeniFarmariData.map(async (item) => {
-          const { data: pestitelData, error: pestitelError } = await supabase
-            .from('pestitele')
-            .select('id, nazev_farmy, mesto, popis, telefon')
-            .eq('id', item.pestitel_id)
-            .single();
-
-          if (pestitelError) {
-            console.error(`Chyba při načítání farmáře ${item.pestitel_id}:`, pestitelError);
+          const pestitelData = await fetchFarmarDetail(item.pestitel_id).catch((err) => {
+            console.error(`Chyba při načítání farmáře ${item.pestitel_id}:`, err);
             return null;
-          }
+          });
+
+          if (!pestitelData) return null;
 
           return {
             id: item.id,
             pestitel_id: item.pestitel_id,
-            pestitele: pestitelData,
+            pestitele: pestitelData as unknown as Pestitel,
           };
         })
       );
@@ -103,13 +98,7 @@ export default function PestiteleScreen() {
 
       if (!confirmed) return;
 
-      const { error } = await supabase
-        .from('oblibeni_farmari')
-        .delete()
-        .eq('id', oblibenyId)
-        .eq('zakaznik_telefon', zakaznikId);
-
-      if (error) throw error;
+      await removeOblibenyById(oblibenyId, zakaznikId);
 
       // Aktualizuj seznam
       setOblibeni(oblibeni.filter(item => item.id !== oblibenyId));
@@ -134,17 +123,7 @@ export default function PestiteleScreen() {
       <View style={styles.container}>
         <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
 
-        {/* Minimalistický header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.menuButton}
-            onPress={openMenu}
-          >
-            <Text style={styles.menuIcon}>☰</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Moji farmáři</Text>
-          <View style={{ width: 36 }} />
-        </View>
+        <ScreenHeader title="Moji farmáři" left="menu" onMenuPress={openMenu} />
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>🧺</Text>
           <Text style={styles.emptyTitle}>Zatím žádní oblíbení farmáři</Text>
@@ -166,17 +145,7 @@ export default function PestiteleScreen() {
     <View style={styles.container}>
       <DrawerMenu visible={isMenuVisible} onClose={closeMenu} />
 
-      {/* Minimalistický header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={openMenu}
-        >
-          <Text style={styles.menuIcon}>☰</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Moji farmáři</Text>
-        <View style={{ width: 36 }} />
-      </View>
+      <ScreenHeader title="Moji farmáři" left="menu" onMenuPress={openMenu} />
 
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         {/* Info sekce */}
@@ -233,37 +202,6 @@ export default function PestiteleScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
-  header: {
-    paddingTop: 10,
-    paddingBottom: 12,
-    paddingHorizontal: 15,
-    backgroundColor: '#7B1FA2',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  menuButton: {
-    padding: 8,
-  },
-  menuIcon: {
-    fontSize: 28,
-    color: '#FFFFFF',
-    fontWeight: '400',
-  },
-  backButton: {
-    padding: 4,
-  },
-  backArrow: {
-    fontSize: 28,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    fontSize: 20,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    flex: 1,
-    textAlign: 'center',
-  },
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyIcon: { fontSize: 80, marginBottom: 20 },

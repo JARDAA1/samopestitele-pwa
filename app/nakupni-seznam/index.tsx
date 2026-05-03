@@ -1,401 +1,359 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform, TextInput } from 'react-native';
 import { router } from 'expo-router';
-import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '../../lib/supabase';
-import { getOrCreateCustomerId } from '../utils/customerIdentity';
-
-interface SeznamItem {
-  produktId: string;
-  produktNazev: string;
-  farmarId: string;
-  farmarNazev: string;
-  farmarTelefon?: string;
-  cena: number | null;
-  jednotka: string | null;
-  mnozstvi?: number;
-  mnozstviJednotka?: string;
-  pridanoV?: string; // ISO timestamp kdy bylo přidáno
-  preferovaneVyzvednutiDatum?: string;
-  preferovaneVyzvednutiCas?: string;
-}
-
-// Helper pro formátování datumu a času
-const formatPridanoV = (isoString?: string) => {
-  if (!isoString) return null;
-  const date = new Date(isoString);
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${day}.${month}. ${hours}:${minutes}`;
-};
+import { useCustomerList, type CustomerListItem } from '@/shared/context/CustomerListContext';
+import { getOrCreateCustomerId } from '../_utils/customerIdentity';
+import { createObjednavka, createObjednavkyPolozky, upsertAnonymniZakaznik } from '@/features/objednavky/services/objednavkyService';
+import { fetchPestitelTelefon } from '@/features/profil/services/profilService';
+import { saveMojeObjednavka } from '@/shared/utils/mojeObjednavkyStorage';
+import { formatKc, formatMnozstvi, getKonverzeFaktor, formatCenaJednotka, getKrokJednotky } from '../_utils/formatKc';
 
 export default function NakupniSeznamScreen() {
-  const [seznam, setSeznam] = useState<SeznamItem[]>([]);
+  const { items: seznam, addItem, removeItem, clearList } = useCustomerList();
+  const [sentFarmarIds, setSentFarmarIds] = useState<Set<string>>(new Set());
+  const [vyzvednutiPerFarmar, setVyzvednutiPerFarmar] = useState<Record<string, { datum: string; cas: string }>>({});
 
-  useEffect(() => {
-    loadSeznam();
-  }, []);
-
-  const loadSeznam = async () => {
-    try {
-      const stored = await AsyncStorage.getItem('nakupni_seznam');
-      if (stored) {
-        setSeznam(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error('Chyba při načítání seznamu:', error);
-    }
+  const setVyzvednuti = (farmarId: string, field: 'datum' | 'cas', value: string) => {
+    setVyzvednutiPerFarmar(prev => ({
+      ...prev,
+      [farmarId]: { datum: '', cas: '', ...prev[farmarId], [field]: value },
+    }));
   };
 
-  const saveSeznam = async (newSeznam: SeznamItem[]) => {
-    try {
-      await AsyncStorage.setItem('nakupni_seznam', JSON.stringify(newSeznam));
-      setSeznam(newSeznam);
-    } catch (error) {
-      console.error('Chyba při ukládání seznamu:', error);
-    }
-  };
-
-  const removeItem = (produktId: string) => {
-    const newSeznam = seznam.filter(item => item.produktId !== produktId);
-    saveSeznam(newSeznam);
-  };
+  // ── Helpers ──────────────────────────────────────────────────────────────
 
   const clearAll = () => {
     if (Platform.OS === 'web') {
-      if (confirm('Opravdu chcete smazat celý seznam?')) {
-        saveSeznam([]);
-      }
+      if (confirm('Opravdu chcete smazat celý seznam?')) clearList();
     } else {
-      Alert.alert(
-        'Smazat seznam',
-        'Opravdu chcete smazat celý seznam?',
-        [
-          { text: 'Zrušit', style: 'cancel' },
-          { text: 'Smazat', style: 'destructive', onPress: () => saveSeznam([]) },
-        ]
-      );
+      Alert.alert('Smazat seznam', 'Opravdu chcete smazat celý seznam?', [
+        { text: 'Zrušit', style: 'cancel' },
+        { text: 'Smazat', style: 'destructive', onPress: clearList },
+      ]);
     }
   };
 
-  // Seskupit položky podle farmáře
-  const groupedByFarmar = seznam.reduce((acc, item) => {
-    if (!acc[item.farmarId]) {
-      acc[item.farmarId] = {
-        farmarNazev: item.farmarNazev,
-        items: [],
-      };
+  const updateMnozstvi = (item: CustomerListItem, direction: 1 | -1) => {
+    const step = getKrokJednotky(item.mnozstviJednotka || item.jednotka || 'ks');
+    const next = Math.round((item.mnozstvi + direction * step) * 1000) / 1000;
+    if (next <= 0) {
+      removeItem(item.produktId);
+    } else {
+      addItem({ ...item, mnozstvi: next });
     }
+  };
+
+  const itemTotal = (item: CustomerListItem): number => {
+    if (item.cena == null) return 0;
+    const f = getKonverzeFaktor(item.mnozstviJednotka || item.jednotka || 'ks', item.jednotka || 'ks');
+    return item.cena * item.mnozstvi * f;
+  };
+
+  // ── Grouping ──────────────────────────────────────────────────────────────
+
+  const groupedByFarmar = seznam.reduce((acc, item) => {
+    if (!acc[item.farmarId]) acc[item.farmarId] = { farmarNazev: item.farmarNazev, items: [] };
     acc[item.farmarId].items.push(item);
     return acc;
-  }, {} as { [key: string]: { farmarNazev: string; items: SeznamItem[] } });
+  }, {} as Record<string, { farmarNazev: string; items: CustomerListItem[] }>);
 
-  const totalItems = seznam.length;
-  const totalPrice = seznam.reduce((sum, item) => {
-    const mnozstvi = item.mnozstvi || 1;
-    return sum + (item.cena || 0) * mnozstvi;
-  }, 0);
+  const totalPrice = seznam.reduce((sum, item) => sum + itemTotal(item), 0);
 
-  // Uložit objednávku do databáze pro daného farmáře
-  const saveOrderToDatabase = async (farmarId: string, items: SeznamItem[], customerId: { id: string; shortId: string }) => {
+  // ── DB + SMS ──────────────────────────────────────────────────────────────
+
+  const saveOrderToDatabase = async (
+    farmarId: string,
+    items: CustomerListItem[],
+    customerId: { id: string; shortId: string },
+    vyzvednuti?: { datum: string; cas: string }
+  ) => {
     try {
-      // Vypočítat celkovou cenu
-      const celkovaCena = items.reduce((sum, item) => {
-        const mnozstvi = item.mnozstvi || 1;
-        return sum + (item.cena || 0) * mnozstvi;
-      }, 0);
+      const celkovaCena = items.reduce((sum, item) => sum + itemTotal(item), 0);
 
-      // Získat datum vyzvednutí z první položky, která ho má
-      const itemWithVyzvednutí = items.find(
-        (item) => item.preferovaneVyzvednutiDatum
-      );
       let datumVyzvednuti: string | null = null;
-      if (itemWithVyzvednutí?.preferovaneVyzvednutiDatum) {
-        // Převést český formát "15.2.2026" na ISO formát
-        const parts = itemWithVyzvednutí.preferovaneVyzvednutiDatum.split('.');
-        if (parts.length === 3) {
-          const day = parts[0].padStart(2, '0');
-          const month = parts[1].padStart(2, '0');
-          const year = parts[2];
-          datumVyzvednuti = `${year}-${month}-${day}`;
-        }
+      if (vyzvednuti?.datum) {
+        const p = vyzvednuti.datum.split('.');
+        if (p.length === 3)
+          datumVyzvednuti = `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
       }
 
-      // 1. Vytvořit objednávku
-      const { data: objednavka, error: objednavkaError } = await supabase
-        .from('objednavky')
-        .insert({
-          pestitel_id: Number(farmarId),
-          stav: 'cekajici_na_potvrzeni',
-          celkova_cena: celkovaCena,
-          zpusob_kontaktu: 'sms',
-          datum_vyzvednuti: datumVyzvednuti,
-          anon_customer_id: customerId.id,
-          anon_customer_code: customerId.shortId,
+      const objednavkaId = await createObjednavka({
+        pestitel_id: Number(farmarId),
+        stav: 'cekajici_na_potvrzeni',
+        celkova_cena: celkovaCena,
+        zpusob_kontaktu: 'sms',
+        datum_vyzvednuti: datumVyzvednuti,
+        anon_customer_id: customerId.id,
+        anon_customer_code: customerId.shortId,
+      });
+
+      await createObjednavkyPolozky(
+        objednavkaId,
+        items.map((item) => {
+          const f = getKonverzeFaktor(item.mnozstviJednotka || item.jednotka || 'ks', item.jednotka || 'ks');
+          return {
+            produkt_id: Number(item.produktId),
+            nazev_produktu: item.produktNazev,
+            cena: item.cena || 0,
+            mnozstvi: Math.round(item.mnozstvi * f * 1000) / 1000,
+            jednotka: item.jednotka || 'ks',
+          };
         })
-        .select('id')
-        .single();
+      );
 
-      if (objednavkaError) {
-        console.error('Chyba při vytváření objednávky:', objednavkaError);
-        return false;
-      }
-
-      // 2. Vytvořit položky objednávky
-      const polozky = items.map((item) => ({
-        objednavka_id: objednavka.id,
-        produkt_id: Number(item.produktId),
-        nazev_produktu: item.produktNazev,
-        cena: item.cena || 0,
-        mnozstvi: item.mnozstvi || 1,
-        jednotka: item.mnozstviJednotka || item.jednotka || 'ks',
-      }));
-
-      const { error: polozkyError } = await supabase
-        .from('objednavky_polozky')
-        .insert(polozky);
-
-      if (polozkyError) {
-        console.error('Chyba při vytváření položek objednávky:', polozkyError);
-        return false;
-      }
-
+      saveMojeObjednavka({
+        id: objednavkaId,
+        pestitelId: Number(farmarId),
+        pestitelNazev: items[0]?.farmarNazev ?? '',
+        celkovaCena: celkovaCena,
+        createdAt: new Date().toISOString(),
+      });
+      upsertAnonymniZakaznik(customerId.id, Number(farmarId));
       return true;
-    } catch (error) {
-      console.error('Chyba při ukládání objednávky:', error);
+    } catch (e) {
+      console.error('Chyba při ukládání objednávky:', e);
       return false;
     }
   };
 
-  // Odeslání žádosti o objednávku - uloží do DB a otevře SMS
+  const buildSmsText = (farmarId: string, vyzvednuti?: { datum: string; cas: string }) => {
+    const group = groupedByFarmar[farmarId];
+    let txt = `Dobrý den,\nmám zájem o:\n\n`;
+    group.items.forEach((item) => {
+      txt += `• ${item.produktNazev} - ${formatMnozstvi(item.mnozstvi)} ${item.mnozstviJednotka || item.jednotka || 'ks'}\n`;
+    });
+    const v = [vyzvednuti?.datum, vyzvednuti?.cas].filter(Boolean).join(' ');
+    if (v) txt += `\nPreferované vyzvednutí: ${v}\n`;
+    txt += `\nDěkuji za odpověď.`;
+    return txt;
+  };
+
+  const openSmsApp = (telefon: string, txt: string) => {
+    const isIOS =
+      Platform.OS === 'ios' ||
+      (Platform.OS === 'web' && /iPad|iPhone|iPod/.test(navigator.userAgent));
+    window.location.href = isIOS
+      ? telefon ? `sms:${telefon}&body=${encodeURIComponent(txt)}` : `sms:&body=${encodeURIComponent(txt)}`
+      : telefon ? `sms:${telefon}?body=${encodeURIComponent(txt)}` : `sms:?body=${encodeURIComponent(txt)}`;
+  };
+
+  // Odeslání SMS jednomu farmáři (pro případ více farmářů)
+  const sendSmsToFarmar = async (farmarId: string) => {
+    const customerId = await getOrCreateCustomerId();
+    const vyzvednuti = vyzvednutiPerFarmar[farmarId];
+    await saveOrderToDatabase(farmarId, groupedByFarmar[farmarId].items, customerId, vyzvednuti);
+    const telefon = (await fetchPestitelTelefon(farmarId)) || '';
+    const txt = buildSmsText(farmarId, vyzvednuti);
+    setSentFarmarIds(prev => new Set([...prev, farmarId]));
+    openSmsApp(telefon, txt);
+  };
+
+  // Odeslání SMS — 1 farmář (původní chování)
   const sendSms = async () => {
     const farmarIds = Object.keys(groupedByFarmar);
-
-    // Získat nebo vytvořit anonymní ID zákazníka
     const customerId = await getOrCreateCustomerId();
-
-    // Uložit objednávky do databáze pro všechny farmáře
-    for (const farmarId of farmarIds) {
-      const group = groupedByFarmar[farmarId];
-      await saveOrderToDatabase(farmarId, group.items, customerId);
-    }
-
-    if (farmarIds.length === 1) {
-      // Jeden farmář - načíst jeho telefon a poslat SMS
-      const farmarId = farmarIds[0];
-      const group = groupedByFarmar[farmarId];
-
-      // Načíst telefon z databáze
-      const { data } = await supabase
-        .from('pestitele')
-        .select('telefon')
-        .eq('id', Number(farmarId))
-        .single();
-
-      const telefon = data?.telefon || '';
-
-      let smsText = `Dobrý den,\nmám zájem o:\n\n`;
-      group.items.forEach((item) => {
-        const mnozstvi = item.mnozstvi || 1;
-        const jednotka = item.mnozstviJednotka || item.jednotka || 'ks';
-        smsText += `• ${item.produktNazev} - ${mnozstvi} ${jednotka}\n`;
-      });
-
-      // Přidání preferovaného vyzvednutí, pokud existuje
-      const itemsWithVyzvednutí = group.items.filter(
-        (item) => item.preferovaneVyzvednutiDatum || item.preferovaneVyzvednutiCas
-      );
-      if (itemsWithVyzvednutí.length > 0) {
-        const firstItem = itemsWithVyzvednutí[0];
-        const vyzvednutiText = [firstItem.preferovaneVyzvednutiDatum, firstItem.preferovaneVyzvednutiCas]
-          .filter(Boolean)
-          .join(' ');
-        smsText += `\nPreferované vyzvednutí: ${vyzvednutiText}\n`;
-      }
-
-      smsText += `\nDěkuji za odpověď.`;
-
-      // Detekce iOS zařízení (i na webu/PWA)
-      const isIOS = Platform.OS === 'ios' ||
-        (Platform.OS === 'web' && /iPad|iPhone|iPod/.test(navigator.userAgent));
-
-      let smsUrl: string;
-      if (isIOS) {
-        // iOS formát: sms:CISLO&body=TEXT
-        smsUrl = telefon
-          ? `sms:${telefon}&body=${encodeURIComponent(smsText)}`
-          : `sms:&body=${encodeURIComponent(smsText)}`;
-      } else {
-        // Android formát: sms:CISLO?body=TEXT
-        smsUrl = telefon
-          ? `sms:${telefon}?body=${encodeURIComponent(smsText)}`
-          : `sms:?body=${encodeURIComponent(smsText)}`;
-      }
-
-      // Vymazat nákupní seznam po úspěšném odeslání
-      saveSeznam([]);
-
-      window.location.href = smsUrl;
-    } else {
-      // Více farmářů - vytvořit jeden dlouhý text bez čísla
-      let fullText = `Nákupní seznam:\n\n`;
-
-      farmarIds.forEach((farmarId) => {
-        const group = groupedByFarmar[farmarId];
-        fullText += `${group.farmarNazev}:\n`;
-        group.items.forEach((item) => {
-          const mnozstvi = item.mnozstvi || 1;
-          const jednotka = item.mnozstviJednotka || item.jednotka || 'ks';
-          fullText += `  • ${item.produktNazev} - ${mnozstvi} ${jednotka}\n`;
-        });
-
-        // Přidání preferovaného vyzvednutí pro každého farmáře
-        const itemsWithVyzvednutí = group.items.filter(
-          (item) => item.preferovaneVyzvednutiDatum || item.preferovaneVyzvednutiCas
-        );
-        if (itemsWithVyzvednutí.length > 0) {
-          const firstItem = itemsWithVyzvednutí[0];
-          const vyzvednutiText = [firstItem.preferovaneVyzvednutiDatum, firstItem.preferovaneVyzvednutiCas]
-            .filter(Boolean)
-            .join(' ');
-          fullText += `  Preferované vyzvednutí: ${vyzvednutiText}\n`;
-        }
-
-        fullText += `\n`;
-      });
-
-      const isIOS = Platform.OS === 'ios' ||
-        (Platform.OS === 'web' && /iPad|iPhone|iPod/.test(navigator.userAgent));
-
-      const smsUrl = isIOS
-        ? `sms:&body=${encodeURIComponent(fullText)}`
-        : `sms:?body=${encodeURIComponent(fullText)}`;
-
-      // Vymazat nákupní seznam po úspěšném odeslání
-      saveSeznam([]);
-
-      window.location.href = smsUrl;
-    }
+    const vyzvednuti = vyzvednutiPerFarmar[farmarIds[0]];
+    await saveOrderToDatabase(farmarIds[0], groupedByFarmar[farmarIds[0]].items, customerId, vyzvednuti);
+    const telefon = (await fetchPestitelTelefon(farmarIds[0])) || '';
+    const txt = buildSmsText(farmarIds[0], vyzvednuti);
+    clearList();
+    openSmsApp(telefon, txt);
   };
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* ── Compact header ── */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBackBtn}>
-          <Text style={styles.headerBackIcon}>←</Text>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.headerBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={styles.headerBack}>←</Text>
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Nákupní seznam</Text>
-        {seznam.length > 0 && (
-          <TouchableOpacity onPress={clearAll} style={styles.headerClearBtn}>
-            <Text style={styles.headerClearText}>Smazat</Text>
+
+        {seznam.length > 0 ? (
+          <TouchableOpacity
+            onPress={clearAll}
+            style={styles.headerBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.headerClear}>Smazat</Text>
           </TouchableOpacity>
+        ) : (
+          <View style={styles.headerSpacer} />
         )}
-        {seznam.length === 0 && <View style={{ width: 60 }} />}
       </View>
 
+      {/* ── Empty state ── */}
       {seznam.length === 0 ? (
-        <View style={styles.emptyContainer} testID="order-success">
+        <View style={styles.emptyWrap} testID="order-success">
           <Text style={styles.emptyIcon}>🧺</Text>
           <Text style={styles.emptyTitle}>Seznam je prázdný</Text>
           <Text style={styles.emptyText}>
-            Přidejte produkty od farmářů kliknutím na tlačítko + u produktu.
+            Přidejte produkty od farmářů kliknutím na + u produktu.
           </Text>
-          <TouchableOpacity
-            style={styles.emptyBtn}
-            onPress={() => router.push('/mapa')}
-          >
+          <TouchableOpacity style={styles.emptyBtn} onPress={() => router.push('/mapa')}>
             <Text style={styles.emptyBtnText}>Hledat farmáře</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={styles.contentWrapper}>
-          <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-            {/* Souhrn */}
-            <View style={styles.summaryCard}>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Položek celkem:</Text>
-                <Text style={styles.summaryValue}>{totalItems}</Text>
-              </View>
-              {totalPrice > 0 && (
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Orientační cena:</Text>
-                  <Text style={styles.summaryPrice}>{totalPrice.toFixed(0)} Kč</Text>
-                </View>
-              )}
-            </View>
-
-            {/* Seznam podle farmářů */}
-            {Object.entries(groupedByFarmar).map(([farmarId, group]) => (
-              <View key={farmarId} style={styles.farmarCard}>
+        <>
+          {/* ── Scrollable product list (dominant) ── */}
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {Object.entries(groupedByFarmar).map(([farmarId, group]) => {
+              const isSent = sentFarmarIds.has(farmarId);
+              const isMulti = Object.keys(groupedByFarmar).length > 1;
+              return (
+              <View key={farmarId} style={styles.farmarSection}>
+                {/* Section header */}
                 <TouchableOpacity
                   style={styles.farmarHeader}
                   onPress={() => router.push(`/farmar/${farmarId}`)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.farmarName}>{group.farmarNazev}</Text>
                   <Text style={styles.farmarArrow}>›</Text>
                 </TouchableOpacity>
 
-                {group.items.map((item) => (
-                  <View key={item.produktId} style={styles.produktRow}>
-                    <View style={styles.produktInfo}>
-                      <Text style={styles.produktName}>
-                        {item.produktNazev}
-                        {item.mnozstvi && (
-                          <Text style={styles.produktMnozstvi}>
-                            {' '}({item.mnozstvi} {item.mnozstviJednotka || item.jednotka || 'ks'})
+                {/* Products */}
+                {group.items.map((item) => {
+                  const total = itemTotal(item);
+                  const unitLabel = item.mnozstviJednotka || item.jednotka || 'ks';
+                  return (
+                    <View key={item.produktId} style={styles.produktRow}>
+                      {/* Left: name + unit price */}
+                      <View style={styles.produktInfo}>
+                        <Text style={styles.produktName} numberOfLines={1}>
+                          {item.produktNazev}
+                        </Text>
+                        {item.cena != null && (
+                          <Text style={styles.produktUnitPrice}>
+                            {item.jednotka
+                              ? formatCenaJednotka(item.cena, item.jednotka)
+                              : `${formatKc(item.cena)} Kč`}
                           </Text>
                         )}
-                      </Text>
-                      {item.cena !== null && (
-                        <Text style={styles.produktCena}>
-                          {item.cena} Kč{item.jednotka ? ` / ${item.jednotka}` : ''}
-                          {item.mnozstvi && item.mnozstvi > 1 && (
-                            <Text> = {(item.cena * item.mnozstvi).toFixed(0)} Kč</Text>
-                          )}
-                        </Text>
-                      )}
-                      {item.pridanoV && (
-                        <Text style={styles.produktPridano}>
-                          Přidáno: {formatPridanoV(item.pridanoV)}
-                        </Text>
-                      )}
-                      {(item.preferovaneVyzvednutiDatum || item.preferovaneVyzvednutiCas) && (
-                        <Text style={styles.produktVyzvednutiInfo}>
-                          🕐 Preferované vyzvednutí: {item.preferovaneVyzvednutiDatum || ''} {item.preferovaneVyzvednutiCas || ''}
-                        </Text>
-                      )}
+                      </View>
+
+                      {/* Right: qty controls + total */}
+                      <View style={styles.produktControls}>
+                        <View style={styles.qtyRow}>
+                          <TouchableOpacity
+                            style={styles.qtyBtn}
+                            onPress={() => updateMnozstvi(item, -1)}
+                            hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+                          >
+                            <Text style={styles.qtyBtnText}>−</Text>
+                          </TouchableOpacity>
+
+                          <Text style={styles.qtyValue}>
+                            {formatMnozstvi(item.mnozstvi)}{'\u202F'}{unitLabel}
+                          </Text>
+
+                          <TouchableOpacity
+                            style={styles.qtyBtn}
+                            onPress={() => updateMnozstvi(item, 1)}
+                            hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+                          >
+                            <Text style={styles.qtyBtnText}>+</Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        {total > 0 && (
+                          <Text style={styles.produktTotal}>
+                            {formatKc(total)} Kč
+                          </Text>
+                        )}
+                      </View>
                     </View>
-                    <TouchableOpacity
-                      style={styles.removeBtn}
-                      onPress={() => removeItem(item.produktId)}
-                    >
-                      <Text style={styles.removeBtnText}>×</Text>
-                    </TouchableOpacity>
+                  );
+                })}
+
+                {/* Preferovaný termín vyzvednutí — jednou za celou skupinu farmáře */}
+                <View style={styles.vyzvednutiBox}>
+                  <Text style={styles.vyzvednutiLabel}>🕐 Preferovaný termín vyzvednutí</Text>
+                  <View style={styles.vyzvednutiRow}>
+                    <TextInput
+                      style={styles.vyzvednutiInput}
+                      placeholder="Datum (např. 15.2.2026)"
+                      placeholderTextColor="rgba(255,255,255,0.4)"
+                      value={vyzvednutiPerFarmar[farmarId]?.datum ?? ''}
+                      onChangeText={(v) => setVyzvednuti(farmarId, 'datum', v)}
+                    />
+                    <TextInput
+                      style={[styles.vyzvednutiInput, styles.vyzvednutiInputCas]}
+                      placeholder="Čas (14:00)"
+                      placeholderTextColor="rgba(255,255,255,0.4)"
+                      value={vyzvednutiPerFarmar[farmarId]?.cas ?? ''}
+                      onChangeText={(v) => setVyzvednuti(farmarId, 'cas', v)}
+                    />
                   </View>
-                ))}
+                </View>
+
+                {/* Per-farmer SMS button (only when multiple farmers) */}
+                {isMulti && (
+                  <TouchableOpacity
+                    style={[styles.farmarSmsBtn, isSent && styles.farmarSmsBtnSent]}
+                    onPress={() => !isSent && sendSmsToFarmar(farmarId)}
+                    activeOpacity={isSent ? 1 : 0.8}
+                  >
+                    <Ionicons
+                      name={isSent ? 'checkmark-circle' : 'chatbubble'}
+                      size={15}
+                      color={isSent ? '#4CAF50' : '#fff'}
+                    />
+                    <Text style={[styles.farmarSmsBtnText, isSent && styles.farmarSmsBtnTextSent]}>
+                      {isSent ? 'SMS odeslána' : `Odeslat SMS — ${group.farmarNazev}`}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
-            ))}
+              );
+            })}
+
+            {/* Info note */}
+            <View style={styles.infoRow}>
+              <Ionicons name="information-circle-outline" size={14} color="rgba(255,255,255,0.35)" />
+              <Text style={styles.infoText}>Seznam je uložen pouze v tomto zařízení.</Text>
+            </View>
           </ScrollView>
 
-          {/* Tlačítko pro odeslání žádosti */}
-          <View style={styles.bottomButtonContainer}>
-            <TouchableOpacity
-              style={styles.sendSmsBtn}
-              onPress={sendSms}
-              testID="send-order"
-            >
-              <Ionicons name="chatbubble" size={20} color="#ffffff" />
-              <Text style={styles.sendSmsBtnText}>Odeslat objednávku jako SMS</Text>
-            </TouchableOpacity>
-            <Text style={styles.hintText}>
-              Farmář musí vaši žádost potvrdit
-            </Text>
+          {/* ── Sticky footer: price + SMS button ── */}
+          <View style={styles.footer}>
+            <View style={styles.footerPrice}>
+              <Text style={styles.footerPriceLabel}>Celkem</Text>
+              <Text style={styles.footerPriceValue}>≈ {formatKc(totalPrice)} Kč</Text>
+            </View>
+
+            {Object.keys(groupedByFarmar).length === 1 ? (
+              <TouchableOpacity
+                style={styles.smsBtn}
+                onPress={sendSms}
+                testID="send-order"
+                activeOpacity={0.85}
+              >
+                <Ionicons name="chatbubble" size={16} color="#fff" />
+                <Text style={styles.smsBtnText}>Odeslat SMS</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.multiHint}>
+                <Text style={styles.multiHintText}>
+                  Odešlete SMS každému farmáři zvlášť ↑
+                </Text>
+              </View>
+            )}
           </View>
-        </View>
+        </>
       )}
     </View>
   );
@@ -407,224 +365,304 @@ const styles = StyleSheet.create({
     backgroundColor: '#6A1B9A',
   },
 
-  // Header
+  // ── Header ────────────────────────────────────────────────────────────────
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingTop: 50,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#6A1B9A',
+    paddingBottom: 10,
+    paddingHorizontal: 4,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
-  headerBackBtn: {
-    padding: 8,
+  headerBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 2,
+    minWidth: 60,
   },
-  headerBackIcon: {
-    fontSize: 24,
-    color: '#ffffff',
-    fontWeight: '600',
+  headerBack: {
+    fontSize: 22,
+    color: '#fff',
+    fontWeight: '400',
   },
   headerTitle: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#fff',
     textAlign: 'center',
   },
-  headerClearBtn: {
-    padding: 8,
-  },
-  headerClearText: {
+  headerClear: {
     fontSize: 14,
     color: '#FF9800',
     fontWeight: '600',
+    textAlign: 'right',
+  },
+  headerSpacer: {
+    minWidth: 60,
   },
 
-  // Empty state
-  emptyContainer: {
+  // ── Empty state ────────────────────────────────────────────────────────────
+  emptyWrap: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
   },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#ffffff',
-    marginBottom: 8,
-  },
+  emptyIcon: { fontSize: 60, marginBottom: 14 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 8 },
   emptyText: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
+    color: 'rgba(255,255,255,0.65)',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
   },
   emptyBtn: {
     backgroundColor: '#FF9800',
-    paddingVertical: 14,
+    paddingVertical: 13,
     paddingHorizontal: 28,
-    borderRadius: 10,
+    borderRadius: 12,
   },
-  emptyBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
+  emptyBtnText: { fontSize: 15, fontWeight: '600', color: '#fff' },
 
-  // Content wrapper
-  contentWrapper: {
-    flex: 1,
-  },
-
-  // Scroll
-  scrollContainer: {
-    flex: 1,
-  },
+  // ── Scroll list ────────────────────────────────────────────────────────────
+  scroll: { flex: 1 },
   scrollContent: {
-    padding: 12,
-    paddingBottom: 20,
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
 
-  // Summary
-  summaryCard: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+  // ── Farmer section ─────────────────────────────────────────────────────────
+  farmarSection: {
+    backgroundColor: 'rgba(255,255,255,0.11)',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 8,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  summaryValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  summaryPrice: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FF9800',
-  },
-
-  // Farmar card
-  farmarCard: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 12,
-    marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255,255,255,0.14)',
     overflow: 'hidden',
   },
   farmarHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 14,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    backgroundColor: 'rgba(255,255,255,0.05)',
   },
   farmarName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.5)',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
   farmarArrow: {
-    fontSize: 20,
-    color: '#FF9800',
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.35)',
   },
 
-  // Produkt row
+  // ── Product row ────────────────────────────────────────────────────────────
   produktRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
+    borderTopColor: 'rgba(255,255,255,0.07)',
+    gap: 8,
   },
+
+  // Left column
   produktInfo: {
     flex: 1,
+    gap: 2,
+    minWidth: 0,
   },
   produktName: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#ffffff',
-    marginBottom: 2,
+    color: '#fff',
   },
-  produktCena: {
-    fontSize: 13,
-    color: '#FF9800',
-  },
-  removeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(244, 67, 54, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 12,
-  },
-  removeBtnText: {
-    fontSize: 20,
-    color: '#ef9a9a',
-    fontWeight: '600',
-  },
-  produktMnozstvi: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#FF9800',
-  },
-  produktPridano: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: 4,
-  },
-  produktVyzvednutiInfo: {
+  produktUnitPrice: {
     fontSize: 12,
+    color: 'rgba(255,255,255,0.48)',
+  },
+  produktVyz: {
+    fontSize: 11,
     color: '#FF9800',
-    marginTop: 4,
-    fontWeight: '500',
+    marginTop: 1,
   },
 
-  // Bottom button
-  bottomButtonContainer: {
-    padding: 16,
-    paddingBottom: 32,
-    backgroundColor: '#6A1B9A',
+  // Right column: qty + total
+  produktControls: {
+    alignItems: 'flex-end',
+    gap: 4,
+    flexShrink: 0,
   },
-  sendSmsBtn: {
+  qtyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  qtyBtn: {
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qtyBtnText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FF9800',
+    lineHeight: 22,
+  },
+  qtyValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#fff',
+    minWidth: 52,
+    textAlign: 'center',
+    paddingHorizontal: 2,
+  },
+  produktTotal: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FF9800',
+  },
+
+  // ── Info note ──────────────────────────────────────────────────────────────
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 4,
+    paddingVertical: 6,
+  },
+  infoText: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.35)',
+  },
+
+  // ── Sticky footer ──────────────────────────────────────────────────────────
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 30,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: '#5c1785',
+    gap: 10,
+  },
+  footerPrice: {
+    flex: 1,
+    gap: 1,
+  },
+  footerPriceLabel: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.5)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  footerPriceValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FF9800',
+  },
+  smsBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FF9800',
-    paddingVertical: 16,
+    height: 52,
+    paddingHorizontal: 18,
     borderRadius: 12,
-    gap: 10,
+    gap: 7,
+    flexShrink: 0,
   },
-  sendSmsBtnText: {
-    fontSize: 17,
+  smsBtnText: {
+    fontSize: 15,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#fff',
   },
-  hintText: {
+
+  // ── Pickup time per farmer ───────────────────────────────────────────────────
+  vyzvednutiBox: {
+    marginHorizontal: 12,
+    marginTop: 4,
+    marginBottom: 8,
+    padding: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  vyzvednutiLabel: {
     fontSize: 12,
+    fontWeight: '600',
     color: 'rgba(255,255,255,0.6)',
-    textAlign: 'center',
-    marginTop: 8,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  vyzvednutiRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  vyzvednutiInput: {
+    flex: 2,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: '#fff',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  vyzvednutiInputCas: {
+    flex: 1,
+  },
+
+  // ── Per-farmer SMS button ───────────────────────────────────────────────────
+  farmarSmsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    margin: 10,
+    marginTop: 6,
+    paddingVertical: 11,
+    borderRadius: 10,
+    backgroundColor: '#FF9800',
+  },
+  farmarSmsBtnSent: {
+    backgroundColor: 'rgba(76,175,80,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(76,175,80,0.4)',
+  },
+  farmarSmsBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  farmarSmsBtnTextSent: {
+    color: '#4CAF50',
+  },
+
+  // ── Multi-farmer footer hint ────────────────────────────────────────────────
+  multiHint: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  multiHintText: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    textAlign: 'right',
   },
 });

@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { useFarmarAuth } from '../utils/farmarAuthContext';
-import { ProtectedRoute } from '../utils/ProtectedRoute';
-import { supabase } from '../../lib/supabase';
+import { useFarmarAuth } from '../_utils/farmarAuthContext';
+import { ProtectedRoute } from '../_utils/ProtectedRoute';
+import { fetchCasovaDostupnostProfil, updateCasovaDostupnost } from '@/features/profil/services/profilService';
 
 function CasovaDostupnostContent() {
   const { farmar } = useFarmarAuth();
@@ -20,15 +20,8 @@ function CasovaDostupnostContent() {
     try {
       if (!farmar?.id) return;
 
-      const { data, error } = await supabase
-        .from('pestitele')
-        .select('casova_dostupnost')
-        .eq('id', farmar.id)
-        .single();
-
-      if (error) throw error;
-
-      setDostupnost(data?.casova_dostupnost || '');
+      const val = await fetchCasovaDostupnostProfil(farmar.id);
+      setDostupnost(val || '');
     } catch (error) {
       console.error('Chyba při načítání dostupnosti:', error);
     } finally {
@@ -45,12 +38,7 @@ function CasovaDostupnostContent() {
         return;
       }
 
-      const { error } = await supabase
-        .from('pestitele')
-        .update({ casova_dostupnost: dostupnost.trim() })
-        .eq('id', farmar.id);
-
-      if (error) throw error;
+      await updateCasovaDostupnost(farmar.id, dostupnost.trim());
 
       // Formátovat datum a čas
       const now = new Date();

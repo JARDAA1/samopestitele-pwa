@@ -1,70 +1,14 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
-import { router, useFocusEffect } from 'expo-router';
-import { useState, useCallback } from 'react';
-import { supabase } from '../../../lib/supabase';
-import { useFarmarAuth } from '../../utils/farmarAuthContext';
+import {
+  View, Text, StyleSheet, TouchableOpacity, ScrollView,
+  ActivityIndicator, RefreshControl,
+} from 'react-native';
+import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-
-interface Objednavka {
-  id: string;
-  stav: string;
-  created_at: string;
-  anon_customer_code?: string;
-  celkova_cena?: number;
-  zakaznik_telefon?: string;
-  poznamka_farmare?: string;
-}
+import { useDokonceneObjednavky } from '@/features/objednavky/hooks/useDokonceneObjednavky';
+import { formatKc } from '../../_utils/formatKc';
 
 export default function DokonceneObjednavkyScreen() {
-  const { farmar } = useFarmarAuth();
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [objednavky, setObjednavky] = useState<Objednavka[]>([]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (farmar?.id) {
-        loadData(farmar.id);
-      } else {
-        setLoading(false);
-      }
-    }, [farmar])
-  );
-
-  const loadData = async (pestitelId: string, isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
-      const { data, error } = await supabase
-        .from('objednavky')
-        .select('id, stav, created_at, anon_customer_code, celkova_cena, zakaznik_telefon, poznamka_farmare')
-        .eq('pestitel_id', pestitelId)
-        .in('stav', ['dokoncena', 'odmitnuta', 'zrusena'])
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error('Chyba:', error);
-      } else {
-        setObjednavky(data || []);
-      }
-    } catch (error) {
-      console.error('Chyba:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const onRefresh = useCallback(() => {
-    if (farmar?.id) {
-      loadData(farmar.id, true);
-    }
-  }, [farmar]);
+  const { loading, refreshing, objednavky, refresh } = useDokonceneObjednavky();
 
   const formatDate = (datum: string) => {
     const d = new Date(datum);
@@ -77,14 +21,10 @@ export default function DokonceneObjednavkyScreen() {
 
   const getStavInfo = (stav: string) => {
     switch (stav) {
-      case 'dokoncena':
-        return { text: 'Dokončena', color: '#4CAF50', icon: '✅' };
-      case 'odmitnuta':
-        return { text: 'Odmítnuta', color: '#F44336', icon: '❌' };
-      case 'zrusena':
-        return { text: 'Zrušena', color: '#9E9E9E', icon: '🚫' };
-      default:
-        return { text: stav, color: '#999', icon: '📋' };
+      case 'dokoncena': return { text: 'Dokončena', color: '#4CAF50', icon: '✅' };
+      case 'odmitnuta': return { text: 'Odmítnuta', color: '#F44336', icon: '❌' };
+      case 'zrusena':   return { text: 'Zrušena',   color: '#9E9E9E', icon: '🚫' };
+      default:          return { text: stav,         color: '#999',    icon: '📋' };
     }
   };
 
@@ -101,10 +41,7 @@ export default function DokonceneObjednavkyScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Feather name="arrow-left" size={22} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Dokončené objednávky</Text>
@@ -116,7 +53,7 @@ export default function DokonceneObjednavkyScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={onRefresh}
+            onRefresh={refresh}
             tintColor="#ffffff"
             colors={['#FF9800']}
           />
@@ -130,12 +67,15 @@ export default function DokonceneObjednavkyScreen() {
         ) : (
           objednavky.map((objednavka) => {
             const stavInfo = getStavInfo(objednavka.stav);
-
             return (
               <TouchableOpacity
                 key={objednavka.id}
                 style={styles.orderCard}
-                onPress={() => router.push(`/moje-prodejna/detail-objednavky?id=${objednavka.id}`)}
+                onPress={() =>
+                  router.push(
+                    `/moje-prodejna/detail-objednavky?id=${objednavka.id}`
+                  )
+                }
               >
                 <View style={styles.orderRow}>
                   <Text style={styles.orderIcon}>{stavInfo.icon}</Text>
@@ -146,12 +86,21 @@ export default function DokonceneObjednavkyScreen() {
                           ? `Zákazník ${objednavka.anon_customer_code}`
                           : 'Zákazník')}
                     </Text>
-                    <Text style={styles.orderDate}>{formatDate(objednavka.created_at)}</Text>
+                    <Text style={styles.orderDate}>
+                      {formatDate(objednavka.created_at)}
+                    </Text>
                     {objednavka.celkova_cena && objednavka.celkova_cena > 0 && (
-                      <Text style={styles.orderPrice}>{objednavka.celkova_cena.toFixed(0)} Kč</Text>
+                      <Text style={styles.orderPrice}>
+                        {formatKc(objednavka.celkova_cena)} Kč
+                      </Text>
                     )}
                   </View>
-                  <View style={[styles.statusBadge, { backgroundColor: stavInfo.color + '30' }]}>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      { backgroundColor: stavInfo.color + '30' },
+                    ]}
+                  >
                     <Text style={[styles.statusText, { color: stavInfo.color }]}>
                       {stavInfo.text}
                     </Text>
@@ -167,21 +116,9 @@ export default function DokonceneObjednavkyScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#6A1B9A',
-  },
-  centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-  },
-
-  // Header
+  container: { flex: 1, backgroundColor: '#6A1B9A' },
+  centerContent: { justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: 10, fontSize: 14, color: 'rgba(255,255,255,0.7)' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -206,68 +143,22 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
   },
-
-  // Content
-  content: {
-    flex: 1,
-    padding: 12,
-  },
-
-  // Empty
-  emptyContainer: {
-    alignItems: 'center',
-    paddingTop: 60,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.7)',
-  },
-
-  // Order cards
+  content: { flex: 1, padding: 12 },
+  emptyContainer: { alignItems: 'center', paddingTop: 60 },
+  emptyIcon: { fontSize: 48, marginBottom: 16 },
+  emptyText: { fontSize: 16, color: 'rgba(255,255,255,0.7)' },
   orderCard: {
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 10,
     padding: 14,
     marginBottom: 10,
   },
-  orderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  orderIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  orderInfo: {
-    flex: 1,
-  },
-  customerCode: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  orderDate: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: 2,
-  },
-  orderPrice: {
-    fontSize: 13,
-    color: '#4CAF50',
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
+  orderRow: { flexDirection: 'row', alignItems: 'center' },
+  orderIcon: { fontSize: 24, marginRight: 12 },
+  orderInfo: { flex: 1 },
+  customerCode: { fontSize: 15, fontWeight: '600', color: '#ffffff' },
+  orderDate: { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  orderPrice: { fontSize: 13, color: '#4CAF50', fontWeight: '600', marginTop: 2 },
+  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  statusText: { fontSize: 11, fontWeight: '600' },
 });

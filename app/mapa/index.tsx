@@ -1,12 +1,14 @@
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, ScrollView, Alert, SafeAreaView } from 'react-native';
-import SegmentedSearchMode from '../components/SegmentedSearchMode';
+import SegmentedSearchMode from '../_components/SegmentedSearchMode';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import * as Location from 'expo-location';
-import { fetchProdejniMistaProMapu } from '../utils/locationService';
+import { fetchProdejniMistaProMapu } from '../_utils/locationService';
 import { fetchFarmariProMapu } from '@/features/farmari/services/farmariService';
 import { searchCitiesHybrid, HybridCityResult } from '@/features/mapa/services/citySearchHybridService';
+import { useCustomerList } from '@/shared/context/CustomerListContext';
+import { getOrCreateCustomerId } from '../_utils/customerIdentity';
 
 interface Pestitel {
   id: string;
@@ -85,6 +87,9 @@ export default function MapaScreen() {
   // Odstraněna desktop detection - používáme pouze mobile-first layout
   // Tablet layout je řešen globálně přes AppLayout wrapper
 
+  const { items: customerListItems } = useCustomerList();
+  const [objednanyPestitelIds, setObjednanyPestitelIds] = useState<Set<number>>(new Set());
+
   const [pestitele, setPestitele] = useState<MapaPolozka[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtering, setFiltering] = useState(false); // Nový stav pro filtrování
@@ -135,9 +140,24 @@ export default function MapaScreen() {
   useEffect(() => {
     loadPestitele();
     loadProdukty();
-    // Automaticky získat polohu a spustit filtrování při načtení
     initializeLocationAndFilter();
+    loadObjednavky();
   }, []);
+
+  const loadObjednavky = async () => {
+    try {
+      const customerId = await getOrCreateCustomerId();
+      const { data } = await supabase
+        .from('objednavky')
+        .select('pestitel_id')
+        .eq('anon_customer_id', customerId.id);
+      if (data) {
+        setObjednanyPestitelIds(new Set(data.map((o: any) => o.pestitel_id)));
+      }
+    } catch {
+      // tiché selhání — badge se prostě nezobrazí
+    }
+  };
 
   const initializeLocationAndFilter = async () => {
     try {
@@ -590,6 +610,8 @@ export default function MapaScreen() {
                   <Text style={styles.produktyToggleSubtitle}>
                     {selectedProdukty.length > 0
                       ? `Vybráno: ${selectedProdukty.length} produktů`
+                      : searchQuery.trim()
+                      ? `Hledám: ${searchQuery}`
                       : 'Vyberte produkty'}
                   </Text>
                 </View>
@@ -600,8 +622,19 @@ export default function MapaScreen() {
             {/* Seznam produktů - rozbalený */}
             {showProduktyFilter && (
               <View style={styles.produktyCard}>
+                <TextInput
+                  style={styles.produktSearchInput}
+                  placeholder="Napište produkt..."
+                  placeholderTextColor="rgba(255,255,255,0.5)"
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  autoCorrect={false}
+                />
                 <View style={styles.produktyGrid}>
-                  {produkty.map((produkt) => (
+                  {produkty.filter(p =>
+                    searchQuery.trim() === '' ||
+                    removeAccents(p.nazev).includes(removeAccents(searchQuery.trim()))
+                  ).map((produkt) => (
                     <TouchableOpacity
                       key={produkt.id}
                       style={[
@@ -819,7 +852,10 @@ export default function MapaScreen() {
                 </View>
               ) : (
                 <View style={styles.farmersList}>
-                  {filteredPestitele.map((farmer: any) => (
+                  {filteredPestitele.map((farmer: any) => {
+                    const hasCartItems = customerListItems.some(item => item.farmarId === String(farmer.pestitel_id));
+                    const hasOrder = objednanyPestitelIds.has(farmer.pestitel_id);
+                    return (
                     <TouchableOpacity
                       key={farmer.id}
                       style={styles.farmerRow}
@@ -831,6 +867,16 @@ export default function MapaScreen() {
                           <Text style={styles.farmerRowMistoName}>📍 {farmer.nazev_mista}</Text>
                         )}
                         <Text style={styles.farmerRowMesto}>{farmer.mesto}</Text>
+                        {hasOrder && (
+                          <View style={styles.farmerBadgeOrder}>
+                            <Text style={styles.farmerBadgeText}>✅ Tady jsem objednal</Text>
+                          </View>
+                        )}
+                        {!hasOrder && hasCartItems && (
+                          <View style={styles.farmerBadgeCart}>
+                            <Text style={styles.farmerBadgeText}>🛒 Tady něco mám</Text>
+                          </View>
+                        )}
                       </View>
                       <View style={styles.farmerRowRight}>
                         {farmer.distance !== undefined && (
@@ -843,7 +889,8 @@ export default function MapaScreen() {
                         <Text style={styles.farmerRowArrow}>›</Text>
                       </View>
                     </TouchableOpacity>
-                  ))}
+                    );
+                  })}
                 </View>
               )}
             </View>
@@ -949,6 +996,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 0,
     padding: 20,
     maxWidth: 600,
+  },
+  produktSearchInput: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    color: '#ffffff',
+    fontSize: 15,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   produktyGrid: {
     flexDirection: 'row',
@@ -1237,6 +1295,31 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#FF9800',
     fontWeight: '300',
+  },
+  farmerBadgeCart: {
+    marginTop: 4,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,152,0,0.15)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255,152,0,0.4)',
+  },
+  farmerBadgeOrder: {
+    marginTop: 4,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(76,175,80,0.15)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(76,175,80,0.4)',
+  },
+  farmerBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#fff',
   },
   sectionContainer: {
     marginBottom: 16,

@@ -1,7 +1,8 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { useFarmarAuth } from '../utils/farmarAuthContext';
+import { useFarmarAuth } from '../_utils/farmarAuthContext';
+import { validatePin, showAlert } from '../_utils/pinValidation';
 
 export default function VytvoritPinScreen() {
   const { createPin, farmar } = useFarmarAuth();
@@ -11,54 +12,14 @@ export default function VytvoritPinScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleVytvoritPin = async () => {
-    // Validace délky
-    if (pin.length < 4) {
-      if (Platform.OS === 'web') {
-        alert('PIN musí mít minimálně 4 číslice');
-      } else {
-        Alert.alert('Chyba', 'PIN musí mít minimálně 4 číslice');
-      }
+    const pinError = validatePin(pin);
+    if (pinError) {
+      showAlert('Chyba', pinError);
       return;
     }
 
-    // Validace že obsahuje pouze číslice
-    if (!/^\d+$/.test(pin)) {
-      if (Platform.OS === 'web') {
-        alert('PIN může obsahovat pouze číslice');
-      } else {
-        Alert.alert('Chyba', 'PIN může obsahovat pouze číslice');
-      }
-      return;
-    }
-
-    // Validace zakázaných PINů
-    const forbiddenPins = ['1234', '4321', '0000', '1111', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '9999', '12345678', '87654321'];
-    if (forbiddenPins.includes(pin)) {
-      if (Platform.OS === 'web') {
-        alert('Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
-      } else {
-        Alert.alert('Chyba', 'Tento PIN je příliš jednoduchý. Zvolte si jiný PIN.');
-      }
-      return;
-    }
-
-    // Validace opakujících se číslic
-    if (/^(.)\1+$/.test(pin)) {
-      if (Platform.OS === 'web') {
-        alert('PIN nesmí obsahovat pouze stejné číslice.');
-      } else {
-        Alert.alert('Chyba', 'PIN nesmí obsahovat pouze stejné číslice.');
-      }
-      return;
-    }
-
-    // Validace shody
     if (pin !== pinPotvrzeni) {
-      if (Platform.OS === 'web') {
-        alert('PINy se neshodují');
-      } else {
-        Alert.alert('Chyba', 'PINy se neshodují');
-      }
+      showAlert('Chyba', 'PINy se neshodují');
       return;
     }
 
@@ -69,6 +30,7 @@ export default function VytvoritPinScreen() {
     if (result.success) {
       if (Platform.OS === 'web') {
         alert('PIN byl úspěšně vytvořen! Nyní se můžete přihlašovat do Prodejny pomocí PINu.');
+        router.replace('/muj-profil');
       } else {
         Alert.alert(
           'Hotovo!',
@@ -76,25 +38,15 @@ export default function VytvoritPinScreen() {
           [{ text: 'OK', onPress: () => router.replace('/muj-profil') }]
         );
       }
-
-      if (Platform.OS === 'web') {
-        router.replace('/muj-profil');
-      }
     } else {
-      if (Platform.OS === 'web') {
-        alert(result.error || 'Nepodařilo se vytvořit PIN');
-      } else {
-        Alert.alert('Chyba', result.error || 'Nepodařilo se vytvořit PIN');
-      }
+      showAlert('Chyba', result.error || 'Nepodařilo se vytvořit PIN');
     }
   };
 
   const handlePreskocit = () => {
     if (Platform.OS === 'web') {
       const confirmed = confirm('Opravdu chcete přeskočit vytvoření PINu? Budete se muset vždy přihlašovat emailem.');
-      if (confirmed) {
-        router.replace('/muj-profil');
-      }
+      if (confirmed) router.replace('/muj-profil');
     } else {
       Alert.alert(
         'Přeskočit vytvoření PINu?',
@@ -148,6 +100,7 @@ export default function VytvoritPinScreen() {
           <TextInput
             style={styles.pinInput}
             placeholder="••••"
+            placeholderTextColor="rgba(255,255,255,0.5)"
             value={pin}
             onChangeText={setPin}
             keyboardType="number-pad"
@@ -160,6 +113,7 @@ export default function VytvoritPinScreen() {
           <TextInput
             style={styles.pinInput}
             placeholder="••••"
+            placeholderTextColor="rgba(255,255,255,0.5)"
             value={pinPotvrzeni}
             onChangeText={setPinPotvrzeni}
             keyboardType="number-pad"
@@ -201,173 +155,52 @@ export default function VytvoritPinScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
+  container: { flex: 1, backgroundColor: '#6A1B9A' },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 50,
-    paddingBottom: 12,
-    paddingHorizontal: 15,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingTop: 50, paddingBottom: 12, paddingHorizontal: 15,
+    backgroundColor: '#6A1B9A', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#6A1B9A',
-  },
-  headerSpacer: {
-    width: 80,
-  },
-  skipButton: {
-    padding: 8,
-  },
-  skipButtonText: {
-    fontSize: 14,
-    color: '#999',
-    fontWeight: '600',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#ffffff' },
+  headerSpacer: { width: 80 },
+  skipButton: { padding: 8 },
+  skipButtonText: { fontSize: 14, color: 'rgba(255,255,255,0.5)', fontWeight: '600' },
+  content: { flex: 1, padding: 20, justifyContent: 'center' },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderTopWidth: 4,
-    borderTopColor: '#7B1FA2',
+    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12,
+    padding: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
   },
   iconContainer: {
-    alignSelf: 'center',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#F3E5F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
+    alignSelf: 'center', width: 60, height: 60, borderRadius: 30,
+    backgroundColor: 'rgba(255,152,0,0.3)', alignItems: 'center',
+    justifyContent: 'center', marginBottom: 16,
   },
-  icon: {
-    fontSize: 40,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#6A1B9A',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 20,
-  },
+  icon: { fontSize: 28 },
+  title: { fontSize: 20, fontWeight: '700', color: '#ffffff', textAlign: 'center', marginBottom: 8 },
+  subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginBottom: 20, lineHeight: 20 },
   infoBox: {
-    backgroundColor: '#E3F2FD',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
-    borderLeftWidth: 4,
-    borderLeftColor: '#2196F3',
+    backgroundColor: 'rgba(255,255,255,0.1)', padding: 14, borderRadius: 10,
+    marginBottom: 20, borderLeftWidth: 3, borderLeftColor: '#FF9800',
   },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1976D2',
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 13,
-    color: '#666',
-    marginBottom: 4,
-    lineHeight: 18,
-  },
-  infoLabel: {
-    fontWeight: '600',
-    color: '#333',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6A1B9A',
-    marginBottom: 8,
-    marginTop: 8,
-  },
+  infoTitle: { fontSize: 13, fontWeight: '600', color: '#FF9800', marginBottom: 8 },
+  infoText: { fontSize: 12, color: 'rgba(255,255,255,0.8)', marginBottom: 4, lineHeight: 18 },
+  infoLabel: { fontWeight: '600', color: '#ffffff' },
+  label: { fontSize: 14, fontWeight: '600', color: '#ffffff', marginBottom: 8, marginTop: 8 },
   pinInput: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 24,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    marginBottom: 16,
-    textAlign: 'center',
-    letterSpacing: 8,
-    fontWeight: '700',
+    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 14,
+    fontSize: 22, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+    marginBottom: 12, textAlign: 'center', letterSpacing: 8, fontWeight: '700', color: '#ffffff',
   },
-  createButton: {
-    backgroundColor: '#7B1FA2',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  createButtonDisabled: {
-    opacity: 0.6,
-  },
-  createButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  createButton: { backgroundColor: '#FF9800', borderRadius: 10, padding: 14, alignItems: 'center', marginTop: 8 },
+  createButtonDisabled: { opacity: 0.6 },
+  createButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
   helpBox: {
-    backgroundColor: '#FFF3E0',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 24,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF9800',
+    backgroundColor: 'rgba(255,152,0,0.2)', padding: 14, borderRadius: 10,
+    marginTop: 20, borderLeftWidth: 3, borderLeftColor: '#FF9800',
   },
-  helpTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#E65100',
-    marginBottom: 8,
-  },
-  helpText: {
-    fontSize: 12,
-    color: '#666',
-    lineHeight: 18,
-  },
-  farmNumberHighlight: {
-    fontWeight: '700',
-    color: '#E65100',
-    fontSize: 13,
-  },
-  securityBox: {
-    backgroundColor: '#F3E5F5',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 16,
-  },
-  securityText: {
-    fontSize: 11,
-    color: '#6A1B9A',
-    lineHeight: 16,
-    textAlign: 'center',
-  },
+  helpTitle: { fontSize: 13, fontWeight: '600', color: '#FF9800', marginBottom: 6 },
+  helpText: { fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 18 },
+  farmNumberHighlight: { fontWeight: '700', color: '#FF9800', fontSize: 12 },
+  securityBox: { backgroundColor: 'rgba(255,255,255,0.1)', padding: 12, borderRadius: 8, marginTop: 16 },
+  securityText: { fontSize: 11, color: 'rgba(255,255,255,0.7)', lineHeight: 16, textAlign: 'center' },
 });

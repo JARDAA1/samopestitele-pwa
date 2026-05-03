@@ -1,247 +1,513 @@
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
+  ScrollView, ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
-import { useState, useEffect, useCallback } from 'react';
-import { useFarmarAuth } from '../utils/farmarAuthContext';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useFarmarAuth } from '../_utils/farmarAuthContext';
+import { fetchPocetNovychObjednavek } from '@/features/objednavky/services/objednavkyService';
+import { useCart } from '../_utils/cartContext';
+import { useCustomerList } from '@/shared/context/CustomerListContext';
+import { formatMnozstvi } from '../_utils/formatKc';
+import { supabase } from '@/lib/supabaseClient';
+import SellingModeModal from '../_components/SellingModeModal';
+import FarmerStatusCard from '../_components/FarmerStatusCard';
+import StankyDnesSection from '../_components/StankyDnesSection';
+
+type ProdejniMisto = { id: number; nazev: string | null; adresa: string | null };
+
+const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
+  try {
+    const resp = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=cs`,
+      { headers: { 'User-Agent': 'samopestitele-app/1.0' } }
+    );
+    const { address: addr } = await resp.json();
+    if (!addr) return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    const suburb = addr.suburb || addr.quarter || addr.neighbourhood || addr.village;
+    const city = addr.city || addr.town || addr.municipality;
+    if (suburb && city) return `${city} – ${suburb}`;
+    if (city) return city;
+    if (addr.county) return addr.county;
+  } catch { /* fall through */ }
+  return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+};
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const [isMounted, setIsMounted] = useState(false);
-  const { isAuthenticated, isSessionChecked } = useFarmarAuth();
+  const { isAuthenticated, isSessionChecked, farmar } = useFarmarAuth();
+  const { itemCount, cart } = useCart();
+  const { itemCount: listItemCount, lastFarmer } = useCustomerList();
+  const [cartExpanded, setCartExpanded] = useState(false);
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
+  const [ctaDismissed, setCtaDismissed] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  // Farmer status
+  const [pestitelRowId, setPestitelRowId] = useState<string | null>(null);
+  const [activeMisto, setActiveMisto] = useState<ProdejniMisto | null | undefined>(undefined);
+  const [showModal, setShowModal] = useState(false);
+  const [farmerMista, setFarmerMista] = useState<ProdejniMisto[]>([]);
+  const [mistoLoading, setMistoLoading] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [geoError, setGeoError] = useState('');
+  const [farmerProfile, setFarmerProfile] = useState<{
+    nazev_farmy: string | null; adresa: string | null; mesto: string | null;
+    gps_lat: number | null; gps_lng: number | null;
+  } | null>(null);
 
-  // Role-based redirect pro autentizované sellery
-  // Na mobilu přesměrovat na operativu, na desktopu na plný dashboard
+  useEffect(() => { setIsMounted(true); }, []);
+
   const isMobile = isMounted && width < 768;
+  const isDesktop = isMounted && width >= 768;
 
   useFocusEffect(
     useCallback(() => {
-      if (isSessionChecked && isAuthenticated && isMounted) {
-        if (isMobile) {
-          router.replace('/(tabs)/moje-prodejna/operativa');
-        } else {
-          router.replace('/(tabs)/moje-prodejna');
-        }
+      if (isAuthenticated && farmar?.id) {
+        loadFarmerStatus(farmar.id);
+      } else {
+        setPestitelRowId(null);
+        setActiveMisto(undefined);
       }
-    }, [isSessionChecked, isAuthenticated, isMobile, isMounted])
+    }, [isAuthenticated, farmar?.id])
   );
 
-  const isDesktop = isMounted && width >= 768;
+  const loadFarmerStatus = async (pestitelId: string) => {
+    // Parallel: farmer profile + active selling spot
+    const [{ data: row }, { data: misto }] = await Promise.all([
+      supabase.from('pestitele')
+        .select('id,nazev_farmy,adresa,mesto,gps_lat,gps_lng')
+        .eq('id', pestitelId)
+        .maybeSingle(),
+      supabase.from('prodejni_mista')
+        .select('id,nazev,adresa,lat,lng,aktivni,platne_od,platne_do')
+        .eq('pestitel_id', pestitelId)
+        .eq('aktivni', true)
+        .gte('platne_do', new Date().toISOString())
+        .order('platne_od', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
-  // Loading state - čekáme na session check
+    if (!row) { setPestitelRowId(null); setActiveMisto(undefined); return; }
+    setPestitelRowId(String(row.id));
+    setFarmerProfile({
+      nazev_farmy: row.nazev_farmy ?? null, adresa: row.adresa ?? null,
+      mesto: row.mesto ?? null, gps_lat: row.gps_lat ?? null, gps_lng: row.gps_lng ?? null,
+    });
+    setActiveMisto(misto ?? null);
+    setNewOrdersCount(await fetchPocetNovychObjednavek(pestitelId));
+  };
+
+  const refreshActiveMisto = async (pestitelId: string) => {
+    const { data } = await supabase.from('prodejni_mista')
+      .select('id,nazev,adresa,lat,lng,aktivni,platne_od,platne_do')
+      .eq('pestitel_id', pestitelId)
+      .eq('aktivni', true)
+      .gte('platne_do', new Date().toISOString())
+      .order('platne_od', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setActiveMisto(data ?? null);
+  };
+
+  const handleCardPress = async () => {
+    if (!pestitelRowId || activeMisto === undefined) return;
+    if (activeMisto !== null) {
+      const prev = activeMisto;
+      setActiveMisto(null);
+      const { error } = await supabase.rpc('deactivate_selling', { p_pestitel_id: pestitelRowId });
+      if (error) { setActiveMisto(prev); console.error('deactivate_selling:', error); }
+    } else {
+      setGeoError('');
+      setShowModal(true);
+      setMistoLoading(true);
+      const { data } = await supabase.from('prodejni_mista')
+        .select('id,nazev,adresa,lat,lng,aktivni,platne_od,platne_do')
+        .eq('pestitel_id', pestitelRowId)
+        .neq('nazev', 'Mobilní prodej')
+        .order('created_at', { ascending: false });
+      let mista: ProdejniMisto[] = data ?? [];
+      if (mista.length === 0 && farmerProfile) {
+        const addr = farmerProfile.adresa || farmerProfile.mesto;
+        if (addr) mista = [{ id: -2, nazev: farmerProfile.nazev_farmy || 'Moje prodejna', adresa: addr }];
+      }
+      setFarmerMista(mista);
+      setMistoLoading(false);
+    }
+  };
+
+  const handleSelectStale = async (misto: ProdejniMisto) => {
+    if (!pestitelRowId) return;
+    setModalLoading(true);
+    const prev = activeMisto;
+    setActiveMisto(misto);
+    setShowModal(false);
+    const result = misto.id === -2
+      ? await supabase.rpc('activate_mobile_today', {
+          p_pestitel_id: pestitelRowId,
+          p_lat: farmerProfile?.gps_lat ?? 0, p_lng: farmerProfile?.gps_lng ?? 0,
+          p_lokace_text: misto.adresa || misto.nazev || 'Moje prodejna', p_hours: 12,
+        })
+      : await supabase.rpc('set_active_sales_location', {
+          p_prodejni_misto_id: misto.id, p_pestitel_id: pestitelRowId, p_hours: 12,
+        });
+    if (result.error) {
+      setActiveMisto(prev);
+      setShowModal(true);
+      console.error('handleSelectStale error:', result.error);
+    } else {
+      await refreshActiveMisto(pestitelRowId);
+    }
+    setModalLoading(false);
+  };
+
+  const handleActivateMobilni = async () => {
+    if (!pestitelRowId) return;
+    setGeoError('');
+    setLocationLoading(true);
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        if (typeof navigator === 'undefined' || !navigator.geolocation) {
+          reject(new Error('Geolokace není dostupná v tomto prohlížeči.')); return;
+        }
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000, enableHighAccuracy: true });
+      });
+      const { latitude: lat, longitude: lng } = position.coords;
+      const lokaceText = await reverseGeocode(lat, lng);
+      setActiveMisto({ id: -1, nazev: 'Mobilní prodej', adresa: lokaceText });
+      setShowModal(false);
+      const { error } = await supabase.rpc('activate_mobile_today', {
+        p_pestitel_id: pestitelRowId, p_lat: lat, p_lng: lng,
+        p_lokace_text: lokaceText, p_hours: 12,
+      });
+      if (error) {
+        setActiveMisto(null);
+        console.error('activate_mobile_today error:', error);
+        setShowModal(true);
+      } else {
+        await refreshActiveMisto(pestitelRowId);
+      }
+    } catch (err: any) {
+      const denied = err?.code === 1 || err?.message?.toLowerCase().includes('denied') || err?.message?.toLowerCase().includes('permission');
+      setGeoError(denied ? 'Pro mobilní režim povolte polohu (GPS).' : (err?.message || 'Nepodařilo se získat polohu.'));
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  const cartGroups = useMemo(
+    () => cart.reduce((acc, item) => {
+      if (!acc[item.pestitelId]) acc[item.pestitelId] = { nazev: item.pestitelNazev, items: [] as typeof cart };
+      acc[item.pestitelId].items.push(item);
+      return acc;
+    }, {} as Record<number, { nazev: string; items: typeof cart }>),
+    [cart]
+  );
+
+  const showStatusCard = isAuthenticated && pestitelRowId !== null && activeMisto !== undefined;
+  const isActive = showStatusCard && activeMisto !== null;
+
   if (!isSessionChecked) {
     return (
-      <SafeAreaView style={[styles.safeArea, styles.centerContent]} edges={['top']}>
+      <SafeAreaView style={[s.safeArea, s.center]} edges={['top']}>
         <ActivityIndicator size="large" color="#FF9800" />
       </SafeAreaView>
     );
   }
 
-  // Pokud je autentizován, nerendrovat homepage (probíhá redirect)
-  if (isAuthenticated) {
-    return null;
-  }
-
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        {/* Hero sekce */}
-        <View style={[styles.hero, isDesktop && styles.heroDesktop]}>
-        <Text style={[styles.title, isDesktop && styles.titleDesktop]}>
-          Čerstvé produkty přímo od pěstitelů v okolí
-        </Text>
-        <Text style={[styles.subtitle, isDesktop && styles.subtitleDesktop]}>
-          Najděte lokální nabídku tam, kde právě jste.{'\n'}
-          Nejde o e-shop ani doručení domů.{'\n'}
-          Produkty si vyzvednete přímo u pěstitele.
-        </Text>
-        <Text style={[styles.subtitleSecondary, isDesktop && styles.subtitleSecondaryDesktop]}>
-          Ideální pro návštěvníky regionu, chalupáře i místní.
-        </Text>
-      </View>
+    <SafeAreaView style={s.safeArea} edges={['top']}>
+      <SellingModeModal
+        visible={showModal}
+        mistoLoading={mistoLoading}
+        modalLoading={modalLoading}
+        locationLoading={locationLoading}
+        geoError={geoError}
+        farmerMista={farmerMista}
+        onSelectStale={handleSelectStale}
+        onActivateMobilni={handleActivateMobilni}
+        onClose={() => { setShowModal(false); setGeoError(''); }}
+      />
 
-      {/* Dvě cesty */}
-      <View style={[styles.pathsContainer, isDesktop && styles.pathsContainerDesktop]}>
-        <TouchableOpacity
-          style={[styles.pathCard, isDesktop && styles.pathCardDesktop]}
-          onPress={() => router.push('/mapa')}
-        >
-          <View style={styles.pathCardRow}>
-            <Text style={styles.pathEmoji}>🍎</Text>
-            <View style={styles.pathCardContent}>
-              <Text style={styles.pathTitle}>Hledám produkty v okolí</Text>
-              <Text style={styles.pathDescription}>Najít pěstitele na mapě</Text>
-            </View>
-            <Text style={styles.pathArrow}>→</Text>
+      {itemCount > 0 && (
+        <TouchableOpacity style={s.cartButton} onPress={() => router.push('/kosik')}>
+          <Text style={s.cartIcon}>🛒</Text>
+          <View style={s.badge}>
+            <Text style={s.badgeText}>{itemCount > 99 ? '99+' : itemCount}</Text>
           </View>
         </TouchableOpacity>
+      )}
 
-        <TouchableOpacity
-          style={[styles.pathCard, isDesktop && styles.pathCardDesktop]}
-          onPress={() => router.push('/moje-prodejna')}
-        >
-          <View style={styles.pathCardRow}>
-            <Text style={styles.pathEmoji}>🧺</Text>
-            <View style={styles.pathCardContent}>
-              <Text style={styles.pathTitle}>Chci nabízet své produkty</Text>
-              <Text style={styles.pathDescription}>Založit prodejnu</Text>
-            </View>
-            <Text style={styles.pathArrow}>→</Text>
+      <ScrollView style={s.container} contentContainerStyle={s.content}>
+
+        {/* Hero */}
+        <View style={[s.hero, isDesktop && s.heroDesktop]}>
+          <View style={s.betaBadge}>
+            <Text style={s.betaBadgeText}>BETA</Text>
           </View>
-        </TouchableOpacity>
-      </View>
-
-        {/* Footer info */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Spojujeme pěstitele s lidmi, kteří chtějí jíst zdravě a lokálně
+          <Text style={[s.appName, isDesktop && s.appNameDesktop]}>
+            Samopěstitelé
           </Text>
-          <Text style={styles.footerEmail}>info@samopestitele.cz</Text>
+          <Text style={[s.title, isDesktop && s.titleDesktop]}>
+            Čerstvé produkty přímo od pěstitelů v okolí
+          </Text>
+          <Text style={[s.subtitle, isDesktop && s.subtitleDesktop]}>
+            Objednej online, vyzvedni u pěstitele.{'\n'}
+            Sezonní ovoce, zelenina a produkty farmy přímo ze zdroje.
+          </Text>
+          <Text style={[s.subtitleSecondary, isDesktop && s.subtitleSecondaryDesktop]}>
+            Ideální pro návštěvníky regionu, chalupáře i místní.
+          </Text>
         </View>
+
+        {/* ─── 1. ZÁKAZNÍCI ────────────────────────────────── */}
+        <View style={[s.zone, isDesktop && s.zoneDesktop]}>
+          <Text style={[s.zoneLabel, { color: '#66BB6A' }]}>🍎 Zákazníci</Text>
+
+          <View style={[s.card, s.cardCustomer]}>
+            <TouchableOpacity onPress={() => router.push('/mapa')} activeOpacity={0.7}>
+              <View style={s.cardRow}>
+                <Text style={s.emoji}>🍎</Text>
+                <View style={s.cardContent}>
+                  <Text style={s.cardTitle}>Hledám produkty v okolí</Text>
+                  <Text style={s.cardDesc}>Najít pěstitele na mapě</Text>
+                </View>
+                {listItemCount > 0 && (
+                  <View style={[s.pill, { backgroundColor: '#FF9800' }]}>
+                    <Text style={s.pillText}>{listItemCount > 99 ? '99+' : listItemCount}</Text>
+                  </View>
+                )}
+                <Text style={s.arrow}>→</Text>
+              </View>
+            </TouchableOpacity>
+
+            {listItemCount > 0 && lastFarmer && !ctaDismissed && (
+              <>
+                <View style={s.divider} />
+                <View style={s.ctaRow}>
+                  <TouchableOpacity
+                    style={{ flex: 1 }}
+                    onPress={() => router.push(`/farmar/${lastFarmer.id}` as any)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={s.ctaText}>Pokračovat u: {lastFarmer.name} →</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={s.ctaClose} onPress={() => setCtaDismissed(true)}>
+                    <Text style={s.ctaCloseText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+
+            {itemCount > 0 && (
+              <>
+                <View style={s.divider} />
+                <TouchableOpacity style={s.cardRow} onPress={() => setCartExpanded(p => !p)} activeOpacity={0.7}>
+                  <Text style={s.cartLabel}>🛒 Již vybráno</Text>
+                  <View style={[s.pill, { backgroundColor: '#FF9800' }]}>
+                    <Text style={s.pillText}>{itemCount}</Text>
+                  </View>
+                  <Text style={s.chevron}>{cartExpanded ? '▲' : '▼'}</Text>
+                </TouchableOpacity>
+                {cartExpanded && (
+                  <View style={s.cartList}>
+                    {Object.values(cartGroups).map((group, gi) => (
+                      <View key={gi} style={gi > 0 ? s.groupSep : undefined}>
+                        <Text style={s.groupName}>🧺 {group.nazev}</Text>
+                        {group.items.map((item, i) => (
+                          <Text key={i} style={s.groupItem}>
+                            • {item.nazev} — {formatMnozstvi(item.mnozstvi)} {item.jednotka}
+                          </Text>
+                        ))}
+                      </View>
+                    ))}
+                    <TouchableOpacity style={s.goBtn} onPress={() => router.push('/kosik')}>
+                      <Text style={s.goBtnText}>Přejít do košíku →</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </>
+            )}
+          </View>
+        </View>
+
+        {/* ─── 2. FARMÁŘI A PĚSTITELÉ ─────────────────────── */}
+        <View style={[s.zone, s.zoneSep, isDesktop && s.zoneDesktop]}>
+          <Text style={[s.zoneLabel, { color: 'rgba(206,147,216,0.9)' }]}>🧺 Farmáři a pěstitelé</Text>
+
+          {/* Status karta — přepínač Prodávám / Neprodávám (jen registrovaní) */}
+          {showStatusCard && (
+            <FarmerStatusCard
+              isActive={isActive}
+              activeMisto={activeMisto}
+              isDesktop={isDesktop}
+              defaultAdresa={farmerProfile?.adresa || farmerProfile?.mesto || undefined}
+              onPress={handleCardPress}
+            />
+          )}
+
+          {/* Moje prodejna — hlavní pro neregistrované, sekundární pro registrované */}
+          <TouchableOpacity
+            style={[s.card, s.cardFarmer, showStatusCard && s.cardSecondary]}
+            onPress={() => router.push(
+              isAuthenticated
+                ? (isMobile ? '/(tabs)/moje-prodejna/operativa' : '/(tabs)/moje-prodejna')
+                : '/moje-prodejna'
+            )}
+          >
+            <View style={s.cardRow}>
+              <Text style={s.emoji}>🏠</Text>
+              <View style={s.cardContent}>
+                <Text style={[s.cardTitle, showStatusCard && s.cardTitleMuted]}>Moje prodejna</Text>
+                <Text style={s.cardDesc}>
+                  {isAuthenticated
+                    ? 'Spravovat produkty a objednávky'
+                    : 'Jen doplnění a správa profilu'}
+                </Text>
+              </View>
+              {newOrdersCount > 0 && (
+                <View style={[s.pill, { backgroundColor: '#F44336' }]}>
+                  <Text style={s.pillText}>{newOrdersCount}</Text>
+                </View>
+              )}
+              <Text style={s.arrow}>→</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* ─── 3. PŘÍLEŽITOSTNÍ PRODEJCI ───────────────────── */}
+        <View style={[s.zone, s.zoneSep, isDesktop && s.zoneDesktop]}>
+          <Text style={[s.zoneLabel, { color: '#FFA726' }]}>🌻 Prodejci bez registrace</Text>
+          <TouchableOpacity
+            style={[s.card, s.cardSeller]}
+            onPress={() => router.push('/stanky/pridat')}
+            activeOpacity={0.75}
+          >
+            <View style={s.cardRow}>
+              <Text style={s.emoji}>🌻</Text>
+              <View style={s.cardContent}>
+                <Text style={s.cardTitle}>Prodávám tady dnes</Text>
+                <Text style={s.cardDesc}>Bez registrace · foto + poloha · zmizí o půlnoci</Text>
+              </View>
+              <Text style={s.arrow}>→</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Stánky dnes — kdo dnes prodává v okolí */}
+        <StankyDnesSection isDesktop={isDesktop} />
+
+        {/* Footer */}
+        <View style={s.footer}>
+          <Text style={s.footerText}>Spojujeme pěstitele s lidmi, kteří chtějí jíst zdravě a lokálně</Text>
+          <Text style={s.footerEmail}>info@samopestitele.cz</Text>
+        </View>
+
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#6A1B9A',
-  },
-  centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#6A1B9A',
-  },
-  contentContainer: {
-    flexGrow: 1,
-  },
+const s = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#6A1B9A' },
+  center: { justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: '#6A1B9A' },
+  content: { flexGrow: 1 },
 
-  // Hero sekce
-  hero: {
-    paddingTop: 20,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
-  },
-  heroDesktop: {
-    paddingTop: 40,
-    paddingBottom: 32,
-    paddingHorizontal: 80,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#ffffff',
-    lineHeight: 32,
-    marginBottom: 8,
-  },
-  titleDesktop: {
-    fontSize: 48,
-    lineHeight: 56,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    lineHeight: 22,
-    marginBottom: 8,
-  },
-  subtitleDesktop: {
-    fontSize: 17,
-    textAlign: 'center',
-    lineHeight: 26,
+  // Hero
+  betaBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     marginBottom: 12,
   },
-  subtitleSecondary: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
-    fontStyle: 'italic',
-    marginBottom: 16,
+  betaBadgeText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.5,
   },
-  subtitleSecondaryDesktop: {
-    fontSize: 15,
-    textAlign: 'center',
-    marginBottom: 24,
+  hero: { paddingTop: 20, paddingBottom: 16, paddingHorizontal: 20 },
+  heroDesktop: { paddingTop: 40, paddingBottom: 32, paddingHorizontal: 80, alignItems: 'center' },
+  appName: { fontSize: 32, fontWeight: '800', color: '#fff', letterSpacing: 0.5, marginBottom: 4 },
+  appNameDesktop: { fontSize: 56, textAlign: 'center', marginBottom: 8 },
+  title: { fontSize: 16, fontWeight: '400', color: 'rgba(255,255,255,0.75)', lineHeight: 22, marginBottom: 8 },
+  titleDesktop: { fontSize: 20, lineHeight: 28, textAlign: 'center' },
+  subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', lineHeight: 22, marginBottom: 8 },
+  subtitleDesktop: { fontSize: 17, textAlign: 'center', lineHeight: 26, marginBottom: 12 },
+  subtitleSecondary: { fontSize: 13, color: 'rgba(255,255,255,0.6)', fontStyle: 'italic', marginBottom: 16 },
+  subtitleSecondaryDesktop: { fontSize: 15, textAlign: 'center', marginBottom: 24 },
+
+  // Zóny (tři sekce: zákazníci / farmáři / prodejci)
+  zone: { paddingHorizontal: 20, paddingTop: 20, gap: 10 },
+  zoneSep: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: 24, marginTop: 8 },
+  zoneDesktop: { maxWidth: 720, alignSelf: 'center', width: '100%', paddingHorizontal: 40 },
+  zoneLabel: {
+    fontSize: 12, fontWeight: '700',
+    textTransform: 'uppercase', letterSpacing: 1.4, marginBottom: 2,
   },
 
-  // Cesty (karty) - kompaktní horizontální layout pro mobil
-  pathsContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    gap: 12,
+  // Karty
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12,
+    padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
   },
-  pathsContainerDesktop: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    paddingHorizontal: 80,
-    gap: 24,
-    maxWidth: 1000,
-    alignSelf: 'center',
-    width: '100%',
+  cardSecondary: { backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.12)' },
+  cardCustomer: { borderLeftWidth: 3, borderLeftColor: '#66BB6A' },
+  cardFarmer:   { borderLeftWidth: 3, borderLeftColor: '#CE93D8' },
+  cardSeller:   { borderLeftWidth: 3, borderLeftColor: '#FFA726' },
+  cardRow: { flexDirection: 'row', alignItems: 'center' },
+  cardContent: { flex: 1, marginLeft: 12 },
+  emoji: { fontSize: 32 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 2 },
+  cardTitleMuted: { fontSize: 14, fontWeight: '600' },
+  cardDesc: { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
+  arrow: { fontSize: 18, color: '#FF9800', marginLeft: 8 },
+
+  // Shared pill badge (used for cart, list count, new orders)
+  pill: { borderRadius: 9, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 5, marginRight: 4 },
+  pillText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+
+  // Cart summary
+  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginTop: 10, marginBottom: 4 },
+  cartLabel: { fontSize: 13, color: '#FF9800', fontWeight: '600', flex: 1 },
+  chevron: { fontSize: 11, color: 'rgba(255,255,255,0.5)' },
+  cartList: { marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
+  groupSep: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
+  groupName: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.9)', marginBottom: 3 },
+  groupItem: { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginLeft: 8, lineHeight: 18 },
+  goBtn: { marginTop: 10, backgroundColor: '#FF9800', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
+  goBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+
+  // Cart floating button
+  cartButton: {
+    position: 'absolute', top: 8, right: 16, zIndex: 10,
+    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 22, width: 44, height: 44,
+    justifyContent: 'center', alignItems: 'center',
   },
-  pathCard: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+  badge: {
+    position: 'absolute', top: -2, right: -2, backgroundColor: '#FF9800',
+    borderRadius: 9, minWidth: 18, height: 18, justifyContent: 'center',
+    alignItems: 'center', paddingHorizontal: 4,
   },
-  pathCardDesktop: {
-    flex: 1,
-    maxWidth: 400,
-    padding: 24,
-  },
-  pathCardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  pathCardContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  pathEmoji: {
-    fontSize: 32,
-  },
-  pathTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#ffffff',
-    marginBottom: 2,
-  },
-  pathDescription: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  pathArrow: {
-    fontSize: 18,
-    color: '#FF9800',
-    marginLeft: 8,
-  },
+  badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  cartIcon: { fontSize: 20 },
+
+  // CTA
+  ctaRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 },
+  ctaText: { fontSize: 13, color: '#FF9800', fontWeight: '600' },
+  ctaClose: { padding: 4, marginLeft: 8 },
+  ctaCloseText: { fontSize: 14, color: 'rgba(255,255,255,0.4)', fontWeight: '600' },
 
   // Footer
-  footer: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.1)',
-    marginTop: 'auto',
-  },
-  footerText: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: 'center',
-  },
-  footerEmail: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
-    textAlign: 'center',
-    marginTop: 8,
-  },
+  footer: { paddingHorizontal: 20, paddingVertical: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', marginTop: 24, marginBottom: 8 },
+  footerText: { fontSize: 12, color: 'rgba(255,255,255,0.6)', textAlign: 'center' },
+  footerEmail: { fontSize: 12, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 8 },
 });

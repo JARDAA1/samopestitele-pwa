@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { useFarmarAuth } from '../utils/farmarAuthContext';
+import { useFarmarAuth } from '../_utils/farmarAuthContext';
 
 export default function ZapomenuteUdajeScreen() {
   const { sendMagicLink } = useFarmarAuth();

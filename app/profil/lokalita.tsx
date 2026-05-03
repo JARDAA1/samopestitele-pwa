@@ -1,17 +1,10 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, TextInput, ActivityIndicator, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import * as Location from 'expo-location';
-import { useFarmarAuth } from '../utils/farmarAuthContext';
-
-interface FarmarData {
-  id: string;
-  mesto: string;
-  adresa: string | null;
-  gps_lat: number;
-  gps_lng: number;
-}
+import { useFarmarAuth } from '../_utils/farmarAuthContext';
+import { fetchLokace, updateLokace } from '@/features/profil/services/profilService';
+import type { LokaceData as FarmarData } from '@/features/profil/services/profilService';
 
 export default function LokalitaScreen() {
   const { farmar, isAuthenticated } = useFarmarAuth();
@@ -50,13 +43,7 @@ export default function LokalitaScreen() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('pestitele')
-        .select('id, mesto, adresa, gps_lat, gps_lng')
-        .eq('id', farmar.id)
-        .single();
-
-      if (error) throw error;
+      const data = await fetchLokace(farmar.id);
 
       if (data) {
         setFarmarData(data);
@@ -169,17 +156,12 @@ export default function LokalitaScreen() {
         }
       }
 
-      const { error } = await supabase
-        .from('pestitele')
-        .update({
-          mesto: mesto.trim(),
-          adresa: adresa.trim() || null,
-          gps_lat: finalLat,
-          gps_lng: finalLng,
-        })
-        .eq('id', farmar.id);
-
-      if (error) throw error;
+      await updateLokace(farmar.id, {
+        mesto: mesto.trim(),
+        adresa: adresa.trim() || null,
+        gps_lat: finalLat,
+        gps_lng: finalLng,
+      });
 
       showAlert('Uloženo', 'Lokalita byla úspěšně aktualizována');
       router.back();
@@ -302,7 +284,7 @@ export default function LokalitaScreen() {
             </View>
           )}
 
-          {!useMyLocation && farmarData && (farmarData.gps_lat !== 0 || farmarData.gps_lng !== 0) && (
+          {!useMyLocation && farmarData && farmarData.gps_lat != null && farmarData.gps_lng != null && (farmarData.gps_lat !== 0 || farmarData.gps_lng !== 0) && (
             <View style={styles.gpsInfo}>
               <Text style={styles.gpsInfoText}>
                 📍 Aktuální GPS: {farmarData.gps_lat.toFixed(6)}, {farmarData.gps_lng.toFixed(6)}
