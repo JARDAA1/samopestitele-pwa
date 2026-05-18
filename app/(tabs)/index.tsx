@@ -1,6 +1,6 @@
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
-  ScrollView, ActivityIndicator,
+  ScrollView, ActivityIndicator, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
@@ -75,7 +75,6 @@ export default function HomeScreen() {
   );
 
   const loadFarmerStatus = async (pestitelId: string) => {
-    // Parallel: farmer profile + active selling spot
     const [{ data: row }, { data: misto }] = await Promise.all([
       supabase.from('pestitele')
         .select('id,nazev_farmy,adresa,mesto,gps_lat,gps_lng')
@@ -241,7 +240,13 @@ export default function HomeScreen() {
         </TouchableOpacity>
       )}
 
-      <ScrollView style={s.container} contentContainerStyle={s.content}>
+      <ScrollView
+        style={s.container}
+        contentContainerStyle={[
+          s.content,
+          Platform.OS === 'web' && { maxWidth: 520, alignSelf: 'center' as const, width: '100%' },
+        ]}
+      >
 
         {/* Hero */}
         <View style={[s.hero, isDesktop && s.heroDesktop]}>
@@ -292,10 +297,12 @@ export default function HomeScreen() {
         <View style={[s.zone, isDesktop && s.zoneDesktop]}>
           <Text style={[s.zoneLabel, { color: '#66BB6A' }]}>🍎 Zákazníci</Text>
 
-          <View style={[s.card, s.cardCustomer]}>
+          <View style={s.card}>
             <TouchableOpacity onPress={() => router.push('/mapa')} activeOpacity={0.7}>
               <View style={s.cardRow}>
-                <Text style={s.emoji}>🍎</Text>
+                <View style={[s.iconBg, { backgroundColor: 'rgba(102,187,106,0.12)' }]}>
+                  <Text style={s.emoji}>🍎</Text>
+                </View>
                 <View style={s.cardContent}>
                   <Text style={s.cardTitle}>Hledám produkty v okolí</Text>
                   <Text style={s.cardDesc}>Najít pěstitele na mapě</Text>
@@ -363,7 +370,6 @@ export default function HomeScreen() {
         <View style={[s.zone, s.zoneSep, isDesktop && s.zoneDesktop]}>
           <Text style={[s.zoneLabel, { color: '#3a7a18' }]}>🧺 Farmáři a pěstitelé</Text>
 
-          {/* Status karta — přepínač Prodávám / Neprodávám (jen registrovaní) */}
           {showStatusCard && (
             <FarmerStatusCard
               isActive={isActive}
@@ -374,9 +380,8 @@ export default function HomeScreen() {
             />
           )}
 
-          {/* Moje prodejna — hlavní pro neregistrované, sekundární pro registrované */}
           <TouchableOpacity
-            style={[s.card, s.cardFarmer, showStatusCard && s.cardSecondary]}
+            style={[s.card, showStatusCard && s.cardSecondary]}
             onPress={() => router.push(
               isAuthenticated
                 ? (isMobile ? '/(tabs)/moje-prodejna/operativa' : '/(tabs)/moje-prodejna')
@@ -384,7 +389,9 @@ export default function HomeScreen() {
             )}
           >
             <View style={s.cardRow}>
-              <Text style={s.emoji}>🏠</Text>
+              <View style={[s.iconBg, { backgroundColor: 'rgba(58,122,24,0.1)' }]}>
+                <Text style={s.emoji}>🏠</Text>
+              </View>
               <View style={s.cardContent}>
                 <Text style={[s.cardTitle, showStatusCard && s.cardTitleMuted]}>Moje prodejna</Text>
                 <Text style={s.cardDesc}>
@@ -407,12 +414,14 @@ export default function HomeScreen() {
         <View style={[s.zone, s.zoneSep, isDesktop && s.zoneDesktop]}>
           <Text style={[s.zoneLabel, { color: '#FFA726' }]}>🌻 Prodejci bez registrace</Text>
           <TouchableOpacity
-            style={[s.card, s.cardSeller]}
+            style={s.card}
             onPress={() => router.push('/stanky/pridat')}
             activeOpacity={0.75}
           >
             <View style={s.cardRow}>
-              <Text style={s.emoji}>🌻</Text>
+              <View style={[s.iconBg, { backgroundColor: 'rgba(255,167,38,0.12)' }]}>
+                <Text style={s.emoji}>🌻</Text>
+              </View>
               <View style={s.cardContent}>
                 <Text style={s.cardTitle}>Prodávám tady dnes</Text>
                 <Text style={s.cardDesc}>Bez registrace · foto + poloha · zmizí o půlnoci</Text>
@@ -437,10 +446,10 @@ export default function HomeScreen() {
 }
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f4fae8' },
+  safeArea: { flex: 1, backgroundColor: '#f8faf4' },
   center: { justifyContent: 'center', alignItems: 'center' },
-  container: { flex: 1, backgroundColor: '#f4fae8' },
-  content: { flexGrow: 1 },
+  container: { flex: 1, backgroundColor: '#f8faf4' },
+  content: { flexGrow: 1, paddingBottom: 24 },
 
   // Hero
   betaBadge: {
@@ -459,55 +468,73 @@ const s = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1.5,
   },
-  hero: { paddingTop: 20, paddingBottom: 16, paddingHorizontal: 20 },
+  hero: { paddingTop: 20, paddingBottom: 16, paddingHorizontal: 16 },
   heroDesktop: { paddingTop: 40, paddingBottom: 32, paddingHorizontal: 80, alignItems: 'center' },
-  appName: { fontSize: 32, fontWeight: '800', color: '#1a3a1a', letterSpacing: 0.5, marginBottom: 4 },
+  appName: { fontSize: 36, fontWeight: '800', color: '#1a3a1a', letterSpacing: -1, marginBottom: 4 },
   appNameDesktop: { fontSize: 56, textAlign: 'center', marginBottom: 8 },
-  title: { fontSize: 16, fontWeight: '400', color: '#4a6a3a', lineHeight: 22, marginBottom: 8 },
+  title: { fontSize: 16, fontWeight: '400', color: '#4a6a3a', lineHeight: 24, marginBottom: 8 },
   titleDesktop: { fontSize: 20, lineHeight: 28, textAlign: 'center' },
   subtitle: { fontSize: 14, color: '#4a6a3a', lineHeight: 22, marginBottom: 8 },
   subtitleDesktop: { fontSize: 17, textAlign: 'center', lineHeight: 26, marginBottom: 12 },
   subtitleSecondary: { fontSize: 13, color: '#6a8a6a', fontStyle: 'italic', marginBottom: 16 },
   subtitleSecondaryDesktop: { fontSize: 15, textAlign: 'center', marginBottom: 24 },
 
-  // Zóny (tři sekce: zákazníci / farmáři / prodejci)
-  zone: { paddingHorizontal: 20, paddingTop: 20, gap: 10 },
-  zoneSep: { borderTopWidth: 1, borderTopColor: '#d1e8c4', paddingTop: 24, marginTop: 8 },
+  // Zóny
+  zone: { paddingHorizontal: 16, paddingTop: 16, marginBottom: 24 },
+  zoneSep: { borderTopWidth: 1, borderTopColor: '#d1e8c4', paddingTop: 24 },
   zoneDesktop: { maxWidth: 720, alignSelf: 'center', width: '100%', paddingHorizontal: 40 },
   zoneLabel: {
-    fontSize: 12, fontWeight: '700',
-    textTransform: 'uppercase', letterSpacing: 1.4, marginBottom: 2,
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 10,
   },
 
   // Karty
   card: {
-    backgroundColor: '#ffffff', borderRadius: 12,
-    padding: 16, borderWidth: 1, borderColor: '#d1e8c4',
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 0,
+    marginBottom: 10,
+    shadowColor: '#1a3a1a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
-  cardSecondary: { backgroundColor: '#f0f7e8', borderColor: '#d1e8c4' },
-  cardCustomer: { borderLeftWidth: 3, borderLeftColor: '#66BB6A' },
-  cardFarmer:   { borderLeftWidth: 3, borderLeftColor: '#3a7a18' },
-  cardSeller:   { borderLeftWidth: 3, borderLeftColor: '#FFA726' },
+  cardSecondary: { backgroundColor: '#f0f7e8' },
   cardRow: { flexDirection: 'row', alignItems: 'center' },
-  cardContent: { flex: 1, marginLeft: 12 },
-  emoji: { fontSize: 32 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1a3a1a', marginBottom: 2 },
+  cardContent: { flex: 1, marginLeft: 14 },
+
+  // Ikona v kartě
+  iconBg: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emoji: { fontSize: 26 },
+
+  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1a3a1a' },
   cardTitleMuted: { fontSize: 14, fontWeight: '600' },
-  cardDesc: { fontSize: 13, color: '#4a6a3a' },
+  cardDesc: { fontSize: 13, color: '#6b7280', marginTop: 2 },
   arrow: { fontSize: 18, color: '#FF9800', marginLeft: 8 },
 
-  // Shared pill badge (used for cart, list count, new orders)
+  // Shared pill badge
   pill: { borderRadius: 9, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 5, marginRight: 4 },
   pillText: { color: '#fff', fontSize: 11, fontWeight: '700' },
 
   // Cart summary
-  divider: { height: 1, backgroundColor: '#d1e8c4', marginTop: 10, marginBottom: 4 },
+  divider: { height: 1, backgroundColor: '#f0f0f0', marginTop: 12, marginBottom: 6 },
   cartLabel: { fontSize: 13, color: '#FF9800', fontWeight: '600', flex: 1 },
   chevron: { fontSize: 11, color: '#6a8a6a' },
-  cartList: { marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#d1e8c4' },
-  groupSep: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#d1e8c4' },
+  cartList: { marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
+  groupSep: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
   groupName: { fontSize: 13, fontWeight: '600', color: '#1a3a1a', marginBottom: 3 },
-  groupItem: { fontSize: 12, color: '#4a6a3a', marginLeft: 8, lineHeight: 18 },
+  groupItem: { fontSize: 12, color: '#6b7280', marginLeft: 8, lineHeight: 18 },
   goBtn: { marginTop: 10, backgroundColor: '#FF9800', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   goBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
@@ -532,17 +559,29 @@ const s = StyleSheet.create({
   ctaCloseText: { fontSize: 14, color: '#6a8a6a', fontWeight: '600' },
 
   // Hero banner (nepřihlášení)
-  heroBanner: { backgroundColor: '#f4fae8', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#a8d87a' },
-  heroTitle: { fontSize: 18, fontWeight: '600', color: '#1a3a1a', textAlign: 'center', marginBottom: 12 },
-  heroGrid: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  heroItem: { flex: 1, alignItems: 'center' },
-  heroEmoji: { fontSize: 24, marginBottom: 4 },
-  heroItemTitle: { fontSize: 11, fontWeight: '600', color: '#1a3a1a', textAlign: 'center', marginBottom: 2 },
-  heroItemText: { fontSize: 10, color: '#4a6a3a', textAlign: 'center', lineHeight: 14 },
-  heroTagline: { fontSize: 13, fontWeight: '600', color: '#3a7a18', textAlign: 'center' },
+  heroBanner: {
+    backgroundColor: '#1a3a1a',
+    borderRadius: 20,
+    padding: 20,
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
+  heroTitle: { fontSize: 20, fontWeight: '800', color: '#ffffff', textAlign: 'center', marginBottom: 16 },
+  heroGrid: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  heroItem: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 12,
+    padding: 10,
+  },
+  heroEmoji: { fontSize: 22, marginBottom: 6 },
+  heroItemTitle: { fontSize: 12, fontWeight: '700', color: '#a8d87a', textAlign: 'center', marginBottom: 4 },
+  heroItemText: { fontSize: 11, color: 'rgba(255,255,255,0.75)', textAlign: 'center', lineHeight: 15 },
+  heroTagline: { fontSize: 14, fontWeight: '700', color: '#a8d87a', textAlign: 'center' },
 
   // Footer
-  footer: { paddingHorizontal: 20, paddingVertical: 20, borderTopWidth: 1, borderTopColor: '#d1e8c4', marginTop: 24, marginBottom: 8 },
+  footer: { paddingHorizontal: 16, paddingVertical: 20, borderTopWidth: 1, borderTopColor: '#e8eee0', marginTop: 8, marginBottom: 8 },
   footerText: { fontSize: 12, color: '#4a6a3a', textAlign: 'center' },
   footerEmail: { fontSize: 12, color: '#6a8a6a', textAlign: 'center', marginTop: 8 },
 });
