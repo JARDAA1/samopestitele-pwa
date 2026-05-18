@@ -189,11 +189,11 @@ export default function ProfilLoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a3a1a' },
+  container: { flex: 1, backgroundColor: '#33691e' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 44, paddingBottom: 8, paddingHorizontal: 12,
-    backgroundColor: '#1a3a1a', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#33691e', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   backButton: { padding: 6 },
   backIcon: { fontSize: 22, color: '#ffffff', fontWeight: '600' },

@@ -147,7 +147,7 @@ export default function ZmenitTelefonScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a3a1a',
+    backgroundColor: '#33691e',
   },
   header: {
     paddingTop: 44,

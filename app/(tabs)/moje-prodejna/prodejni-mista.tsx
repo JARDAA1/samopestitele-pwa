@@ -607,10 +607,10 @@ export default function ProdejniMistaScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a3a1a'
+    backgroundColor: '#33691e'
   },
   header: {
-    backgroundColor: '#1a3a1a',
+    backgroundColor: '#33691e',
     paddingTop: 44,
     paddingBottom: 8,
     paddingHorizontal: 12,
@@ -820,7 +820,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1a3a1a',
+    backgroundColor: '#33691e',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',

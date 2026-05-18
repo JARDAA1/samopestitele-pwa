@@ -17,6 +17,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 20,
-    color: '#1a3a1a',
+    color: '#33691e',
   },
 });

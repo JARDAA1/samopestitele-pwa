@@ -362,7 +362,7 @@ export default function NakupniSeznamScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a3a1a',
+    backgroundColor: '#33691e',
   },
 
   // ── Header ────────────────────────────────────────────────────────────────

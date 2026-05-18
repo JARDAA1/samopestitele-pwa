@@ -53,7 +53,7 @@ export default function RootLayout() {
 
 const GreenLightTheme = {
   ...DefaultTheme,
-  colors: { ...DefaultTheme.colors, background: '#f4fae8' },
+  colors: { ...DefaultTheme.colors, background: '#f0f7ee' },
 };
 
 function RootLayoutNav() {

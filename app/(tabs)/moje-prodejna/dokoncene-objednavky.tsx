@@ -116,13 +116,13 @@ export default function DokonceneObjednavkyScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a3a1a' },
+  container: { flex: 1, backgroundColor: '#33691e' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 10, fontSize: 14, color: 'rgba(255,255,255,0.7)' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a3a1a',
+    backgroundColor: '#33691e',
     paddingTop: 44,
     paddingBottom: 12,
     paddingHorizontal: 12,

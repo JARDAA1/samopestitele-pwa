@@ -507,7 +507,7 @@ export default function PridatStanek() {
 // ─── Styly ────────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#1a3a1a' },
+  safeArea: { flex: 1, backgroundColor: '#33691e' },
 
   // Header
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },

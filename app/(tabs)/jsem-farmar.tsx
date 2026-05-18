@@ -110,12 +110,12 @@ export default function JsemFarmarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a3a1a',
+    backgroundColor: '#33691e',
   },
 
   // Header
   header: {
-    backgroundColor: '#1a3a1a',
+    backgroundColor: '#33691e',
     paddingTop: 44,
     paddingBottom: 14,
     paddingHorizontal: 14,

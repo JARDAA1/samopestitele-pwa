@@ -368,7 +368,7 @@ export default function HomeScreen() {
 
         {/* ─── 2. FARMÁŘI A PĚSTITELÉ ─────────────────────── */}
         <View style={[s.zone, s.zoneSep, isDesktop && s.zoneDesktop]}>
-          <Text style={[s.zoneLabel, { color: '#3a7a18' }]}>🧺 Farmáři a pěstitelé</Text>
+          <Text style={[s.zoneLabel, { color: '#558b2f' }]}>🧺 Farmáři a pěstitelé</Text>
 
           {showStatusCard && (
             <FarmerStatusCard
@@ -446,9 +446,9 @@ export default function HomeScreen() {
 }
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8faf4' },
+  safeArea: { flex: 1, backgroundColor: '#f0f7ee' },
   center: { justifyContent: 'center', alignItems: 'center' },
-  container: { flex: 1, backgroundColor: '#f8faf4' },
+  container: { flex: 1, backgroundColor: '#f0f7ee' },
   content: { flexGrow: 1, paddingBottom: 24 },
 
   // Hero
@@ -463,18 +463,18 @@ const s = StyleSheet.create({
     marginBottom: 12,
   },
   betaBadgeText: {
-    color: '#4a6a3a',
+    color: '#558b2f',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1.5,
   },
   hero: { paddingTop: 20, paddingBottom: 16, paddingHorizontal: 16 },
   heroDesktop: { paddingTop: 40, paddingBottom: 32, paddingHorizontal: 80, alignItems: 'center' },
-  appName: { fontSize: 36, fontWeight: '800', color: '#1a3a1a', letterSpacing: -1, marginBottom: 4 },
+  appName: { fontSize: 36, fontWeight: '800', color: '#33691e', letterSpacing: -1, marginBottom: 4 },
   appNameDesktop: { fontSize: 56, textAlign: 'center', marginBottom: 8 },
-  title: { fontSize: 16, fontWeight: '400', color: '#4a6a3a', lineHeight: 24, marginBottom: 8 },
+  title: { fontSize: 16, fontWeight: '400', color: '#558b2f', lineHeight: 24, marginBottom: 8 },
   titleDesktop: { fontSize: 20, lineHeight: 28, textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#4a6a3a', lineHeight: 22, marginBottom: 8 },
+  subtitle: { fontSize: 14, color: '#558b2f', lineHeight: 22, marginBottom: 8 },
   subtitleDesktop: { fontSize: 17, textAlign: 'center', lineHeight: 26, marginBottom: 12 },
   subtitleSecondary: { fontSize: 13, color: '#6a8a6a', fontStyle: 'italic', marginBottom: 16 },
   subtitleSecondaryDesktop: { fontSize: 15, textAlign: 'center', marginBottom: 24 },
@@ -498,7 +498,7 @@ const s = StyleSheet.create({
     padding: 18,
     borderWidth: 0,
     marginBottom: 10,
-    shadowColor: '#1a3a1a',
+    shadowColor: '#33691e',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -518,7 +518,7 @@ const s = StyleSheet.create({
   },
   emoji: { fontSize: 26 },
 
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1a3a1a' },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: '#33691e' },
   cardTitleMuted: { fontSize: 14, fontWeight: '600' },
   cardDesc: { fontSize: 13, color: '#6b7280', marginTop: 2 },
   arrow: { fontSize: 18, color: '#FF9800', marginLeft: 8 },
@@ -533,7 +533,7 @@ const s = StyleSheet.create({
   chevron: { fontSize: 11, color: '#6a8a6a' },
   cartList: { marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
   groupSep: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
-  groupName: { fontSize: 13, fontWeight: '600', color: '#1a3a1a', marginBottom: 3 },
+  groupName: { fontSize: 13, fontWeight: '600', color: '#33691e', marginBottom: 3 },
   groupItem: { fontSize: 12, color: '#6b7280', marginLeft: 8, lineHeight: 18 },
   goBtn: { marginTop: 10, backgroundColor: '#FF9800', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   goBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
@@ -560,7 +560,7 @@ const s = StyleSheet.create({
 
   // Hero banner (nepřihlášení)
   heroBanner: {
-    backgroundColor: '#1a3a1a',
+    backgroundColor: '#33691e',
     borderRadius: 20,
     padding: 20,
     marginHorizontal: 16,
@@ -576,12 +576,12 @@ const s = StyleSheet.create({
     padding: 10,
   },
   heroEmoji: { fontSize: 22, marginBottom: 6 },
-  heroItemTitle: { fontSize: 12, fontWeight: '700', color: '#a8d87a', textAlign: 'center', marginBottom: 4 },
+  heroItemTitle: { fontSize: 12, fontWeight: '700', color: '#8bc34a', textAlign: 'center', marginBottom: 4 },
   heroItemText: { fontSize: 11, color: 'rgba(255,255,255,0.75)', textAlign: 'center', lineHeight: 15 },
-  heroTagline: { fontSize: 14, fontWeight: '700', color: '#a8d87a', textAlign: 'center' },
+  heroTagline: { fontSize: 14, fontWeight: '700', color: '#8bc34a', textAlign: 'center' },
 
   // Footer
   footer: { paddingHorizontal: 16, paddingVertical: 20, borderTopWidth: 1, borderTopColor: '#e8eee0', marginTop: 8, marginBottom: 8 },
-  footerText: { fontSize: 12, color: '#4a6a3a', textAlign: 'center' },
+  footerText: { fontSize: 12, color: '#558b2f', textAlign: 'center' },
   footerEmail: { fontSize: 12, color: '#6a8a6a', textAlign: 'center', marginTop: 8 },
 });

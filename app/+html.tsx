@@ -17,7 +17,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Samopěstitelé" />
-        <meta name="theme-color" content="#1a3a1a" />
+        <meta name="theme-color" content="#33691e" />
         <meta name="mobile-web-app-capable" content="yes" />
 
         {/* Description */}
@@ -47,7 +47,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
 
 const responsiveBackground = `
 body {
-  background-color: #f4fae8;
+  background-color: #f0f7ee;
 }
 @media (prefers-color-scheme: dark) {
   body {

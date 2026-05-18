@@ -547,7 +547,7 @@ export default function MojeProdejnaScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a3a1a'
+    backgroundColor: '#33691e'
   },
   centerContent: {
     justifyContent: 'center',
@@ -561,7 +561,7 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    backgroundColor: '#1a3a1a',
+    backgroundColor: '#33691e',
     paddingTop: 44,
     paddingBottom: 8,
     paddingHorizontal: 12,

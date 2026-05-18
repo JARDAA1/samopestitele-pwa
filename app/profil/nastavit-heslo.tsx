@@ -129,11 +129,11 @@ export default function NastavitHesloScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a3a1a' },
+  container: { flex: 1, backgroundColor: '#33691e' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 44, paddingBottom: 8, paddingHorizontal: 12,
-    backgroundColor: '#1a3a1a', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#33691e', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   headerSpacer: { width: 70 },
   headerTitle: { fontSize: 16, fontWeight: '700', color: '#ffffff' },

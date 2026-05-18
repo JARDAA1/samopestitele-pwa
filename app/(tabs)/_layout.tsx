@@ -5,7 +5,7 @@ export default function TabLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: '#FFFFFF' },
+        contentStyle: { backgroundColor: '#f0f7ee' },
       }}
     >
       <Stack.Screen name="index" />

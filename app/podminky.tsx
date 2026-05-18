@@ -160,13 +160,13 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#1a3a1a',
+    color: '#33691e',
     fontWeight: '600',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1a3a1a',
+    color: '#33691e',
   },
   content: {
     flex: 1,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#1a3a1a',
+    color: '#33691e',
     marginBottom: 5,
   },
   date: {
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   },
   contact: {
     fontSize: 14,
-    color: '#1a3a1a',
+    color: '#33691e',
     fontWeight: '600',
     marginBottom: 5,
   },
