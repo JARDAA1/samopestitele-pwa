@@ -1,6 +1,6 @@
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
-  ScrollView, ActivityIndicator,
+  ScrollView, ActivityIndicator, ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
@@ -219,6 +219,11 @@ export default function HomeScreen() {
   }
 
   return (
+    <ImageBackground
+      source={require('../../assets/images/splash.png')}
+      style={{ flex: 1 }}
+      resizeMode="cover"
+    >
     <SafeAreaView style={s.safeArea} edges={['top']}>
       <SellingModeModal
         visible={showModal}
@@ -262,6 +267,31 @@ export default function HomeScreen() {
             Ideální pro návštěvníky regionu, chalupáře i místní.
           </Text>
         </View>
+
+        {/* ─── HERO BANNER (jen nepřihlášení) ─────────────── */}
+        {!isAuthenticated && (
+          <View style={s.heroBanner}>
+            <Text style={s.heroTitle}>Nejsme e-shop. Jsme sousedé.</Text>
+            <View style={s.heroGrid}>
+              <View style={s.heroItem}>
+                <Text style={s.heroEmoji}>🏡</Text>
+                <Text style={s.heroItemTitle}>Pro chalupáře</Text>
+                <Text style={s.heroItemText}>Přebytek ze zahrady nabídni sousedům bez vývozu.</Text>
+              </View>
+              <View style={s.heroItem}>
+                <Text style={s.heroEmoji}>🚶</Text>
+                <Text style={s.heroItemTitle}>Pro návštěvníky</Text>
+                <Text style={s.heroItemText}>Najdi co se právě sklízí přímo u pěstitelů v okolí.</Text>
+              </View>
+              <View style={s.heroItem}>
+                <Text style={s.heroEmoji}>🌿</Text>
+                <Text style={s.heroItemTitle}>Pro místní</Text>
+                <Text style={s.heroItemText}>Kup přímo od souseda co roste za jeho plotem.</Text>
+              </View>
+            </View>
+            <Text style={s.heroTagline}>Žádný košík. Žádná doprava. Jen živý kontakt.</Text>
+          </View>
+        )}
 
         {/* ─── 1. ZÁKAZNÍCI ────────────────────────────────── */}
         <View style={[s.zone, isDesktop && s.zoneDesktop]}>
@@ -336,7 +366,7 @@ export default function HomeScreen() {
 
         {/* ─── 2. FARMÁŘI A PĚSTITELÉ ─────────────────────── */}
         <View style={[s.zone, s.zoneSep, isDesktop && s.zoneDesktop]}>
-          <Text style={[s.zoneLabel, { color: 'rgba(206,147,216,0.9)' }]}>🧺 Farmáři a pěstitelé</Text>
+          <Text style={[s.zoneLabel, { color: '#3a7a18' }]}>🧺 Farmáři a pěstitelé</Text>
 
           {/* Status karta — přepínač Prodávám / Neprodávám (jen registrovaní) */}
           {showStatusCard && (
@@ -408,13 +438,14 @@ export default function HomeScreen() {
 
       </ScrollView>
     </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#6A1B9A' },
+  safeArea: { flex: 1, backgroundColor: 'rgba(232,245,233,0.88)' },
   center: { justifyContent: 'center', alignItems: 'center' },
-  container: { flex: 1, backgroundColor: '#6A1B9A' },
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { flexGrow: 1 },
 
   // Hero
@@ -505,6 +536,16 @@ const s = StyleSheet.create({
   ctaText: { fontSize: 13, color: '#FF9800', fontWeight: '600' },
   ctaClose: { padding: 4, marginLeft: 8 },
   ctaCloseText: { fontSize: 14, color: 'rgba(255,255,255,0.4)', fontWeight: '600' },
+
+  // Hero banner (nepřihlášení)
+  heroBanner: { backgroundColor: '#f4fae8', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#a8d87a' },
+  heroTitle: { fontSize: 18, fontWeight: '600', color: '#1a3a1a', textAlign: 'center', marginBottom: 12 },
+  heroGrid: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  heroItem: { flex: 1, alignItems: 'center' },
+  heroEmoji: { fontSize: 24, marginBottom: 4 },
+  heroItemTitle: { fontSize: 11, fontWeight: '600', color: '#1a3a1a', textAlign: 'center', marginBottom: 2 },
+  heroItemText: { fontSize: 10, color: '#4a6a3a', textAlign: 'center', lineHeight: 14 },
+  heroTagline: { fontSize: 13, fontWeight: '600', color: '#3a7a18', textAlign: 'center' },
 
   // Footer
   footer: { paddingHorizontal: 20, paddingVertical: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', marginTop: 24, marginBottom: 8 },
