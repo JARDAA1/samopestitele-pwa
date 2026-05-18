@@ -16,6 +16,22 @@ import { useDrawerMenu } from '../_utils/useDrawerMenu';
 import { responsive, spacing, fontSize, borderRadius } from '../_utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 
+interface DaySchedule {
+  otevreno: boolean;
+  od: string;
+  do: string;
+}
+
+interface OfficeHours {
+  po?: DaySchedule;
+  ut?: DaySchedule;
+  st?: DaySchedule;
+  ct?: DaySchedule;
+  pa?: DaySchedule;
+  so?: DaySchedule;
+  ne?: DaySchedule;
+}
+
 interface Pestitel {
   id: number;
   nazev_farmy: string;
@@ -27,6 +43,8 @@ interface Pestitel {
   gps_lat?: number;
   gps_lng?: number;
   foto_url?: string | null;
+  office_hours?: OfficeHours | null;
+  casova_dostupnost?: string | null;
 }
 
 interface Produkt {
@@ -38,6 +56,16 @@ interface Produkt {
   dostupnost: boolean;
   foto_url: string | null;
 }
+
+const OFFICE_HOURS_DAYS: { key: keyof OfficeHours; label: string }[] = [
+  { key: 'po', label: 'Pondělí' },
+  { key: 'ut', label: 'Úterý' },
+  { key: 'st', label: 'Středa' },
+  { key: 'ct', label: 'Čtvrtek' },
+  { key: 'pa', label: 'Pátek' },
+  { key: 'so', label: 'Sobota' },
+  { key: 'ne', label: 'Neděle' },
+];
 
 export default function PestitelDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -357,6 +385,35 @@ export default function PestitelDetailScreen() {
           </View>
         )}
 
+        {/* Otevírací doba */}
+        {pestitel.office_hours && (
+          <View style={styles.officeHoursContainer}>
+            <Text style={styles.officeHoursTitle}>🕐 Otevírací doba</Text>
+            {OFFICE_HOURS_DAYS.map(({ key, label }) => {
+              const day = pestitel.office_hours![key];
+              if (!day) return null;
+              return (
+                <View key={key} style={styles.officeHoursRow}>
+                  <Text style={styles.officeHoursDayLabel}>{label}</Text>
+                  {day.otevreno ? (
+                    <Text style={styles.officeHoursTime}>{day.od} – {day.do}</Text>
+                  ) : (
+                    <Text style={styles.officeHoursClosed}>Zavřeno</Text>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Fallback: free-text availability when no structured hours */}
+        {!pestitel.office_hours && pestitel.casova_dostupnost && (
+          <View style={styles.officeHoursContainer}>
+            <Text style={styles.officeHoursTitle}>🕐 Otevírací doba</Text>
+            <Text style={styles.officeHoursFreeText}>{pestitel.casova_dostupnost}</Text>
+          </View>
+        )}
+
         {/* Seznam produktů */}
         <View style={styles.productsContainer}>
           <Text style={styles.productsTitle}>
@@ -550,6 +607,27 @@ const styles = StyleSheet.create({
   },
   descriptionTitle: { fontSize: 16, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 8 },
   descriptionText: { fontSize: 15, color: '#666', lineHeight: 22 },
+
+  officeHoursContainer: {
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    marginTop: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  officeHoursTitle: { fontSize: 16, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 12 },
+  officeHoursRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  officeHoursDayLabel: { fontSize: 14, color: '#333', fontWeight: '500', width: 90 },
+  officeHoursTime: { fontSize: 14, color: '#388E3C', fontWeight: '600' },
+  officeHoursClosed: { fontSize: 14, color: '#999', fontStyle: 'italic' },
+  officeHoursFreeText: { fontSize: 14, color: '#555', lineHeight: 22 },
 
   productsContainer: { padding: 15, paddingBottom: 100 },
   productsTitle: { fontSize: 18, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 15 },
