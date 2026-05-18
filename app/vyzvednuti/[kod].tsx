@@ -125,7 +125,7 @@ export default function VyzvednutiScreen() {
       case 'nova':
         return '#2196F3';
       case 'zpracovana':
-        return '#9C27B0';
+        return '#2d6b0a';
       case 'dokoncena':
         return '#4CAF50';
       case 'odmitnuta':
@@ -156,7 +156,7 @@ export default function VyzvednutiScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6A1B9A" />
+          <ActivityIndicator size="large" color="#1a3a1a" />
           <Text style={styles.loadingText}>Načítám objednávku...</Text>
         </View>
       </View>
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#1a3a1a',
     paddingTop: 60,
     paddingBottom: 24,
     paddingHorizontal: 20,
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 2,
-    borderTopColor: '#6A1B9A',
+    borderTopColor: '#1a3a1a',
   },
   totalLabel: {
     fontSize: 18,
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   totalPrice: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#6A1B9A',
+    color: '#1a3a1a',
   },
 
   // Footer

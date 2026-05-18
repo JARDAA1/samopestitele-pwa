@@ -325,10 +325,10 @@ export default function CasovaDostupnostScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#6A1B9A' },
+  container: { flex: 1, backgroundColor: '#1a3a1a' },
   center: { justifyContent: 'center', alignItems: 'center' },
   header: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#1a3a1a',
     paddingTop: 44,
     paddingBottom: 8,
     paddingHorizontal: 12,

@@ -166,11 +166,11 @@ export default function ZmenitPinScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#6A1B9A' },
+  container: { flex: 1, backgroundColor: '#1a3a1a' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 44, paddingBottom: 8, paddingHorizontal: 12,
-    backgroundColor: '#6A1B9A', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#1a3a1a', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   backButton: { padding: 6 },
   backIcon: { fontSize: 22, color: '#ffffff', fontWeight: '600' },

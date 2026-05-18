@@ -4,7 +4,7 @@
  */
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  Image, ActivityIndicator, ScrollView, TextInput,
+  Image, ActivityIndicator, ScrollView, TextInput, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -294,7 +294,13 @@ export default function PridatStanek() {
         <Text style={s.headerTitle}>Prodávám tady dnes</Text>
       </View>
 
-      <ScrollView style={s.scroll} contentContainerStyle={s.content}>
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={[
+          s.content,
+          Platform.OS === 'web' && { maxWidth: 600, alignSelf: 'center' as const, width: '100%' },
+        ]}
+      >
 
         {/* Správa existujících stánků */}
         {existingStanky.length > 0 && (
@@ -501,7 +507,7 @@ export default function PridatStanek() {
 // ─── Styly ────────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#6A1B9A' },
+  safeArea: { flex: 1, backgroundColor: '#1a3a1a' },
 
   // Header
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
@@ -511,7 +517,7 @@ const s = StyleSheet.create({
 
   // Scroll
   scroll: { flex: 1 },
-  content: { padding: 20, gap: 16, paddingBottom: 48 },
+  content: { paddingHorizontal: 20, paddingVertical: 20, gap: 16, paddingBottom: 48 },
   hint: { fontSize: 13, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20 },
 
   // Foto

@@ -112,7 +112,7 @@ export default function PestiteleScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#7B1FA2" />
+        <ActivityIndicator size="large" color="#1a3a1a" />
         <Text style={styles.loadingText}>Načítám oblíbené farmáře...</Text>
       </View>
     );
@@ -205,10 +205,10 @@ const styles = StyleSheet.create({
   loadingText: { marginTop: 10, fontSize: 16, color: '#666' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyIcon: { fontSize: 80, marginBottom: 20 },
-  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 10 },
+  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#1a3a1a', marginBottom: 10 },
   emptyText: { fontSize: 16, color: '#666', textAlign: 'center', lineHeight: 24, marginBottom: 20 },
   findButton: {
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#1a3a1a',
     paddingVertical: 14,
     paddingHorizontal: 30,
     borderRadius: 8,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     width: responsive({ mobile: 50, tablet: 60, desktop: 70 }),
     height: responsive({ mobile: 50, tablet: 60, desktop: 70 }),
     borderRadius: responsive({ mobile: 25, tablet: 30, desktop: 35 }),
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#1a3a1a',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   },
   farmerPhone: {
     fontSize: fontSize.sm,
-    color: '#7B1FA2',
+    color: '#1a3a1a',
     fontWeight: '600',
     marginTop: spacing.xs,
   },
@@ -312,6 +312,6 @@ const styles = StyleSheet.create({
   removeButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#7B1FA2',
+    color: '#1a3a1a',
   },
 });

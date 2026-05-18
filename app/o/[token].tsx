@@ -136,7 +136,7 @@ export default function PublicOrderStatusScreen() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#6A1B9A" />
+        <ActivityIndicator size="large" color="#1a3a1a" />
       </View>
     );
   }

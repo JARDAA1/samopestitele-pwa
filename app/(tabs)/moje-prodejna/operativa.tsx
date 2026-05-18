@@ -271,7 +271,7 @@ export default function OperativaScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#6A1B9A' },
+  container: { flex: 1, backgroundColor: '#1a3a1a' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: 'rgba(255,255,255,0.7)', marginTop: 12, fontSize: 14 },
   header: {

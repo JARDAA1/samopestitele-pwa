@@ -290,7 +290,7 @@ export default function PestitelDetailScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#7B1FA2" />
+        <ActivityIndicator size="large" color="#1a3a1a" />
         <Text style={styles.loadingText}>Načítám farmáře...</Text>
       </View>
     );
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
     paddingTop: 44,
     paddingHorizontal: 12,
     paddingBottom: 2,
-    backgroundColor: '#9C27B0',
+    backgroundColor: '#2d6b0a',
   },
   menuButton: { padding: 8 },
   menuIcon: { fontSize: 28, color: '#FFFFFF', fontWeight: '400' },
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   farmerName: {
     fontSize: fontSize.xl,
     fontWeight: 'bold',
-    color: '#6A1B9A',
+    color: '#1a3a1a',
     marginBottom: spacing.sm
   },
   farmerRow: {
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
-  descriptionTitle: { fontSize: 16, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 8 },
+  descriptionTitle: { fontSize: 16, fontWeight: 'bold', color: '#1a3a1a', marginBottom: 8 },
   descriptionText: { fontSize: 15, color: '#666', lineHeight: 22 },
 
   officeHoursContainer: {
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
   },
-  officeHoursTitle: { fontSize: 16, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 12 },
+  officeHoursTitle: { fontSize: 16, fontWeight: 'bold', color: '#1a3a1a', marginBottom: 12 },
   officeHoursRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -630,11 +630,11 @@ const styles = StyleSheet.create({
   officeHoursFreeText: { fontSize: 14, color: '#555', lineHeight: 22 },
 
   productsContainer: { padding: 15, paddingBottom: 100 },
-  productsTitle: { fontSize: 18, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 15 },
+  productsTitle: { fontSize: 18, fontWeight: 'bold', color: '#1a3a1a', marginBottom: 15 },
 
   emptyState: { alignItems: 'center', padding: 40, marginTop: 20 },
   emptyIcon: { fontSize: 60, marginBottom: 15 },
-  emptyTitle: { fontSize: 20, fontWeight: 'bold', color: '#6A1B9A', marginBottom: 8 },
+  emptyTitle: { fontSize: 20, fontWeight: 'bold', color: '#1a3a1a', marginBottom: 8 },
   emptyText: { fontSize: 15, color: '#666', textAlign: 'center' },
 
   productCard: {
@@ -663,7 +663,7 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: fontSize.lg,
     fontWeight: 'bold',
-    color: '#6A1B9A',
+    color: '#1a3a1a',
     flex: 1,
     marginRight: spacing.md,
   },
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   addButton: {
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#1a3a1a',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -693,7 +693,7 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 20,
     right: 20,
-    backgroundColor: '#7B1FA2',
+    backgroundColor: '#1a3a1a',
     paddingVertical: 16,
     borderRadius: 12,
     flexDirection: 'row',
@@ -708,6 +708,6 @@ const styles = StyleSheet.create({
   floatingListIcon: { fontSize: 24, marginRight: 10 },
   floatingListText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
 
-  backButton: { backgroundColor: '#7B1FA2', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
+  backButton: { backgroundColor: '#1a3a1a', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8 },
   backButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 });

@@ -117,7 +117,7 @@ export default function DetailObjednavkyScreen() {
       case 'ceka_na_vyzvednuti':
         return '#FF9800';
       case 'zpracovana':
-        return '#9C27B0';
+        return '#2d6b0a';
       case 'dokoncena':
         return '#4CAF50';
       case 'zrusena':
@@ -669,10 +669,10 @@ export default function DetailObjednavkyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#6A1B9A'
+    backgroundColor: '#1a3a1a'
   },
   header: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#1a3a1a',
     paddingTop: 44,
     paddingBottom: 12,
     paddingHorizontal: 12,
@@ -984,7 +984,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#1a3a1a',
     borderRadius: 16,
     padding: 20,
     width: '100%',

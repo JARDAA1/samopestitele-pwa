@@ -763,7 +763,7 @@ export default function RegistraceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#1a3a1a',
   },
   header: {
     flexDirection: 'row',
@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
     paddingTop: 44,
     paddingBottom: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#1a3a1a',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
