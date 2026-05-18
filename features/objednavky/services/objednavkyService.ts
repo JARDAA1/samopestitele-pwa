@@ -15,6 +15,42 @@ import { captureException } from '@/lib/monitoring';
 // ─── NOVÉ OBJEDNÁVKY (Operativa) ────────────────────────────────────────────
 
 /**
+ * Načte všechny aktivní objednávky (všechny stavy kromě dokoncena/odmitnuta/zrusena).
+ * Ke každé objednávce přidá počet položek.
+ */
+export async function fetchVsechnyAktivniObjednavky(
+  pestitelId: string
+): Promise<NoveObjednavky[]> {
+  const AKTIVNI_STAVY = ['nova', 'cekajici_na_potvrzeni', 'potvrzena', 'zpracovana', 'ceka_na_vyzvednuti'];
+
+  const { data, error } = await supabase
+    .from('objednavky')
+    .select('id, stav, created_at, anon_customer_code, zakaznik_telefon, poznamka_farmare')
+    .eq('pestitel_id', pestitelId)
+    .in('stav', AKTIVNI_STAVY)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    captureException(error);
+    throw error;
+  }
+  if (!data) return [];
+
+  const withCount = await Promise.all(
+    data.map(async (obj) => {
+      const { count } = await supabase
+        .from('objednavky_polozky')
+        .select('*', { count: 'exact', head: true })
+        .eq('objednavka_id', obj.id);
+
+      return { ...obj, pocet_polozek: count ?? 0 } as NoveObjednavky;
+    })
+  );
+
+  return withCount;
+}
+
+/**
  * Načte objednávky se stavem 'nova' nebo 'cekajici_na_potvrzeni' pro daného prodejce.
  * Ke každé objednávce přidá počet položek.
  */
@@ -123,7 +159,7 @@ export async function fetchObjednavkaDetail(
   const { data, error } = await supabase
     .from('objednavky')
     .select(
-      'id, stav, datum_vyzvednuti, anon_customer_code, celkova_cena, created_at, zakaznik_telefon, poznamka_farmare'
+      'id, stav, datum_vyzvednuti, anon_customer_code, celkova_cena, created_at, zakaznik_telefon, poznamka_farmare, phone_consent, ready_at'
     )
     .eq('id', objednavkaId)
     .single();
@@ -221,7 +257,7 @@ export async function fetchAktivniObjednavky(
        celkova_cena, zakaznik_telefon, poznamka_farmare`
     )
     .eq('pestitel_id', pestitelId)
-    .in('stav', ['nova', 'cekajici_na_potvrzeni', 'potvrzena', 'zpracovana'])
+    .in('stav', ['nova', 'cekajici_na_potvrzeni', 'potvrzena', 'zpracovana', 'ceka_na_vyzvednuti'])
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -293,6 +329,8 @@ export interface CreateObjednavkaData {
   datum_vyzvednuti?: string | null;
   anon_customer_id?: string | null;
   anon_customer_code?: string | null;
+  public_token?: string;
+  phone_consent?: boolean;
 }
 
 export interface CreatePolozkaData {
@@ -323,6 +361,14 @@ export async function createObjednavka(
 }
 
 /**
+ * Smaže objednávku podle ID (kompenzační rollback při selhání).
+ * Použito pouze pokud createObjednavkyPolozky selže po createObjednavka.
+ */
+export async function deleteObjednavka(id: string): Promise<void> {
+  await supabase.from('objednavky').delete().eq('id', id);
+}
+
+/**
  * Vloží položky k existující objednávce.
  */
 export async function createObjednavkyPolozky(
@@ -335,6 +381,81 @@ export async function createObjednavkyPolozky(
     captureException(error);
     throw error;
   }
+}
+
+// ─── ANONYMNÍ EVIDENCE ZÁKAZNÍKŮ ────────────────────────────────────────────
+
+/**
+ * Uloží zákazníka do tabulky anonymni_zakaznici (pouze jednou – ON CONFLICT DO NOTHING).
+ * Lokace = město farmáře, u kterého zákazník poprvé nakoupil.
+ */
+export async function upsertAnonymniZakaznik(
+  anonCustomerId: string,
+  pestitelId: number
+): Promise<void> {
+  try {
+    const { data: pestitel } = await supabase
+      .from('pestitele')
+      .select('mesto')
+      .eq('id', pestitelId)
+      .single();
+
+    const lokace = pestitel?.mesto ?? null;
+
+    await supabase
+      .from('anonymni_zakaznici')
+      .insert({ anon_id: anonCustomerId, lokace })
+      .onConflict('anon_id')
+      .ignore();
+  } catch {
+    // tiché selhání – evidence zákazníků není kritická
+  }
+}
+
+// ─── OBJEDNÁVKY ZÁKAZNÍKA (podle anon_customer_id) ───────────────────────────
+
+export interface MojeObjednavkaSupabase {
+  id: string;
+  stav: string;
+  created_at: string;
+  datum_vyzvednuti?: string;
+  celkova_cena?: number;
+  pestitel_id: number;
+  pestitelNazev: string;
+}
+
+/**
+ * Načte všechny objednávky zákazníka podle anon_customer_id.
+ * Funguje na všech zařízeních – nezávisí na localStorage.
+ */
+export async function fetchMojeObjednavkyByAnonId(
+  anonCustomerId: string
+): Promise<MojeObjednavkaSupabase[]> {
+  const { data, error } = await supabase
+    .from('objednavky')
+    .select('id, stav, created_at, datum_vyzvednuti, celkova_cena, pestitel_id, pestitele(nazev_farmy, jmeno, prijmeni)')
+    .eq('anon_customer_id', anonCustomerId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    captureException(error);
+    throw error;
+  }
+  if (!data) return [];
+
+  return data.map((o: any) => {
+    const p = o.pestitele;
+    const pestitelNazev = p?.nazev_farmy || [p?.jmeno, p?.prijmeni].filter(Boolean).join(' ') || 'Pěstitel';
+    return {
+      id: o.id,
+      stav: o.stav,
+      created_at: o.created_at,
+      datum_vyzvednuti: o.datum_vyzvednuti,
+      celkova_cena: o.celkova_cena,
+      pestitel_id: o.pestitel_id,
+      pestitelNazev,
+    };
+  });
 }
 
 // ─── VYZVEDNUTÍ OBJEDNÁVKY ────────────────────────────────────────────────────
@@ -374,4 +495,137 @@ export async function fetchPolozkyVyzvednuti(
     throw error;
   }
   return (data as ObjednavkaPolozka[]) ?? [];
+}
+
+// ─── VEŘEJNÉ SLEDOVÁNÍ OBJEDNÁVKY (/o/[token]) ────────────────────────────────
+
+/** Bezpečná veřejná data objednávky (bez telefonu, soukromých dat). */
+export interface ObjednavkaPublic {
+  id: string;
+  stav: string;
+  celkova_cena?: number;
+  datum_vyzvednuti?: string;
+  ready_at?: string;
+  pestitel_id: string;
+  prodejni_misto_id?: number;
+}
+
+/** Veřejná data pěstitele (bez telefonu / e-mailu). */
+export interface FarmerPublicInfo {
+  nazev_farmy?: string;
+  jmeno?: string;
+  prijmeni?: string;
+  mesto?: string;
+  adresa?: string;
+}
+
+/**
+ * Načte bezpečná veřejná data objednávky podle public_token.
+ * Nevybírá žádná privátní pole (telefon, jméno zákazníka, …).
+ * Vrátí null místo chyby, aby nebylo možné odlišit „nenalezeno" od „chyba"
+ * a tím zabránit informačním únikům.
+ */
+export async function fetchObjednavkaByPublicToken(
+  token: string
+): Promise<ObjednavkaPublic | null> {
+  const { data, error } = await supabase
+    .from('objednavky')
+    .select('id, stav, celkova_cena, datum_vyzvednuti, ready_at, pestitel_id, prodejni_misto_id')
+    .eq('public_token', token)
+    .single();
+
+  if (error || !data) return null;
+  return data as ObjednavkaPublic;
+}
+
+/**
+ * Načte veřejně zobrazitelné informace o pěstiteli (bez telefonu / e-mailu).
+ */
+export async function fetchFarmerPublicInfo(
+  pestitelId: string
+): Promise<FarmerPublicInfo | null> {
+  const { data } = await supabase
+    .from('pestitele')
+    .select('nazev_farmy, jmeno, prijmeni, mesto, adresa')
+    .eq('id', pestitelId)
+    .single();
+
+  return data ?? null;
+}
+
+/** Veřejná data prodejního místa (název, adresa, otevírací doba). */
+export interface ProdejniMistoPublicInfo {
+  nazev: string;
+  adresa?: string;
+  cas_od?: string;
+  cas_do?: string;
+}
+
+/**
+ * Načte veřejně zobrazitelné informace o prodejním místě.
+ */
+export async function fetchProdejniMistoPublicInfo(
+  id: number
+): Promise<ProdejniMistoPublicInfo | null> {
+  const { data } = await supabase
+    .from('prodejni_mista')
+    .select('nazev, adresa, cas_od, cas_do')
+    .eq('id', id)
+    .single();
+
+  return data ?? null;
+}
+
+// ─── OZNAČENÍ OBJEDNÁVKY JAKO PŘIPRAVENÉ (farmář) ────────────────────────────
+
+/**
+ * Nastaví stav objednávky na 'zpracovana' a zaznamená čas připravení.
+ * Smí být voláno jen při přechodu z 'potvrzena' → 'zpracovana'.
+ */
+export async function oznacitObjednavkuJakoPripravena(
+  id: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('objednavky')
+    .update({ stav: 'zpracovana', ready_at: new Date().toISOString() })
+    .eq('id', id);
+
+  if (error) {
+    captureException(error);
+    throw error;
+  }
+}
+
+/**
+ * Odešle SMS zákazníkovi: „Vaše objednávka je připravena k vyzvednutí."
+ * Vrátí true pokud SMS byla odeslána, false pokud chybí credentials nebo selhal API call.
+ */
+export async function poslatSMSPripraveno(telefon: string): Promise<boolean> {
+  const login = process.env.EXPO_PUBLIC_SMSBRANA_LOGIN;
+  const password = process.env.EXPO_PUBLIC_SMSBRANA_PASSWORD;
+
+  if (!login || !password || login === 'VAS_LOGIN') return false;
+
+  const cleanPhone = telefon.replace(/\s/g, '').replace('+420', '');
+  const message = 'Vaše objednávka je připravena k vyzvednutí. Samopestitele.cz';
+
+  try {
+    const response = await fetch('https://api.smsbrana.cz/smsconnect/http.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        action: 'send_sms',
+        login,
+        password,
+        number: cleanPhone,
+        message,
+        type: 'economy',
+      }),
+    });
+    const result = await response.text();
+    return result.includes('OK');
+  } catch (err) {
+    captureException(err);
+    return false;
+  }
 }
