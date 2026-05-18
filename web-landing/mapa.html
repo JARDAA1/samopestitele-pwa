@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa farmářů - Samopěstitelé</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #6366f1;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --bg-light: #f9fafb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .home-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-light);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .home-btn:hover {
+            background: #e5e7eb;
+        }
+
+        /* Main Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            height: calc(100vh - 140px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .distance-filter {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .distance-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .distance-btn {
+            padding: 0.5rem;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: var(--text-dark);
+        }
+
+        .distance-btn:hover {
+            border-color: var(--primary);
+            background: var(--bg-light);
+        }
+
+        .distance-btn.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .farmer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .farmer-item {
+            background: var(--bg-light);
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .farmer-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+        .farmer-item.selected {
+            border-color: var(--primary);
+            background: #f0fdf4;
+        }
+
+        .farmer-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+            color: var(--text-dark);
+        }
+
+        .farmer-city {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .farmer-products {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .product-badge {
+            background: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+
+        .farmer-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .farmer-rating .stars {
+            color: #fbbf24;
+        }
+
+        .farmer-rating .rating-count {
+            color: var(--text-gray);
+            font-size: 0.85rem;
+        }
+
+        /* Map */
+        .map-container {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+        }
+
+        /* Popup Styles */
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            padding: 0;
+        }
+
+        .popup-content {
+            padding: 1rem;
+            min-width: 200px;
+        }
+
+        .popup-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .popup-city {
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .popup-btn {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 0.75rem;
+            transition: background 0.3s;
+        }
+
+        .popup-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-gray);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .map-container {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">🌱 Samopěstitelé</div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <a href="moje-objednavky.html" class="home-btn" style="background: #dbeafe; color: #1e40af;">📋 Objednávky</a>
+                <a href="index.html" class="home-btn">← Domů</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Sidebar s farmáři -->
+        <div class="sidebar">
+            <h2>📍 Farmáři v okolí</h2>
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Hledat farmáře nebo produkt...">
+
+            <!-- Distance Filter -->
+            <div class="distance-filter">
+                <div class="filter-label">📏 Vzdálenost od mé polohy</div>
+                <div class="distance-buttons">
+                    <button class="distance-btn" onclick="setDistanceFilter(5)">Do 5 km</button>
+                    <button class="distance-btn" onclick="setDistanceFilter(10)">Do 10 km</button>
+                    <button class="distance-btn" onclick="setDistanceFilter(20)">Do 20 km</button>
+                    <button class="distance-btn" onclick="setDistanceFilter(30)">Do 30 km</button>
+                    <button class="distance-btn" onclick="setDistanceFilter(50)">Do 50 km</button>
+                    <button class="distance-btn active" onclick="setDistanceFilter(null)">Neomezeně</button>
+                </div>
+            </div>
+
+            <div id="farmerList" class="farmer-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mapa -->
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+
+    <script>
+        let map;
+        let markers = [];
+        let allFarmers = [];
+        let selectedFarmer = null;
+        let userLocation = null;
+        let distanceFilter = null; // null = neomezeně, jinak číslo v km
+
+        // Inicializace mapy
+        function initMap() {
+            // Výchozí pozice - střed ČR
+            map = L.map('map').setView([49.8175, 15.4730], 7);
+
+            // Přidat mapové dlaždice
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18,
+            }).addTo(map);
+
+            // Pokusit se získat aktuální polohu uživatele
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        userLocation = { lat: latitude, lng: longitude };
+                        map.setView([latitude, longitude], 10);
+
+                        // Přidat značku uživatele
+                        L.marker([latitude, longitude], {
+                            icon: L.divIcon({
+                                className: 'user-marker',
+                                html: '<div style="background: #3b82f6; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+                                iconSize: [20, 20]
+                            })
+                        }).addTo(map).bindPopup('📍 Vaše poloha');
+                    },
+                    () => {
+                        console.log('Nepodařilo se získat polohu uživatele');
+                        userLocation = null;
+                    }
+                );
+            }
+        }
+
+        // Výpočet vzdálenosti mezi dvěma GPS body v km (Haversine formula)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Poloměr Země v km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c;
+            return distance;
+        }
+
+        // Nastavit filtr vzdálenosti
+        function setDistanceFilter(distance) {
+            distanceFilter = distance;
+
+            // Update active button
+            document.querySelectorAll('.distance-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Filtrovat a zobrazit farmáře
+            applyFilters();
+        }
+
+        // Načíst farmáře z databáze
+        async function loadFarmers() {
+            try {
+                const { data, error } = await getSupabaseClient()
+                    .from('pestitele')
+                    .select('*')
+                    .eq('smazano', false); // Nezobrazovat smazané farmáře
+
+                if (error) {
+                    console.error('Chyba při načítání farmářů:', error);
+                    document.getElementById('farmerList').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3>Chyba při načítání</h3>
+                            <p>Nepodařilo se načíst seznam farmářů</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                allFarmers = data || [];
+
+                if (allFarmers.length === 0) {
+                    document.getElementById('farmerList').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🚜</div>
+                            <h3>Zatím žádní farmáři</h3>
+                            <p>V okolí zatím nejsou registrovaní žádní farmáři</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Načíst produkty pro každého farmáře a vypočítat vzdálenost
+                for (let farmer of allFarmers) {
+                    const { data: products } = await getSupabaseClient()
+                        .from('produkty')
+                        .select('nazev, emoji')
+                        .eq('pestitel_id', farmer.id)
+                        .eq('dostupnost', true)
+                        .limit(3);
+
+                    farmer.products = products || [];
+
+                    // Načíst hodnocení farmáře
+                    const { data: ratings } = await getSupabaseClient()
+                        .from('hodnoceni')
+                        .select('hvezdicky')
+                        .eq('pestitel_id', farmer.id);
+
+                    if (ratings && ratings.length > 0) {
+                        const totalStars = ratings.reduce((sum, r) => sum + r.hvezdicky, 0);
+                        farmer.avgRating = (totalStars / ratings.length).toFixed(1);
+                        farmer.ratingCount = ratings.length;
+                    } else {
+                        farmer.avgRating = null;
+                        farmer.ratingCount = 0;
+                    }
+
+                    // Vypočítat vzdálenost od uživatele
+                    if (userLocation && farmer.gps_lat && farmer.gps_lng &&
+                        (farmer.gps_lat !== 0 || farmer.gps_lng !== 0)) {
+                        farmer.distance = calculateDistance(
+                            userLocation.lat,
+                            userLocation.lng,
+                            farmer.gps_lat,
+                            farmer.gps_lng
+                        );
+                    } else {
+                        farmer.distance = null;
+                    }
+                }
+
+                applyFilters();
+            } catch (error) {
+                console.error('Chyba:', error);
+            }
+        }
+
+        // Aplikovat všechny filtry
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+
+            let filtered = allFarmers.filter(farmer => {
+                // Filtr podle vzdálenosti
+                if (distanceFilter !== null) {
+                    // Pokud je nastaven filtr vzdálenosti, ale farmář nemá GPS nebo uživatel nemá polohu
+                    if (farmer.distance === null) {
+                        return false; // Nezobrazovat farmáře bez GPS když je aktivní filtr vzdálenosti
+                    }
+                    // Pokud je farmář dál než vybraný perimetr
+                    if (farmer.distance > distanceFilter) {
+                        return false;
+                    }
+                }
+
+                // Filtr podle vyhledávání
+                if (searchTerm) {
+                    const nameMatch = (farmer.nazev_farmy || farmer.nazev || '').toLowerCase().includes(searchTerm);
+                    const cityMatch = (farmer.mesto || '').toLowerCase().includes(searchTerm);
+                    const productMatch = farmer.products && farmer.products.some(p =>
+                        p.nazev.toLowerCase().includes(searchTerm)
+                    );
+
+                    if (!nameMatch && !cityMatch && !productMatch) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            // Seřadit podle vzdálenosti (nejbližší první)
+            if (userLocation) {
+                filtered.sort((a, b) => {
+                    if (a.distance === null) return 1;
+                    if (b.distance === null) return -1;
+                    return a.distance - b.distance;
+                });
+            }
+
+            displayFarmers(filtered);
+            addMarkersToMap(filtered);
+        }
+
+        // Zobrazit farmáře v sidebaru
+        function displayFarmers(farmers) {
+            const farmerList = document.getElementById('farmerList');
+
+            if (farmers.length === 0) {
+                farmerList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <p>Žádní farmáři nevyhovují vyhledávání</p>
+                    </div>
+                `;
+                return;
+            }
+
+            farmerList.innerHTML = farmers.map(farmer => `
+                <div class="farmer-item" onclick="viewFarmerDetail(${farmer.id})">
+                    <div class="farmer-name">${farmer.nazev_farmy || farmer.nazev || 'Farma'}</div>
+                    <div class="farmer-city">
+                        📍 ${farmer.mesto || 'Neznámé místo'}
+                        ${farmer.distance !== null ? ` • ${farmer.distance.toFixed(1)} km` : ''}
+                    </div>
+                    ${farmer.avgRating ? `
+                        <div class="farmer-rating">
+                            <span class="stars">⭐ ${farmer.avgRating}</span>
+                            <span class="rating-count">(${farmer.ratingCount})</span>
+                        </div>
+                    ` : ''}
+                    ${farmer.products && farmer.products.length > 0 ? `
+                        <div class="farmer-products">
+                            ${farmer.products.map(p => `
+                                <div class="product-badge">${p.emoji || '📦'} ${p.nazev}</div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Přidat značky na mapu
+        function addMarkersToMap(farmers) {
+            // Odstranit existující značky
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            farmers.forEach(farmer => {
+                // Pokud má farmář GPS souřadnice (a nejsou 0,0)
+                if (farmer.gps_lat && farmer.gps_lng &&
+                    (farmer.gps_lat !== 0 || farmer.gps_lng !== 0)) {
+
+                    const marker = L.marker([farmer.gps_lat, farmer.gps_lng])
+                        .addTo(map)
+                        .bindPopup(`
+                            <div class="popup-content">
+                                <div class="popup-title">${farmer.nazev_farmy || farmer.nazev || 'Farma'}</div>
+                                <div class="popup-city">📍 ${farmer.mesto || 'Neznámé místo'}</div>
+                                ${farmer.avgRating ? `
+                                    <div class="farmer-rating">
+                                        <span class="stars">⭐ ${farmer.avgRating}</span>
+                                        <span class="rating-count">(${farmer.ratingCount})</span>
+                                    </div>
+                                ` : ''}
+                                <button class="popup-btn" onclick="viewFarmerDetail(${farmer.id})">
+                                    Zobrazit produkty
+                                </button>
+                            </div>
+                        `);
+
+                    markers.push(marker);
+
+                    // Uložit ID farmáře do markeru
+                    marker.farmerId = farmer.id;
+                }
+            });
+        }
+
+        // Vybrat farmáře
+        function selectFarmer(farmerId) {
+            selectedFarmer = farmerId;
+
+            // Zvýraznit ve seznamu
+            document.querySelectorAll('.farmer-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.target.closest('.farmer-item').classList.add('selected');
+
+            // Najít farmáře a přiblížit na mapu
+            const farmer = allFarmers.find(f => f.id === farmerId);
+            if (farmer && farmer.gps_lat && farmer.gps_lng &&
+                (farmer.gps_lat !== 0 || farmer.gps_lng !== 0)) {
+                map.setView([farmer.gps_lat, farmer.gps_lng], 14);
+
+                // Otevřít popup
+                const marker = markers.find(m => m.farmerId === farmerId);
+                if (marker) {
+                    marker.openPopup();
+                }
+            }
+        }
+
+        // Zobrazit detail farmáře
+        function viewFarmerDetail(farmerId) {
+            // Přesměrovat na detail farmáře
+            window.location.href = `farmar-detail.html?id=${farmerId}`;
+        }
+
+        // Vyhledávání
+        document.getElementById('searchBox').addEventListener('input', () => {
+            applyFilters();
+        });
+
+        // Spustit při načtení stránky
+        window.addEventListener('load', () => {
+            initMap();
+            loadFarmers();
+        });
+    </script>
+</body>
+</html>

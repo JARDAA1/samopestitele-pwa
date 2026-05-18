@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail farmáře - Samopěstitelé</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #6366f1;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --bg-light: #f9fafb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .back-btn, .cart-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-light);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover, .cart-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .cart-btn {
+            position: relative;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* Main */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Farmer Info */
+        .farmer-header {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .farmer-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .farmer-meta {
+            display: flex;
+            gap: 2rem;
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+        }
+
+        .farmer-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .farmer-rating .stars {
+            color: #fbbf24;
+        }
+
+        .farmer-rating .rating-count {
+            color: var(--text-gray);
+            font-size: 1rem;
+        }
+
+        .farmer-contact {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .contact-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .contact-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .contact-btn.secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .contact-btn.secondary:hover {
+            background: var(--bg-light);
+        }
+
+        /* Products Grid */
+        .products-section {
+            margin-top: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .product-emoji {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .product-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .product-description {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            min-height: 40px;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .product-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .product-status.available {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .product-status.unavailable {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .add-to-cart-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .add-to-cart-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .quantity-input {
+            width: 60px;
+            text-align: center;
+            padding: 0.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        /* Loading & Empty States */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-gray);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">🌱 Samopěstitelé</div>
+            <div class="header-actions">
+                <a href="mapa.html" class="back-btn">← Zpět na mapu</a>
+                <button class="cart-btn" onclick="viewCart()">
+                    🛒 Košík
+                    <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Farmer Header -->
+        <div class="farmer-header" id="farmerHeader">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- Products -->
+        <div class="products-section">
+            <h2 class="section-title">📦 Dostupné produkty</h2>
+            <div class="products-grid" id="productsGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+
+    <script>
+        let farmer = null;
+        let products = [];
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        // Získat ID farmáře z URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const farmerId = urlParams.get('id');
+
+        if (!farmerId) {
+            window.location.href = 'mapa.html';
+        }
+
+        // Načíst data farmáře
+        async function loadFarmer() {
+            try {
+                const { data, error } = await getSupabaseClient()
+                    .from('pestitele')
+                    .select('*')
+                    .eq('id', farmerId)
+                    .eq('smazano', false) // Nezobrazovat smazané farmáře
+                    .single();
+
+                if (error || !data) {
+                    console.error('Chyba při načítání farmáře:', error);
+                    document.getElementById('farmerHeader').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3>Farmář nebyl nalezen</h3>
+                            <p>Tento farmář již neexistuje nebo byl odstraněn.</p>
+                            <a href="mapa.html" class="contact-btn">← Zpět na mapu</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                farmer = data;
+
+                // Načíst hodnocení farmáře
+                const { data: ratings } = await getSupabaseClient()
+                    .from('hodnoceni')
+                    .select('hvezdicky')
+                    .eq('pestitel_id', farmerId);
+
+                if (ratings && ratings.length > 0) {
+                    const totalStars = ratings.reduce((sum, r) => sum + r.hvezdicky, 0);
+                    farmer.avgRating = (totalStars / ratings.length).toFixed(1);
+                    farmer.ratingCount = ratings.length;
+                } else {
+                    farmer.avgRating = null;
+                    farmer.ratingCount = 0;
+                }
+
+                displayFarmerInfo();
+            } catch (error) {
+                console.error('Chyba:', error);
+            }
+        }
+
+        // Zobrazit informace o farmáři
+        function displayFarmerInfo() {
+            const header = document.getElementById('farmerHeader');
+
+            header.innerHTML = `
+                <h1 class="farmer-title">${farmer.nazev_farmy || farmer.nazev || 'Farma'}</h1>
+                <div class="farmer-meta">
+                    <div>👤 ${farmer.jmeno || 'Farmář'}</div>
+                    <div>📍 ${farmer.mesto || 'Neznámé místo'}</div>
+                    ${farmer.telefon ? `<div>📞 ${farmer.telefon}</div>` : ''}
+                </div>
+                ${farmer.avgRating ? `
+                    <div class="farmer-rating">
+                        <span class="stars">⭐ ${farmer.avgRating}</span>
+                        <span class="rating-count">(${farmer.ratingCount} hodnocení)</span>
+                    </div>
+                ` : ''}
+                <div class="farmer-contact">
+                    ${farmer.telefon ? `
+                        <a href="tel:${farmer.telefon}" class="contact-btn">
+                            📞 Zavolat
+                        </a>
+                    ` : ''}
+                    ${farmer.email ? `
+                        <a href="mailto:${farmer.email}" class="contact-btn secondary">
+                            ✉️ Email
+                        </a>
+                    ` : ''}
+                    ${farmer.gps_lat && farmer.gps_lng && (farmer.gps_lat !== 0 || farmer.gps_lng !== 0) ? `
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${farmer.gps_lat},${farmer.gps_lng}"
+                           target="_blank" class="contact-btn secondary">
+                            🗺️ Navigovat
+                        </a>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Načíst produkty
+        async function loadProducts() {
+            try {
+                const { data, error } = await getSupabaseClient()
+                    .from('produkty')
+                    .select('*')
+                    .eq('pestitel_id', farmerId)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Chyba při načítání produktů:', error);
+                    document.getElementById('productsGrid').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <h3>Chyba při načítání produktů</h3>
+                        </div>
+                    `;
+                    return;
+                }
+
+                products = data || [];
+
+                if (products.length === 0) {
+                    document.getElementById('productsGrid').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📦</div>
+                            <h3>Žádné produkty</h3>
+                            <p>Tento farmář zatím nenabízí žádné produkty</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                displayProducts();
+            } catch (error) {
+                console.error('Chyba:', error);
+            }
+        }
+
+        // Zobrazit produkty
+        function displayProducts() {
+            const grid = document.getElementById('productsGrid');
+
+            grid.innerHTML = products.map(product => `
+                <div class="product-card">
+                    <div class="product-emoji">${product.emoji || '📦'}</div>
+                    <h3 class="product-name">${product.nazev}</h3>
+                    <p class="product-description">${product.popis || ''}</p>
+                    <div class="product-price">${product.cena} Kč / ${product.jednotka}</div>
+                    <div class="product-status ${product.dostupnost ? 'available' : 'unavailable'}">
+                        ${product.dostupnost ? '✅ Skladem' : '❌ Vyprodáno'}
+                    </div>
+                    ${product.dostupnost ? `
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="changeQuantity(${product.id}, -1)">-</button>
+                            <input type="number" class="quantity-input" id="qty-${product.id}" value="1" min="1" max="999">
+                            <button class="quantity-btn" onclick="changeQuantity(${product.id}, 1)">+</button>
+                        </div>
+                        <button class="add-to-cart-btn" onclick="addToCart(${product.id})">
+                            🛒 Přidat do košíku
+                        </button>
+                    ` : `
+                        <button class="add-to-cart-btn" disabled>
+                            Nedostupné
+                        </button>
+                    `}
+                </div>
+            `).join('');
+        }
+
+        // Změnit množství
+        function changeQuantity(productId, delta) {
+            const input = document.getElementById(`qty-${productId}`);
+            const currentValue = parseInt(input.value) || 1;
+            const newValue = Math.max(1, Math.min(999, currentValue + delta));
+            input.value = newValue;
+        }
+
+        // Přidat do košíku
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const quantity = parseInt(document.getElementById(`qty-${productId}`).value) || 1;
+
+            // Zkontrolovat, jestli produkt už je v košíku
+            const existingItem = cart.find(item => item.product.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({
+                    product: product,
+                    farmer: farmer,
+                    quantity: quantity
+                });
+            }
+
+            // Uložit do localStorage
+            localStorage.setItem('cart', JSON.stringify(cart));
+
+            // Update badge
+            updateCartBadge();
+
+            // Feedback
+            alert(`✅ ${product.nazev} (${quantity}x) bylo přidáno do košíku`);
+
+            // Reset quantity
+            document.getElementById(`qty-${productId}`).value = 1;
+        }
+
+        // Update košík badge
+        function updateCartBadge() {
+            const badge = document.getElementById('cartBadge');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+            if (totalItems > 0) {
+                badge.textContent = totalItems;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // Zobrazit košík
+        function viewCart() {
+            window.location.href = 'kosik.html';
+        }
+
+        // Spustit při načtení stránky
+        window.addEventListener('load', async () => {
+            await loadFarmer();
+            await loadProducts();
+            updateCartBadge();
+        });
+    </script>
+</body>
+</html>

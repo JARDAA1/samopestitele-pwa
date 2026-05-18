@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moje objednávky - Samopěstitelé</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #6366f1;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --bg-light: #f9fafb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .back-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-light);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #e5e7eb;
+        }
+
+        /* Main */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--text-dark);
+        }
+
+        /* Orders List */
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .order-info {
+            flex: 1;
+        }
+
+        .order-number {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+            margin-bottom: 0.25rem;
+        }
+
+        .farmer-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .order-date {
+            font-size: 0.9rem;
+            color: var(--text-gray);
+        }
+
+        .order-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .order-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .status-nova {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-potvrzena {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-dokoncena {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .status-zrusena {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .order-items-preview {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .item-badge {
+            background: var(--bg-light);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .expand-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .order-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Order Details */
+        .order-details {
+            display: none;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--bg-light);
+        }
+
+        .order-details.visible {
+            display: block;
+        }
+
+        .detail-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .detail-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--bg-light);
+            border-radius: 8px;
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .item-emoji {
+            font-size: 2.5rem;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .item-quantity {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        .item-price {
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .farmer-contact {
+            background: #f0fdf4;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-dark);
+        }
+
+        .contact-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .contact-item a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-item a:hover {
+            text-decoration: underline;
+        }
+
+        .order-note {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        /* Loading & Empty States */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            background: white;
+            border-radius: 16px;
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h2 {
+            margin-bottom: 1rem;
+        }
+
+        .continue-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .continue-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Info Message */
+        .info-message {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+        }
+
+        /* Rating Section */
+        .rating-section {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .rating-title {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .star {
+            cursor: pointer;
+            color: #d1d5db;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #fbbf24;
+            transform: scale(1.1);
+        }
+
+        .rating-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .rating-display .stars {
+            color: #fbbf24;
+        }
+
+        .submit-rating-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-rating-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .submit-rating-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .rating-success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">🌱 Samopěstitelé</div>
+            <a href="mapa.html" class="back-btn">← Zpět na mapu</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">📋 Moje objednávky</h1>
+
+        <div class="info-message">
+            💡 <strong>Tip:</strong> Klikněte na objednávku pro zobrazení detailů a kontaktu na farmáře.
+        </div>
+
+        <div id="ordersContent">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+
+    <script>
+        let allOrders = [];
+        let selectedRatings = {}; // Track selected ratings for each order
+
+        // Načíst objednávky z localStorage (podle telefonu nebo bez autentizace zobrazit všechny nedávné)
+        async function loadOrders() {
+            try {
+                // Pro demo účely načteme všechny objednávky z posledních 30 dní
+                // V produkci byste měli filtrovat podle přihlášeného uživatele
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+                const { data: orders, error } = await getSupabaseClient()
+                    .from('objednavky')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Chyba při načítání objednávek:', error);
+                    showEmptyState();
+                    return;
+                }
+
+                if (!orders || orders.length === 0) {
+                    showEmptyState();
+                    return;
+                }
+
+                // Načíst data farmářů a položky pro každou objednávku
+                for (let order of orders) {
+                    // Načíst farmáře
+                    const { data: farmer } = await getSupabaseClient()
+                        .from('pestitele')
+                        .select('*')
+                        .eq('id', order.pestitel_id)
+                        .single();
+
+                    order.farmer = farmer;
+
+                    // Načíst položky objednávky
+                    const { data: items } = await getSupabaseClient()
+                        .from('objednavky_polozky')
+                        .select('*')
+                        .eq('objednavka_id', order.id);
+
+                    order.items = items || [];
+
+                    // Načíst hodnocení (pokud existuje)
+                    const { data: rating, error: ratingError } = await getSupabaseClient()
+                        .from('hodnoceni')
+                        .select('*')
+                        .eq('objednavka_id', order.id)
+                        .maybeSingle();
+
+                    order.rating = rating || null;
+                }
+
+                allOrders = orders;
+                displayOrders();
+
+            } catch (error) {
+                console.error('Chyba:', error);
+                showEmptyState();
+            }
+        }
+
+        // Zobrazit objednávky
+        function displayOrders() {
+            const container = document.getElementById('ordersContent');
+
+            if (allOrders.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="orders-list">
+                    ${allOrders.map((order, index) => renderOrderCard(order, index)).join('')}
+                </div>
+            `;
+        }
+
+        // Vykreslit kartu objednávky
+        function renderOrderCard(order, index) {
+            const statusLabels = {
+                'nova': 'Nová',
+                'potvrzena': 'Potvrzená',
+                'dokoncena': 'Dokončená',
+                'zrusena': 'Zrušená'
+            };
+
+            const orderDate = new Date(order.created_at);
+            const formattedDate = orderDate.toLocaleDateString('cs-CZ', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const itemsPreview = order.items.slice(0, 3).map(item =>
+                `<div class="item-badge">
+                    <span>${item.mnozstvi}x ${item.nazev_produktu}</span>
+                </div>`
+            ).join('');
+
+            const moreItems = order.items.length > 3 ?
+                `<div class="item-badge">+${order.items.length - 3} dalších</div>` : '';
+
+            return `
+                <div class="order-card" id="order-${index}" onclick="toggleOrderDetails(${index})">
+                    <div class="order-header">
+                        <div class="order-info">
+                            <div class="order-number">Objednávka #${order.id}</div>
+                            <div class="farmer-name">🚜 ${order.farmer?.nazev_farmy || order.farmer?.nazev || 'Neznámý farmář'}</div>
+                            <div class="order-date">📅 ${formattedDate}</div>
+                            <div class="order-status status-${order.stav}">
+                                ${statusLabels[order.stav] || order.stav}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="order-price">${order.celkova_cena} Kč</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+
+                    <div class="order-items-preview">
+                        ${itemsPreview}
+                        ${moreItems}
+                    </div>
+
+                    <div class="order-details" id="details-${index}">
+                        ${renderOrderDetails(order)}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Vykreslit detail objednávky
+        function renderOrderDetails(order) {
+            return `
+                <div class="detail-section">
+                    <div class="detail-title">📦 Objednané produkty</div>
+                    <div class="detail-items">
+                        ${order.items.map(item => `
+                            <div class="detail-item">
+                                <div class="item-info">
+                                    <div class="item-emoji">📦</div>
+                                    <div>
+                                        <div class="item-name">${item.nazev_produktu}</div>
+                                        <div class="item-quantity">${item.mnozstvi} ${item.jednotka} × ${item.cena} Kč</div>
+                                    </div>
+                                </div>
+                                <div class="item-price">${item.mnozstvi * item.cena} Kč</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-title">📞 Kontakt na farmáře</div>
+                    <div class="farmer-contact">
+                        <div class="contact-item">
+                            <strong>${order.farmer?.nazev_farmy || order.farmer?.nazev || 'Farma'}</strong>
+                        </div>
+                        ${order.farmer?.telefon ? `
+                            <div class="contact-item">
+                                <span>📱 Telefon:</span>
+                                <a href="tel:${order.farmer.telefon}">${order.farmer.telefon}</a>
+                            </div>
+                        ` : ''}
+                        ${order.farmer?.email ? `
+                            <div class="contact-item">
+                                <span>✉️ Email:</span>
+                                <a href="mailto:${order.farmer.email}">${order.farmer.email}</a>
+                            </div>
+                        ` : ''}
+                        ${order.farmer?.mesto ? `
+                            <div class="contact-item">
+                                <span>📍 Místo:</span>
+                                <span>${order.farmer.mesto}</span>
+                            </div>
+                        ` : ''}
+                        ${order.farmer?.gps_lat && order.farmer?.gps_lng && (order.farmer.gps_lat !== 0 || order.farmer.gps_lng !== 0) ? `
+                            <div class="contact-item">
+                                <span>🗺️</span>
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${order.farmer.gps_lat},${order.farmer.gps_lng}" target="_blank">Navigovat na farmu</a>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                ${order.poznamka ? `
+                    <div class="detail-section">
+                        <div class="detail-title">📝 Poznámka k objednávce</div>
+                        <div class="order-note">
+                            ${order.poznamka}
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${order.zakaznik_jmeno || order.zakaznik_telefon ? `
+                    <div class="detail-section">
+                        <div class="detail-title">👤 Vaše kontaktní údaje</div>
+                        <div style="color: var(--text-gray);">
+                            ${order.zakaznik_jmeno ? `<div>Jméno: ${order.zakaznik_jmeno}</div>` : ''}
+                            ${order.zakaznik_telefon ? `<div>Telefon: ${order.zakaznik_telefon}</div>` : ''}
+                            ${order.zakaznik_email ? `<div>Email: ${order.zakaznik_email}</div>` : ''}
+                        </div>
+                    </div>
+                ` : ''}
+
+                ${renderRatingSection(order)}
+            `;
+        }
+
+        // Vykreslit sekci hodnocení
+        function renderRatingSection(order) {
+            console.log('🔍 renderRatingSection volána pro objednávku:', order.id, 'rating:', order.rating);
+
+            // Pokud už je ohodnoceno, zobrazit stávající hodnocení
+            if (order.rating) {
+                const stars = '⭐'.repeat(order.rating.hvezdicky);
+                return `
+                    <div class="detail-section">
+                        <div class="detail-title">⭐ Vaše hodnocení</div>
+                        <div class="rating-display">
+                            <span class="stars">${stars}</span>
+                            <span>(${order.rating.hvezdicky}/5)</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Pokud není ohodnoceno, zobrazit formulář pro hodnocení
+            return `
+                <div class="detail-section" style="background: #fef3c7; padding: 1rem; border-radius: 8px;">
+                    <div class="detail-title">⭐ Ohodnoťte farmáře</div>
+                    <div class="rating-section" id="rating-section-${order.id}">
+                        <div class="rating-title">Jak jste spokojeni s touto objednávkou?</div>
+                        <div class="star-rating" id="stars-${order.id}">
+                            ${[1, 2, 3, 4, 5].map(star => `
+                                <span class="star" data-value="${star}" onclick="selectRating(${order.id}, ${star})" onmouseover="hoverRating(${order.id}, ${star})" onmouseout="unhoverRating(${order.id})">⭐</span>
+                            `).join('')}
+                        </div>
+                        <button class="submit-rating-btn" id="submit-rating-${order.id}" onclick="submitRating(${order.id}, ${order.pestitel_id})" disabled>
+                            Odeslat hodnocení
+                        </button>
+                        <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">
+                            Debug: Objednávka #${order.id}, Farmář #${order.pestitel_id}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Vybrat hodnocení
+        function selectRating(orderId, rating) {
+            selectedRatings[orderId] = rating;
+            updateStarDisplay(orderId, rating);
+
+            // Povolit tlačítko odeslání
+            const submitBtn = document.getElementById(`submit-rating-${orderId}`);
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Aktualizovat zobrazení hvězdiček
+        function updateStarDisplay(orderId, rating) {
+            const starsContainer = document.getElementById(`stars-${orderId}`);
+            if (!starsContainer) return;
+
+            const stars = starsContainer.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        // Hover efekt na hvězdičky
+        function hoverRating(orderId, rating) {
+            if (selectedRatings[orderId]) return; // Pokud už je vybráno, neměnit při hoveru
+            updateStarDisplay(orderId, rating);
+        }
+
+        // Zrušit hover efekt
+        function unhoverRating(orderId) {
+            if (selectedRatings[orderId]) {
+                updateStarDisplay(orderId, selectedRatings[orderId]);
+            } else {
+                updateStarDisplay(orderId, 0);
+            }
+        }
+
+        // Odeslat hodnocení
+        async function submitRating(orderId, pestiteleId) {
+            const rating = selectedRatings[orderId];
+            if (!rating) return;
+
+            const submitBtn = document.getElementById(`submit-rating-${orderId}`);
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Odesílám...';
+
+            try {
+                const { data, error } = await getSupabaseClient()
+                    .from('hodnoceni')
+                    .insert({
+                        objednavka_id: orderId,
+                        pestitel_id: pestiteleId,
+                        hvezdicky: rating
+                    })
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('Chyba při ukládání hodnocení:', error);
+                    alert('❌ Nepodařilo se uložit hodnocení. Zkuste to prosím znovu.');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Odeslat hodnocení';
+                    return;
+                }
+
+                // Zobrazit potvrzení
+                const ratingSection = document.getElementById(`rating-section-${orderId}`);
+                if (ratingSection) {
+                    const stars = '⭐'.repeat(rating);
+                    ratingSection.innerHTML = `
+                        <div class="rating-success">
+                            ✅ Děkujeme za vaše hodnocení! ${stars}
+                        </div>
+                    `;
+                }
+
+                // Aktualizovat order objekt
+                const order = allOrders.find(o => o.id === orderId);
+                if (order) {
+                    order.rating = data;
+                }
+
+            } catch (error) {
+                console.error('Chyba:', error);
+                alert('❌ Nepodařilo se uložit hodnocení. Zkuste to prosím znovu.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Odeslat hodnocení';
+            }
+        }
+
+        // Přepnout zobrazení detailu objednávky
+        function toggleOrderDetails(index) {
+            const card = document.getElementById(`order-${index}`);
+            const details = document.getElementById(`details-${index}`);
+
+            if (details.classList.contains('visible')) {
+                details.classList.remove('visible');
+                card.classList.remove('expanded');
+            } else {
+                details.classList.add('visible');
+                card.classList.add('expanded');
+            }
+        }
+
+        // Zobrazit prázdný stav
+        function showEmptyState() {
+            const container = document.getElementById('ordersContent');
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h2>Zatím žádné objednávky</h2>
+                    <p>Vypadá to, že jste si ještě nic neobjednali.</p>
+                    <a href="mapa.html" class="continue-btn">Začít nakupovat</a>
+                </div>
+            `;
+        }
+
+        // Spustit při načtení stránky
+        window.addEventListener('load', () => {
+            loadOrders();
+        });
+    </script>
+</body>
+</html>

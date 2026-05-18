@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moje prodejna - Samopěstitelé</title>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --orange: #f59e0b;
+            --orange-dark: #d97706;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --bg-light: #f9fafb;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 20px 25px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #fef3c7 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 1.5rem 2rem;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--orange) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--orange) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .back-link {
+            color: var(--text-gray);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .container {
+            flex: 1;
+            max-width: 500px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+            width: 100%;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem 2.5rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .login-icon {
+            font-size: 60px;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .login-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-subtitle {
+            font-size: 1rem;
+            color: var(--text-gray);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .info-text {
+            font-size: 0.9375rem;
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .label {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .input {
+            width: 100%;
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 1rem;
+            border: 2px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--orange);
+            background: white;
+        }
+
+        .input-code {
+            font-size: 2rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+            font-weight: bold;
+        }
+
+        .button {
+            width: 100%;
+            background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-md);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .back-button {
+            background: var(--bg-light);
+            color: var(--text-gray);
+            min-width: 100px;
+        }
+
+        .back-button:hover {
+            background: #e5e7eb;
+        }
+
+        .resend-button {
+            background: none;
+            border: none;
+            color: var(--orange);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.75rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        .resend-button:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: #e5e7eb;
+        }
+
+        .divider-text {
+            margin: 0 1rem;
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            font-weight: 600;
+        }
+
+        .register-link {
+            display: block;
+            text-align: center;
+            padding: 1rem;
+            background: var(--bg-light);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--orange);
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .register-link:hover {
+            background: white;
+            border-color: var(--orange);
+        }
+
+        .test-box {
+            background: #e8f5e9;
+            border: 2px solid var(--primary);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .test-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .test-code {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+            letter-spacing: 0.5rem;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .login-title {
+                font-size: 1.5rem;
+            }
+
+            .container {
+                margin: 1.5rem auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="nav-container">
+            <a href="index.html" class="logo-section">
+                <div class="logo-icon">🌱</div>
+                <span class="logo-text">Samopěstitelé</span>
+            </a>
+            <a href="index.html" class="back-link">← Zpět na hlavní stránku</a>
+        </div>
+    </header>
+
+    <!-- Login Container -->
+    <div class="container">
+        <div class="login-card">
+            <div class="login-icon">🏪</div>
+            <h1 class="login-title">Moje prodejna</h1>
+            <p class="login-subtitle">Přihlášení farmáře</p>
+
+            <!-- KROK 1: Telefon -->
+            <div id="step1">
+                <p class="info-text">Zadejte telefonní číslo. Pošleme vám SMS s ověřovacím kódem.</p>
+
+                <label class="label">Telefon</label>
+                <input
+                    type="tel"
+                    class="input"
+                    id="telefon"
+                    placeholder="777123456"
+                    maxlength="9"
+                    value=""
+                />
+
+                <button class="button" onclick="odeslatKod()">
+                    📱 Odeslat SMS kód
+                </button>
+            </div>
+
+            <!-- KROK 2: SMS kód -->
+            <div id="step2" style="display: none;">
+                <p class="info-text">
+                    Zadejte 4-místný kód, který jsme vám poslali na číslo <span id="zobrazTelefon"></span>
+                </p>
+
+                <!-- Vývojový režim - PRO PRODUKCI ODSTRAŇTE -->
+                <div id="testBox" class="test-box" style="display: none;">
+                    <div class="test-text">📱 Ověřovací kód (dev mode)</div>
+                    <div class="test-code"><span id="testCode"></span></div>
+                </div>
+
+                <label class="label">SMS kód</label>
+                <input
+                    type="text"
+                    class="input input-code"
+                    id="smsKod"
+                    placeholder="1234"
+                    maxlength="4"
+                />
+
+                <div class="button-row">
+                    <button class="button back-button" onclick="zpetNaKrok1()">
+                        ← Zpět
+                    </button>
+                    <button class="button" style="flex: 1;" onclick="overitKod()">
+                        🔓 Přihlásit se
+                    </button>
+                </div>
+
+                <button class="resend-button" onclick="odeslatKod()">
+                    Odeslat kód znovu
+                </button>
+            </div>
+
+            <div class="divider">
+                <div class="divider-line"></div>
+                <span class="divider-text">NEBO</span>
+                <div class="divider-line"></div>
+            </div>
+
+            <a href="registrace.html" class="register-link">
+                📝 Zaregistrovat novou farmu
+            </a>
+        </div>
+    </div>
+
+    <!-- Auth Script -->
+    <script src="auth.js"></script>
+
+    <script>
+        let currentTelefon = '';
+        let odeslanyKod = '';
+
+        async function odeslatKod() {
+            const telefon = document.getElementById('telefon').value.trim();
+            console.log('=== KROK 1: Odesílání SMS kódu ===');
+            console.log('Telefon:', telefon);
+
+            // Validace telefonu - očekáváme 9 číslic
+            if (!telefon.match(/^\d{9}$/)) {
+                console.error('Neplatný formát telefonu');
+                alert('Zadejte platný telefon (9 číslic, např. 777123456)');
+                return;
+            }
+
+            currentTelefon = telefon;
+
+            try {
+                console.log('Volám odeslatOverovaciKod()...');
+                // Odeslat kód přes Supabase
+                const result = await odeslatOverovaciKod(telefon, 'prihlaseni');
+                console.log('Výsledek odeslatOverovaciKod:', result);
+
+                if (!result.success) {
+                    alert('Chyba\n\n' + (result.error || 'Nepodařilo se odeslat SMS'));
+                    return;
+                }
+
+                // Uložit kód pro testování
+                odeslanyKod = result.kod || '';
+
+                // DEV MODE: Zobrazit kód (v produkci se neposílá SMS, jen uloží do DB)
+                if (odeslanyKod) {
+                    document.getElementById('testCode').textContent = odeslanyKod;
+                    document.getElementById('testBox').style.display = 'block';
+                }
+
+                // Zobrazit telefon v kroku 2
+                document.getElementById('zobrazTelefon').textContent = telefon;
+
+                // Přepnout na krok 2
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+
+                // Focus na input kódu
+                document.getElementById('smsKod').focus();
+
+                alert(`SMS kód byl odeslán ✓\n\nZadejte prosím 4-místný kód z SMS zprávy.`);
+            } catch (error) {
+                alert('Chyba\n\n' + error.message);
+            }
+        }
+
+        async function overitKod() {
+            const smsKod = document.getElementById('smsKod').value;
+            console.log('=== KROK 2: Ověření SMS kódu ===');
+            console.log('Telefon:', currentTelefon);
+            console.log('Zadaný kód:', smsKod);
+
+            if (smsKod.length !== 4) {
+                console.error('Neplatná délka kódu');
+                alert('Zadejte 4-místný kód');
+                return;
+            }
+
+            try {
+                console.log('Volám overitSMSKod()...');
+                // Ověřit kód přes Supabase
+                const result = await overitSMSKod(currentTelefon, smsKod);
+                console.log('Výsledek overitSMSKod:', result);
+
+                if (!result.valid) {
+                    alert('Chyba\n\n' + (result.error || 'Neplatný kód'));
+                    return;
+                }
+
+                // Načíst data farmáře
+                console.log('Volám nacistFarmarePoTelefonu()...');
+                const farmarResult = await nacistFarmarePoTelefonu(currentTelefon);
+                console.log('Výsledek nacistFarmarePoTelefonu:', farmarResult);
+
+                if (!farmarResult.success) {
+                    console.error('Nepodařilo se načíst data farmáře');
+                    alert('Chyba\n\nNepodařilo se načíst data farmáře');
+                    return;
+                }
+
+                // Uložit do localStorage
+                console.log('Ukládám do localStorage...');
+                localStorage.setItem('farmarLoggedIn', 'true');
+                localStorage.setItem('farmarData', JSON.stringify(farmarResult.data));
+                console.log('✅ ÚSPĚCH! Farmář přihlášen:', farmarResult.data);
+
+                // Přesměrovat na dashboard
+                window.location.href = 'dashboard.html';
+            } catch (error) {
+                alert('Chyba\n\n' + error.message);
+            }
+        }
+
+        function zpetNaKrok1() {
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('smsKod').value = '';
+            document.getElementById('testBox').style.display = 'none';
+        }
+
+        // Enter key pro odeslání
+        document.getElementById('telefon').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                odeslatKod();
+            }
+        });
+
+        document.getElementById('smsKod').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                overitKod();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Košík - Samopěstitelé</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #6366f1;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --bg-light: #f9fafb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .back-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-light);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #e5e7eb;
+        }
+
+        /* Main */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--text-dark);
+        }
+
+        .cart-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        /* Cart Items */
+        .cart-items {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: var(--bg-light);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .item-emoji {
+            font-size: 4rem;
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .item-farmer {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-price {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .item-controls {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .quantity-display {
+            width: 50px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            transition: transform 0.3s;
+        }
+
+        .remove-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .item-total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        /* Summary */
+        .cart-summary {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .summary-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .summary-row.total {
+            border-top: 2px solid var(--text-dark);
+            border-bottom: none;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-top: 1rem;
+            padding-top: 1rem;
+        }
+
+        .customer-form {
+            margin-top: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            margin-top: 1.5rem;
+        }
+
+        .checkout-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .checkout-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            background: white;
+            border-radius: 16px;
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h2 {
+            margin-bottom: 1rem;
+        }
+
+        .continue-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .continue-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Farmer Contact Info */
+        .farmer-contact-info {
+            background: #f0fdf4;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .farmer-contact-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-dark);
+        }
+
+        .contact-item a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* Optional Form Toggle */
+        .optional-form-section {
+            margin-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 1.5rem;
+        }
+
+        .form-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.75rem;
+            background: var(--bg-light);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: background 0.3s;
+        }
+
+        .form-toggle:hover {
+            background: #e5e7eb;
+        }
+
+        .form-toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .form-toggle-icon.expanded {
+            transform: rotate(90deg);
+        }
+
+        .form-content {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .form-content.visible {
+            display: block;
+        }
+
+        .info-message {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .cart-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .cart-summary {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">🌱 Samopěstitelé</div>
+            <a href="mapa.html" class="back-btn">← Zpět na mapu</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">🛒 Váš košík</h1>
+
+        <div id="cartContent">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+
+    <script>
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        // Zobrazit košík
+        function displayCart() {
+            const container = document.getElementById('cartContent');
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🛒</div>
+                        <h2>Váš košík je prázdný</h2>
+                        <p>Prozkoumejte naše farmáře a začněte nakupovat!</p>
+                        <a href="mapa.html" class="continue-btn">Pokračovat v nákupu</a>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group by farmer
+            const itemsByFarmer = {};
+            cart.forEach(item => {
+                const farmerId = item.farmer.id;
+                if (!itemsByFarmer[farmerId]) {
+                    itemsByFarmer[farmerId] = {
+                        farmer: item.farmer,
+                        items: []
+                    };
+                }
+                itemsByFarmer[farmerId].items.push(item);
+            });
+
+            container.innerHTML = `
+                <div class="cart-layout">
+                    <div class="cart-items">
+                        ${Object.values(itemsByFarmer).map(group => `
+                            <div style="margin-bottom: 2rem;">
+                                <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--text-dark);">
+                                    🚜 ${group.farmer.nazev_farmy || group.farmer.nazev || 'Farma'}
+                                </h3>
+                                ${group.items.map((item, index) => renderCartItem(item, cart.indexOf(item))).join('')}
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="cart-summary">
+                        <h2 class="summary-title">📋 Shrnutí objednávky</h2>
+
+                        ${Object.values(itemsByFarmer).map(group => `
+                            <div class="summary-row">
+                                <span>${group.farmer.nazev_farmy || group.farmer.nazev}</span>
+                                <span>${calculateFarmerTotal(group.items)} Kč</span>
+                            </div>
+                        `).join('')}
+
+                        <div class="summary-row total">
+                            <span>Celkem</span>
+                            <span>${calculateTotal()} Kč</span>
+                        </div>
+
+                        <div class="info-message">
+                            💡 <strong>Jak to funguje:</strong><br>
+                            Po dokončení objednávky obdrží farmář notifikaci a bude vás kontaktovat pro domluvení předání.
+                        </div>
+
+                        ${renderFarmerContacts(itemsByFarmer)}
+
+                        <button class="checkout-btn" onclick="checkout()">
+                            Dokončit objednávku
+                        </button>
+
+                        <div class="optional-form-section">
+                            <div class="form-toggle" onclick="toggleCustomerForm()">
+                                <span class="form-toggle-icon" id="formToggleIcon">▶</span>
+                                <span style="font-weight: 600;">Volitelné: Přidat své kontaktní údaje</span>
+                            </div>
+                            <div class="form-content" id="customerFormContent">
+                                <div class="form-group">
+                                    <label class="form-label">Vaše jméno</label>
+                                    <input type="text" class="form-input" id="customerName" placeholder="Jan Novák">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Telefon</label>
+                                    <input type="tel" class="form-input" id="customerPhone" placeholder="777123456" maxlength="9">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-input" id="customerEmail" placeholder="jan@email.cz">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Poznámka k objednávce</label>
+                                    <textarea class="form-textarea" id="orderNote" placeholder="Např. termín vyzvednutí, speciální požadavky..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render farmer contacts
+        function renderFarmerContacts(itemsByFarmer) {
+            return Object.values(itemsByFarmer).map(group => {
+                const farmer = group.farmer;
+                return `
+                    <div class="farmer-contact-info">
+                        <h3>📞 Kontakt na farmáře: ${farmer.nazev_farmy || farmer.nazev}</h3>
+                        ${farmer.telefon ? `
+                            <div class="contact-item">
+                                <span>📱 Telefon:</span>
+                                <a href="tel:${farmer.telefon}">${farmer.telefon}</a>
+                            </div>
+                        ` : ''}
+                        ${farmer.email ? `
+                            <div class="contact-item">
+                                <span>✉️ Email:</span>
+                                <a href="mailto:${farmer.email}">${farmer.email}</a>
+                            </div>
+                        ` : ''}
+                        ${farmer.mesto ? `
+                            <div class="contact-item">
+                                <span>📍 Místo:</span>
+                                <span>${farmer.mesto}</span>
+                            </div>
+                        ` : ''}
+                        ${farmer.gps_lat && farmer.gps_lng && (farmer.gps_lat !== 0 || farmer.gps_lng !== 0) ? `
+                            <div class="contact-item">
+                                <span>🗺️</span>
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${farmer.gps_lat},${farmer.gps_lng}" target="_blank">Navigovat na farmu</a>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Toggle customer form
+        function toggleCustomerForm() {
+            const content = document.getElementById('customerFormContent');
+            const icon = document.getElementById('formToggleIcon');
+
+            if (content.classList.contains('visible')) {
+                content.classList.remove('visible');
+                icon.classList.remove('expanded');
+            } else {
+                content.classList.add('visible');
+                icon.classList.add('expanded');
+            }
+        }
+
+        // Render cart item
+        function renderCartItem(item, index) {
+            const product = item.product;
+            const itemTotal = product.cena * item.quantity;
+
+            return `
+                <div class="cart-item">
+                    <div class="item-emoji">${product.emoji || '📦'}</div>
+                    <div class="item-details">
+                        <div class="item-name">${product.nazev}</div>
+                        <div class="item-farmer">📍 ${item.farmer.mesto || 'Neznámé místo'}</div>
+                        <div class="item-price">${product.cena} Kč / ${product.jednotka}</div>
+                    </div>
+                    <div class="item-controls">
+                        <button class="remove-btn" onclick="removeItem(${index})" title="Odebrat">🗑️</button>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="updateQuantity(${index}, -1)">-</button>
+                            <div class="quantity-display">${item.quantity}</div>
+                            <button class="quantity-btn" onclick="updateQuantity(${index}, 1)">+</button>
+                        </div>
+                        <div class="item-total">${itemTotal} Kč</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Calculate total for farmer
+        function calculateFarmerTotal(items) {
+            return items.reduce((sum, item) => sum + (item.product.cena * item.quantity), 0);
+        }
+
+        // Calculate total
+        function calculateTotal() {
+            return cart.reduce((sum, item) => sum + (item.product.cena * item.quantity), 0);
+        }
+
+        // Update quantity
+        function updateQuantity(index, delta) {
+            cart[index].quantity = Math.max(1, cart[index].quantity + delta);
+            saveCart();
+            displayCart();
+        }
+
+        // Remove item
+        function removeItem(index) {
+            if (confirm('Opravdu chcete odstranit tento produkt z košíku?')) {
+                cart.splice(index, 1);
+                saveCart();
+                displayCart();
+            }
+        }
+
+        // Save cart
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        // Send push notification to farmer
+        async function sendPushNotification(farmer, orderDetails) {
+            // TODO: Implementovat push notifikace
+            // Možnosti:
+            // 1. Firebase Cloud Messaging (FCM)
+            // 2. OneSignal
+            // 3. Supabase Realtime + Service Worker
+
+            console.log('📲 Push notifikace pro farmáře:', {
+                farmer: farmer.nazev_farmy,
+                telefon: farmer.telefon,
+                orderDetails: orderDetails
+            });
+
+            // Placeholder pro budoucí implementaci
+            // await fetch('/api/send-notification', {
+            //     method: 'POST',
+            //     body: JSON.stringify({
+            //         farmerId: farmer.id,
+            //         message: `Nová objednávka za ${orderDetails.totalPrice} Kč`,
+            //         ...orderDetails
+            //     })
+            // });
+        }
+
+        // Checkout
+        async function checkout() {
+            // Volitelné údaje zákazníka - pouze pokud jsou vyplněny
+            const nameInput = document.getElementById('customerName');
+            const phoneInput = document.getElementById('customerPhone');
+            const emailInput = document.getElementById('customerEmail');
+            const noteInput = document.getElementById('orderNote');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            const phone = phoneInput ? phoneInput.value.trim() : ''; // Bez prefixu
+            const email = emailInput ? emailInput.value.trim() : '';
+            const note = noteInput ? noteInput.value.trim() : '';
+
+            const btn = document.querySelector('.checkout-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Odesílám objednávku...';
+
+            try {
+                // Group items by farmer
+                const itemsByFarmer = {};
+                cart.forEach(item => {
+                    const farmerId = item.farmer.id;
+                    if (!itemsByFarmer[farmerId]) {
+                        itemsByFarmer[farmerId] = [];
+                    }
+                    itemsByFarmer[farmerId].push(item);
+                });
+
+                // Create orders for each farmer
+                const farmerNames = [];
+                for (const [farmerId, items] of Object.entries(itemsByFarmer)) {
+                    const farmer = items[0].farmer;
+                    const totalPrice = calculateFarmerTotal(items);
+                    farmerNames.push(farmer.nazev_farmy || farmer.nazev);
+
+                    // Insert order (customer info is optional)
+                    const { data: order, error: orderError } = await getSupabaseClient()
+                        .from('objednavky')
+                        .insert({
+                            pestitel_id: parseInt(farmerId),
+                            zakaznik_jmeno: name || null,
+                            zakaznik_telefon: phone || null,
+                            stav: 'nova',
+                            celkova_cena: totalPrice,
+                            poznamka: note || null,
+                            zpusob_kontaktu: phone ? 'telefon' : null
+                        })
+                        .select()
+                        .single();
+
+                    if (orderError) {
+                        console.error('Chyba při vytváření objednávky:', orderError);
+                        throw orderError;
+                    }
+
+                    // Insert order items
+                    for (const item of items) {
+                        const { error: itemError } = await getSupabaseClient()
+                            .from('objednavky_polozky')
+                            .insert({
+                                objednavka_id: order.id,
+                                produkt_id: item.product.id,
+                                nazev_produktu: item.product.nazev,
+                                cena: item.product.cena,
+                                mnozstvi: item.quantity,
+                                jednotka: item.product.jednotka
+                            });
+
+                        if (itemError) {
+                            console.error('Chyba při přidávání položky:', itemError);
+                            throw itemError;
+                        }
+                    }
+
+                    // Send push notification to farmer
+                    await sendPushNotification(farmer, {
+                        orderId: order.id,
+                        totalPrice: totalPrice,
+                        itemCount: items.length,
+                        customerName: name || 'Zákazník',
+                        customerPhone: phone || 'neuvedeno',
+                        note: note || ''
+                    });
+                }
+
+                // Clear cart
+                cart = [];
+                localStorage.removeItem('cart');
+
+                // Success message
+                let successMessage = `✅ Objednávka byla úspěšně odeslána!\n\nFarmář obdržel notifikaci a bude vás kontaktovat.`;
+
+                if (farmerNames.length > 0) {
+                    successMessage += `\n\nObjednali jste od: ${farmerNames.join(', ')}`;
+                }
+
+                if (phone) {
+                    successMessage += `\n\nFarmář vás bude kontaktovat na čísle: ${phone}`;
+                }
+
+                alert(successMessage);
+
+                // Redirect
+                window.location.href = 'mapa.html';
+
+            } catch (error) {
+                console.error('Chyba při odesílání objednávky:', error);
+                alert('❌ Chyba při odesílání objednávky: ' + error.message);
+                btn.disabled = false;
+                btn.textContent = 'Dokončit objednávku';
+            }
+        }
+
+        // Load on page load
+        window.addEventListener('load', () => {
+            displayCart();
+        });
+    </script>
+</body>
+</html>
