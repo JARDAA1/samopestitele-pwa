@@ -51,6 +51,11 @@ export default function RootLayout() {
   return <RootLayoutNav />;
 }
 
+const GreenLightTheme = {
+  ...DefaultTheme,
+  colors: { ...DefaultTheme.colors, background: '#f4fae8' },
+};
+
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
@@ -62,7 +67,7 @@ function RootLayoutNav() {
       <FarmarAuthProvider>
         <ShoppingListProvider>
           <CustomerListProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : GreenLightTheme}>
             <AppLayout>
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(tabs)" />

@@ -155,13 +155,13 @@ const styles = StyleSheet.create({
   },
   wideContainer: {
     flex: 1,
-    backgroundColor: '#4A148C', // Tmavší pozadí pro okraje
+    backgroundColor: '#e8f3d8', // Okraje vedle centrovaného obsahu
     flexDirection: 'row',
     justifyContent: 'center',
   },
   centeredContent: {
     flex: 1,
-    backgroundColor: '#6A1B9A', // Hlavní barva aplikace
+    backgroundColor: '#f4fae8',
     // Jemný stín pro vizuální oddělení
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 0 },
