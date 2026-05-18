@@ -1,6 +1,6 @@
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
-  ScrollView, ActivityIndicator, ImageBackground,
+  ScrollView, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
@@ -219,11 +219,6 @@ export default function HomeScreen() {
   }
 
   return (
-    <ImageBackground
-      source={require('../../assets/images/splash.png')}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-    >
     <SafeAreaView style={s.safeArea} edges={['top']}>
       <SellingModeModal
         visible={showModal}
@@ -438,47 +433,46 @@ export default function HomeScreen() {
 
       </ScrollView>
     </SafeAreaView>
-    </ImageBackground>
   );
 }
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: 'rgba(232,245,233,0.88)' },
+  safeArea: { flex: 1, backgroundColor: '#f4fae8' },
   center: { justifyContent: 'center', alignItems: 'center' },
-  container: { flex: 1, backgroundColor: 'transparent' },
+  container: { flex: 1, backgroundColor: '#f4fae8' },
   content: { flexGrow: 1 },
 
   // Hero
   betaBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(26,58,26,0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(26,58,26,0.2)',
     borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 3,
     marginBottom: 12,
   },
   betaBadgeText: {
-    color: 'rgba(255,255,255,0.7)',
+    color: '#4a6a3a',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1.5,
   },
   hero: { paddingTop: 20, paddingBottom: 16, paddingHorizontal: 20 },
   heroDesktop: { paddingTop: 40, paddingBottom: 32, paddingHorizontal: 80, alignItems: 'center' },
-  appName: { fontSize: 32, fontWeight: '800', color: '#fff', letterSpacing: 0.5, marginBottom: 4 },
+  appName: { fontSize: 32, fontWeight: '800', color: '#1a3a1a', letterSpacing: 0.5, marginBottom: 4 },
   appNameDesktop: { fontSize: 56, textAlign: 'center', marginBottom: 8 },
-  title: { fontSize: 16, fontWeight: '400', color: 'rgba(255,255,255,0.75)', lineHeight: 22, marginBottom: 8 },
+  title: { fontSize: 16, fontWeight: '400', color: '#4a6a3a', lineHeight: 22, marginBottom: 8 },
   titleDesktop: { fontSize: 20, lineHeight: 28, textAlign: 'center' },
-  subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', lineHeight: 22, marginBottom: 8 },
+  subtitle: { fontSize: 14, color: '#4a6a3a', lineHeight: 22, marginBottom: 8 },
   subtitleDesktop: { fontSize: 17, textAlign: 'center', lineHeight: 26, marginBottom: 12 },
-  subtitleSecondary: { fontSize: 13, color: 'rgba(255,255,255,0.6)', fontStyle: 'italic', marginBottom: 16 },
+  subtitleSecondary: { fontSize: 13, color: '#6a8a6a', fontStyle: 'italic', marginBottom: 16 },
   subtitleSecondaryDesktop: { fontSize: 15, textAlign: 'center', marginBottom: 24 },
 
   // Zóny (tři sekce: zákazníci / farmáři / prodejci)
   zone: { paddingHorizontal: 20, paddingTop: 20, gap: 10 },
-  zoneSep: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.15)', paddingTop: 24, marginTop: 8 },
+  zoneSep: { borderTopWidth: 1, borderTopColor: '#d1e8c4', paddingTop: 24, marginTop: 8 },
   zoneDesktop: { maxWidth: 720, alignSelf: 'center', width: '100%', paddingHorizontal: 40 },
   zoneLabel: {
     fontSize: 12, fontWeight: '700',
@@ -487,19 +481,19 @@ const s = StyleSheet.create({
 
   // Karty
   card: {
-    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 12,
-    padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: '#ffffff', borderRadius: 12,
+    padding: 16, borderWidth: 1, borderColor: '#d1e8c4',
   },
-  cardSecondary: { backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.12)' },
+  cardSecondary: { backgroundColor: '#f0f7e8', borderColor: '#d1e8c4' },
   cardCustomer: { borderLeftWidth: 3, borderLeftColor: '#66BB6A' },
-  cardFarmer:   { borderLeftWidth: 3, borderLeftColor: '#CE93D8' },
+  cardFarmer:   { borderLeftWidth: 3, borderLeftColor: '#3a7a18' },
   cardSeller:   { borderLeftWidth: 3, borderLeftColor: '#FFA726' },
   cardRow: { flexDirection: 'row', alignItems: 'center' },
   cardContent: { flex: 1, marginLeft: 12 },
   emoji: { fontSize: 32 },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 2 },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1a3a1a', marginBottom: 2 },
   cardTitleMuted: { fontSize: 14, fontWeight: '600' },
-  cardDesc: { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
+  cardDesc: { fontSize: 13, color: '#4a6a3a' },
   arrow: { fontSize: 18, color: '#FF9800', marginLeft: 8 },
 
   // Shared pill badge (used for cart, list count, new orders)
@@ -507,20 +501,20 @@ const s = StyleSheet.create({
   pillText: { color: '#fff', fontSize: 11, fontWeight: '700' },
 
   // Cart summary
-  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginTop: 10, marginBottom: 4 },
+  divider: { height: 1, backgroundColor: '#d1e8c4', marginTop: 10, marginBottom: 4 },
   cartLabel: { fontSize: 13, color: '#FF9800', fontWeight: '600', flex: 1 },
-  chevron: { fontSize: 11, color: 'rgba(255,255,255,0.5)' },
-  cartList: { marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
-  groupSep: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
-  groupName: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.9)', marginBottom: 3 },
-  groupItem: { fontSize: 12, color: 'rgba(255,255,255,0.6)', marginLeft: 8, lineHeight: 18 },
+  chevron: { fontSize: 11, color: '#6a8a6a' },
+  cartList: { marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#d1e8c4' },
+  groupSep: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#d1e8c4' },
+  groupName: { fontSize: 13, fontWeight: '600', color: '#1a3a1a', marginBottom: 3 },
+  groupItem: { fontSize: 12, color: '#4a6a3a', marginLeft: 8, lineHeight: 18 },
   goBtn: { marginTop: 10, backgroundColor: '#FF9800', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   goBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
   // Cart floating button
   cartButton: {
     position: 'absolute', top: 8, right: 16, zIndex: 10,
-    backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 22, width: 44, height: 44,
+    backgroundColor: 'rgba(26,58,26,0.08)', borderRadius: 22, width: 44, height: 44,
     justifyContent: 'center', alignItems: 'center',
   },
   badge: {
@@ -535,7 +529,7 @@ const s = StyleSheet.create({
   ctaRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 },
   ctaText: { fontSize: 13, color: '#FF9800', fontWeight: '600' },
   ctaClose: { padding: 4, marginLeft: 8 },
-  ctaCloseText: { fontSize: 14, color: 'rgba(255,255,255,0.4)', fontWeight: '600' },
+  ctaCloseText: { fontSize: 14, color: '#6a8a6a', fontWeight: '600' },
 
   // Hero banner (nepřihlášení)
   heroBanner: { backgroundColor: '#f4fae8', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#a8d87a' },
@@ -548,7 +542,7 @@ const s = StyleSheet.create({
   heroTagline: { fontSize: 13, fontWeight: '600', color: '#3a7a18', textAlign: 'center' },
 
   // Footer
-  footer: { paddingHorizontal: 20, paddingVertical: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', marginTop: 24, marginBottom: 8 },
-  footerText: { fontSize: 12, color: 'rgba(255,255,255,0.6)', textAlign: 'center' },
-  footerEmail: { fontSize: 12, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: 8 },
+  footer: { paddingHorizontal: 20, paddingVertical: 20, borderTopWidth: 1, borderTopColor: '#d1e8c4', marginTop: 24, marginBottom: 8 },
+  footerText: { fontSize: 12, color: '#4a6a3a', textAlign: 'center' },
+  footerEmail: { fontSize: 12, color: '#6a8a6a', textAlign: 'center', marginTop: 8 },
 });
