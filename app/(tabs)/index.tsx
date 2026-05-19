@@ -44,7 +44,6 @@ export default function HomeScreen() {
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [ctaDismissed, setCtaDismissed] = useState(false);
 
-  // Farmer status
   const [pestitelRowId, setPestitelRowId] = useState<string | null>(null);
   const [activeMisto, setActiveMisto] = useState<ProdejniMisto | null | undefined>(undefined);
   const [showModal, setShowModal] = useState(false);
@@ -89,7 +88,6 @@ export default function HomeScreen() {
         .limit(1)
         .maybeSingle(),
     ]);
-
     if (!row) { setPestitelRowId(null); setActiveMisto(undefined); return; }
     setPestitelRowId(String(row.id));
     setFarmerProfile({
@@ -244,131 +242,152 @@ export default function HomeScreen() {
         style={s.container}
         contentContainerStyle={[
           s.content,
-          Platform.OS === 'web' && { maxWidth: 520, alignSelf: 'center' as const, width: '100%' },
+          Platform.OS === 'web' && { maxWidth: 680, alignSelf: 'center' as const, width: '100%' },
         ]}
       >
 
-        {/* Hero */}
-        <View style={[s.hero, isDesktop && s.heroDesktop]}>
+        {/* ══ HERO ══════════════════════════════════════════ */}
+        <View style={s.hero}>
           <View style={s.betaBadge}>
             <Text style={s.betaBadgeText}>BETA</Text>
           </View>
-          <Text style={[s.appName, isDesktop && s.appNameDesktop]}>
-            Samopěstitelé
+          <Text style={[s.appName, isDesktop && s.appNameDesktop]}>Samopěstitelé</Text>
+          <Text style={[s.heroSubtitle, isDesktop && s.heroSubtitleDesktop]}>
+            Najděte čerstvé produkty přímo od pěstitelů ve vašem okolí.
           </Text>
-          <Text style={[s.title, isDesktop && s.titleDesktop]}>
-            Čerstvé produkty přímo od pěstitelů v okolí
+          <Text style={[s.heroDesc, isDesktop && s.heroDescDesktop]}>
+            Vyberete si, domluvíte odběr a vyzvednete u pěstitele.{'\n'}Bez skladu, bez dopravy, napřímo.
           </Text>
-          <Text style={[s.subtitle, isDesktop && s.subtitleDesktop]}>
-            Objednej online, vyzvedni u pěstitele.{'\n'}
-            Sezonní ovoce, zelenina a produkty farmy přímo ze zdroje.
-          </Text>
-          <Text style={[s.subtitleSecondary, isDesktop && s.subtitleSecondaryDesktop]}>
-            Ideální pro návštěvníky regionu, chalupáře i místní.
-          </Text>
+
+          {!isAuthenticated && (
+            <View style={s.heroCtas}>
+              <TouchableOpacity
+                style={s.ctaPrimary}
+                onPress={() => router.push('/mapa')}
+                activeOpacity={0.85}
+              >
+                <Text style={s.ctaPrimaryText}>Hledat produkty v okolí</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.ctaSecondary}
+                onPress={() => router.push('/moje-prodejna')}
+                activeOpacity={0.75}
+              >
+                <Text style={s.ctaSecondaryText}>Jsem pěstitel →</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
-        {/* ─── HERO BANNER (jen nepřihlášení) ─────────────── */}
+        {/* ══ TRUST STRIP (jen nepřihlášení) ════════════════ */}
         {!isAuthenticated && (
-          <View style={s.heroBanner}>
-            <Text style={s.heroTitle}>Nejsme e-shop. Jsme sousedé.</Text>
-            <View style={s.heroGrid}>
-              <View style={s.heroItem}>
-                <Text style={s.heroEmoji}>🏡</Text>
-                <Text style={s.heroItemTitle}>Pro chalupáře</Text>
-                <Text style={s.heroItemText}>Přebytek ze zahrady nabídni sousedům bez vývozu.</Text>
+          <View style={s.trustStrip}>
+            {(['Žádná doprava', 'Bez anonymního skladu', 'Přímý kontakt', 'Lokální a sezónní'] as const).map(t => (
+              <View key={t} style={s.trustChip}>
+                <Text style={s.trustChipText}>✓ {t}</Text>
               </View>
-              <View style={s.heroItem}>
-                <Text style={s.heroEmoji}>🚶</Text>
-                <Text style={s.heroItemTitle}>Pro návštěvníky</Text>
-                <Text style={s.heroItemText}>Najdi co se právě sklízí přímo u pěstitelů v okolí.</Text>
-              </View>
-              <View style={s.heroItem}>
-                <Text style={s.heroEmoji}>🌿</Text>
-                <Text style={s.heroItemTitle}>Pro místní</Text>
-                <Text style={s.heroItemText}>Kup přímo od souseda co roste za jeho plotem.</Text>
-              </View>
-            </View>
-            <Text style={s.heroTagline}>Žádný košík. Žádná doprava. Jen živý kontakt.</Text>
+            ))}
           </View>
         )}
 
-        {/* ─── 1. ZÁKAZNÍCI ────────────────────────────────── */}
-        <View style={[s.zone, isDesktop && s.zoneDesktop]}>
-          <Text style={[s.zoneLabel, { color: '#4caf50' }]}>🍎 Zákazníci</Text>
-
-          <View style={s.card}>
-            <TouchableOpacity onPress={() => router.push('/mapa')} activeOpacity={0.7}>
-              <View style={s.cardRow}>
-                <View style={[s.iconBg, { backgroundColor: '#f1f8e9' }]}>
-                  <Text style={s.emoji}>🍎</Text>
+        {/* ══ FEATURE CARDS (jen nepřihlášení) ══════════════ */}
+        {!isAuthenticated && (
+          <View style={s.featureSection}>
+            <Text style={s.featureSectionTitle}>Nejsme e-shop. Jsme sousedé.</Text>
+            {[
+              { emoji: '📦', title: 'Bez anonymního skladu', desc: 'Každý produkt má konkrétního pěstitele s adresou a tváří.' },
+              { emoji: '🤝', title: 'Odběr přímo u pěstitele', desc: 'Přijdete si pro zboží osobně – žádná doprava, žádné balíkové centrum.' },
+              { emoji: '🌱', title: 'Lokální a sezónní', desc: 'Nabídka odráží to, co právě roste – čerstvé, bez zbytečné cesty.' },
+            ].map(item => (
+              <View key={item.title} style={s.featureCard}>
+                <View style={s.featureIconWrap}>
+                  <Text style={s.featureEmoji}>{item.emoji}</Text>
                 </View>
-                <View style={s.cardContent}>
-                  <Text style={s.cardTitle}>Hledám produkty v okolí</Text>
-                  <Text style={s.cardDesc}>Najít pěstitele na mapě</Text>
+                <View style={s.featureBody}>
+                  <Text style={s.featureCardTitle}>{item.title}</Text>
+                  <Text style={s.featureCardDesc}>{item.desc}</Text>
                 </View>
-                {listItemCount > 0 && (
-                  <View style={[s.pill, { backgroundColor: '#FF9800' }]}>
-                    <Text style={s.pillText}>{listItemCount > 99 ? '99+' : listItemCount}</Text>
-                  </View>
-                )}
-                <Text style={s.arrow}>→</Text>
               </View>
-            </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
-            {listItemCount > 0 && lastFarmer && !ctaDismissed && (
-              <>
-                <View style={s.divider} />
-                <View style={s.ctaRow}>
-                  <TouchableOpacity
-                    style={{ flex: 1 }}
-                    onPress={() => router.push(`/farmar/${lastFarmer.id}` as any)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={s.ctaText}>Pokračovat u: {lastFarmer.name} →</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={s.ctaClose} onPress={() => setCtaDismissed(true)}>
-                    <Text style={s.ctaCloseText}>✕</Text>
+        {/* ══ SEKCE A: CHCI NAKOUPIT ════════════════════════ */}
+        <View style={s.roleSection}>
+          <View style={s.roleSectionHeader}>
+            <Text style={s.roleSectionTitle}>Chci nakoupit</Text>
+            <Text style={s.roleSectionDesc}>Najděte pěstitele a produkty ve svém okolí.</Text>
+          </View>
+
+          <TouchableOpacity style={s.actionCard} onPress={() => router.push('/mapa')} activeOpacity={0.85}>
+            <View style={s.actionCardInner}>
+              <View style={[s.actionCardIcon, { backgroundColor: '#e8f5e9' }]}>
+                <Text style={s.actionCardEmoji}>🗺</Text>
+              </View>
+              <View style={s.actionCardBody}>
+                <Text style={s.actionCardTitle}>Hledat na mapě</Text>
+                <Text style={s.actionCardSub}>Bez registrace.</Text>
+              </View>
+              {listItemCount > 0 && (
+                <View style={[s.pill, { backgroundColor: '#FF9800' }]}>
+                  <Text style={s.pillText}>{listItemCount > 99 ? '99+' : listItemCount}</Text>
+                </View>
+              )}
+              <Text style={s.actionCardArrow}>→</Text>
+            </View>
+          </TouchableOpacity>
+
+          {listItemCount > 0 && lastFarmer && !ctaDismissed && (
+            <View style={s.continueCta}>
+              <TouchableOpacity
+                style={{ flex: 1 }}
+                onPress={() => router.push(`/farmar/${lastFarmer.id}` as any)}
+                activeOpacity={0.7}
+              >
+                <Text style={s.continueCtaText}>Pokračovat u: {lastFarmer.name} →</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.continueCtaClose} onPress={() => setCtaDismissed(true)}>
+                <Text style={s.continueCtaCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {itemCount > 0 && (
+            <View style={s.cartSummary}>
+              <TouchableOpacity style={s.cartSummaryRow} onPress={() => setCartExpanded(p => !p)} activeOpacity={0.7}>
+                <Text style={s.cartSummaryLabel}>🛒 Již vybráno</Text>
+                <View style={[s.pill, { backgroundColor: '#FF9800' }]}>
+                  <Text style={s.pillText}>{itemCount}</Text>
+                </View>
+                <Text style={s.chevron}>{cartExpanded ? '▲' : '▼'}</Text>
+              </TouchableOpacity>
+              {cartExpanded && (
+                <View style={s.cartList}>
+                  {Object.values(cartGroups).map((group, gi) => (
+                    <View key={gi} style={gi > 0 ? s.groupSep : undefined}>
+                      <Text style={s.groupName}>🧺 {group.nazev}</Text>
+                      {group.items.map((item, i) => (
+                        <Text key={i} style={s.groupItem}>
+                          • {item.nazev} — {formatMnozstvi(item.mnozstvi)} {item.jednotka}
+                        </Text>
+                      ))}
+                    </View>
+                  ))}
+                  <TouchableOpacity style={s.goBtn} onPress={() => router.push('/kosik')}>
+                    <Text style={s.goBtnText}>Přejít do košíku →</Text>
                   </TouchableOpacity>
                 </View>
-              </>
-            )}
-
-            {itemCount > 0 && (
-              <>
-                <View style={s.divider} />
-                <TouchableOpacity style={s.cardRow} onPress={() => setCartExpanded(p => !p)} activeOpacity={0.7}>
-                  <Text style={s.cartLabel}>🛒 Již vybráno</Text>
-                  <View style={[s.pill, { backgroundColor: '#FF9800' }]}>
-                    <Text style={s.pillText}>{itemCount}</Text>
-                  </View>
-                  <Text style={s.chevron}>{cartExpanded ? '▲' : '▼'}</Text>
-                </TouchableOpacity>
-                {cartExpanded && (
-                  <View style={s.cartList}>
-                    {Object.values(cartGroups).map((group, gi) => (
-                      <View key={gi} style={gi > 0 ? s.groupSep : undefined}>
-                        <Text style={s.groupName}>🧺 {group.nazev}</Text>
-                        {group.items.map((item, i) => (
-                          <Text key={i} style={s.groupItem}>
-                            • {item.nazev} — {formatMnozstvi(item.mnozstvi)} {item.jednotka}
-                          </Text>
-                        ))}
-                      </View>
-                    ))}
-                    <TouchableOpacity style={s.goBtn} onPress={() => router.push('/kosik')}>
-                      <Text style={s.goBtnText}>Přejít do košíku →</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </>
-            )}
-          </View>
+              )}
+            </View>
+          )}
         </View>
 
-        {/* ─── 2. FARMÁŘI A PĚSTITELÉ ─────────────────────── */}
-        <View style={[s.zone, s.zoneSep, isDesktop && s.zoneDesktop]}>
-          <Text style={[s.zoneLabel, { color: '#4caf50' }]}>🧺 Farmáři a pěstitelé</Text>
+        {/* ══ SEKCE B: CHCI PRODÁVAT ════════════════════════ */}
+        <View style={[s.roleSection, s.roleSectionBorder]}>
+          <View style={s.roleSectionHeader}>
+            <Text style={s.roleSectionTitle}>Chci prodávat</Text>
+            <Text style={s.roleSectionDesc}>Spravujte svoji prodejnu, produkty a aktuální místo prodeje.</Text>
+          </View>
 
           {showStatusCard && (
             <FarmerStatusCard
@@ -381,23 +400,24 @@ export default function HomeScreen() {
           )}
 
           <TouchableOpacity
-            style={[s.card, showStatusCard && s.cardSecondary]}
+            style={[s.actionCard, showStatusCard && s.actionCardMuted]}
             onPress={() => router.push(
               isAuthenticated
                 ? (isMobile ? '/(tabs)/moje-prodejna/operativa' : '/(tabs)/moje-prodejna')
                 : '/moje-prodejna'
             )}
+            activeOpacity={0.85}
           >
-            <View style={s.cardRow}>
-              <View style={[s.iconBg, { backgroundColor: '#e0f2f1' }]}>
-                <Text style={s.emoji}>🏠</Text>
+            <View style={s.actionCardInner}>
+              <View style={[s.actionCardIcon, { backgroundColor: '#e8f5e9' }]}>
+                <Text style={s.actionCardEmoji}>🏠</Text>
               </View>
-              <View style={s.cardContent}>
-                <Text style={[s.cardTitle, showStatusCard && s.cardTitleMuted]}>Moje prodejna</Text>
-                <Text style={s.cardDesc}>
-                  {isAuthenticated
-                    ? 'Spravovat produkty a objednávky'
-                    : 'Jen doplnění a správa profilu'}
+              <View style={s.actionCardBody}>
+                <Text style={[s.actionCardTitle, showStatusCard && s.actionCardTitleMuted]}>
+                  Moje prodejna
+                </Text>
+                <Text style={s.actionCardSub}>
+                  {isAuthenticated ? 'Spravovat produkty a objednávky' : 'Pro registrované pěstitele.'}
                 </Text>
               </View>
               {newOrdersCount > 0 && (
@@ -405,36 +425,35 @@ export default function HomeScreen() {
                   <Text style={s.pillText}>{newOrdersCount}</Text>
                 </View>
               )}
-              <Text style={s.arrow}>→</Text>
+              <Text style={s.actionCardArrow}>→</Text>
             </View>
           </TouchableOpacity>
         </View>
 
-        {/* ─── 3. PŘÍLEŽITOSTNÍ PRODEJCI ───────────────────── */}
-        <View style={[s.zone, s.zoneSep, isDesktop && s.zoneDesktop]}>
-          <Text style={[s.zoneLabel, { color: '#FFA726' }]}>🌻 Prodejci bez registrace</Text>
-          <TouchableOpacity
-            style={s.card}
-            onPress={() => router.push('/stanky/pridat')}
-            activeOpacity={0.75}
-          >
-            <View style={s.cardRow}>
-              <View style={[s.iconBg, { backgroundColor: '#fff8e1' }]}>
-                <Text style={s.emoji}>🌻</Text>
+        {/* ══ SEKCE C: PŘÍLEŽITOSTNÍ PRODEJ ════════════════ */}
+        <View style={[s.roleSection, s.roleSectionBorder]}>
+          <View style={s.roleSectionHeader}>
+            <Text style={[s.roleSectionTitle, { color: '#f57c00' }]}>Prodávám tady dnes</Text>
+            <Text style={s.roleSectionDesc}>Bez registrace, jen foto a poloha. Zmizí o půlnoci.</Text>
+          </View>
+          <TouchableOpacity style={s.actionCard} onPress={() => router.push('/stanky/pridat')} activeOpacity={0.85}>
+            <View style={s.actionCardInner}>
+              <View style={[s.actionCardIcon, { backgroundColor: '#fff8e1' }]}>
+                <Text style={s.actionCardEmoji}>🌻</Text>
               </View>
-              <View style={s.cardContent}>
-                <Text style={s.cardTitle}>Prodávám tady dnes</Text>
-                <Text style={s.cardDesc}>Bez registrace · foto + poloha · zmizí o půlnoci</Text>
+              <View style={s.actionCardBody}>
+                <Text style={s.actionCardTitle}>Přidat stánek</Text>
+                <Text style={s.actionCardSub}>Bez registrace.</Text>
               </View>
-              <Text style={s.arrow}>→</Text>
+              <Text style={s.actionCardArrow}>→</Text>
             </View>
           </TouchableOpacity>
         </View>
 
-        {/* Stánky dnes — kdo dnes prodává v okolí */}
+        {/* ══ STÁNKY DNES ═══════════════════════════════════ */}
         <StankyDnesSection isDesktop={isDesktop} />
 
-        {/* Footer */}
+        {/* ══ FOOTER ════════════════════════════════════════ */}
         <View style={s.footer}>
           <Text style={s.footerText}>Spojujeme pěstitele s lidmi, kteří chtějí jíst zdravě a lokálně</Text>
           <Text style={s.footerEmail}>info@samopestitele.cz</Text>
@@ -446,12 +465,21 @@ export default function HomeScreen() {
 }
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#ffffff' },
+  // ── Základ ─────────────────────────────────────────────────
+  safeArea: { flex: 1, backgroundColor: '#f9fafb' },
   center: { justifyContent: 'center', alignItems: 'center' },
-  container: { flex: 1, backgroundColor: '#ffffff' },
-  content: { flexGrow: 1, paddingBottom: 24 },
+  container: { flex: 1, backgroundColor: '#f9fafb' },
+  content: { flexGrow: 1, paddingBottom: 40 },
 
-  // Hero
+  // ── Hero ───────────────────────────────────────────────────
+  hero: {
+    backgroundColor: '#ffffff',
+    paddingTop: 28,
+    paddingBottom: 28,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
   betaBadge: {
     alignSelf: 'flex-start',
     backgroundColor: '#f1f8e9',
@@ -460,85 +488,168 @@ const s = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  betaBadgeText: {
-    color: '#4caf50',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1.5,
+  betaBadgeText: { color: '#4caf50', fontSize: 10, fontWeight: '700', letterSpacing: 1.5 },
+  appName: { fontSize: 38, fontWeight: '800', color: '#1a1a1a', letterSpacing: -1, marginBottom: 10 },
+  appNameDesktop: { fontSize: 52 },
+  heroSubtitle: { fontSize: 17, fontWeight: '500', color: '#374151', lineHeight: 26, marginBottom: 8 },
+  heroSubtitleDesktop: { fontSize: 20 },
+  heroDesc: { fontSize: 14, color: '#6b7280', lineHeight: 22, marginBottom: 24 },
+  heroDescDesktop: { fontSize: 16, lineHeight: 26 },
+  heroCtas: { gap: 10 },
+  ctaPrimary: {
+    backgroundColor: '#4caf50',
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: 'center',
   },
-  hero: { paddingTop: 20, paddingBottom: 16, paddingHorizontal: 16 },
-  heroDesktop: { paddingTop: 40, paddingBottom: 32, paddingHorizontal: 80, alignItems: 'center' },
-  appName: { fontSize: 36, fontWeight: '800', color: '#1a1a1a', letterSpacing: -1, marginBottom: 4 },
-  appNameDesktop: { fontSize: 56, textAlign: 'center', marginBottom: 8 },
-  title: { fontSize: 16, fontWeight: '400', color: '#6b7280', lineHeight: 24, marginBottom: 8 },
-  titleDesktop: { fontSize: 20, lineHeight: 28, textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#6b7280', lineHeight: 22, marginBottom: 8 },
-  subtitleDesktop: { fontSize: 17, textAlign: 'center', lineHeight: 26, marginBottom: 12 },
-  subtitleSecondary: { fontSize: 13, color: '#9ca3af', fontStyle: 'italic', marginBottom: 16 },
-  subtitleSecondaryDesktop: { fontSize: 15, textAlign: 'center', marginBottom: 24 },
+  ctaPrimaryText: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
+  ctaSecondary: { paddingVertical: 12, alignItems: 'center' },
+  ctaSecondaryText: { color: '#4caf50', fontSize: 15, fontWeight: '600' },
 
-  // Zóny
-  zone: { paddingHorizontal: 16, paddingTop: 16, marginBottom: 24 },
-  zoneSep: { borderTopWidth: 1, borderTopColor: '#f0f0f0', paddingTop: 24 },
-  zoneDesktop: { maxWidth: 720, alignSelf: 'center', width: '100%', paddingHorizontal: 40 },
-  zoneLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
+  // ── Trust strip ────────────────────────────────────────────
+  trustStrip: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 8,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  trustChip: {
+    backgroundColor: '#f1f8e9',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  trustChipText: { fontSize: 12, color: '#2e7d32', fontWeight: '500' },
+
+  // ── Feature cards ──────────────────────────────────────────
+  featureSection: {
+    paddingHorizontal: 16,
+    paddingTop: 28,
+    paddingBottom: 4,
+  },
+  featureSectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginBottom: 16,
+  },
+  featureCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    padding: 16,
     marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
   },
+  featureIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#f1f8e9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  featureEmoji: { fontSize: 22 },
+  featureBody: { flex: 1 },
+  featureCardTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a1a', marginBottom: 3 },
+  featureCardDesc: { fontSize: 13, color: '#6b7280', lineHeight: 19 },
 
-  // Karty
-  card: {
+  // ── Role sekce ─────────────────────────────────────────────
+  roleSection: {
+    paddingHorizontal: 16,
+    paddingTop: 28,
+    paddingBottom: 8,
+  },
+  roleSectionBorder: {
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  roleSectionHeader: { marginBottom: 16 },
+  roleSectionTitle: { fontSize: 20, fontWeight: '800', color: '#1a1a1a', marginBottom: 4 },
+  roleSectionDesc: { fontSize: 14, color: '#6b7280', lineHeight: 20 },
+
+  // ── Action card (klikatelná CTA karta) ─────────────────────
+  actionCard: {
     backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 18,
-    borderWidth: 0,
     marginBottom: 10,
-    shadowColor: '#1a1a1a',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  cardSecondary: { backgroundColor: '#f9fafb' },
-  cardRow: { flexDirection: 'row', alignItems: 'center' },
-  cardContent: { flex: 1, marginLeft: 14 },
-
-  // Ikona v kartě
-  iconBg: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+  actionCardMuted: { backgroundColor: '#f9fafb' },
+  actionCardInner: { flexDirection: 'row', alignItems: 'center' },
+  actionCardIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  emoji: { fontSize: 26 },
+  actionCardEmoji: { fontSize: 26 },
+  actionCardBody: { flex: 1, marginLeft: 14 },
+  actionCardTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  actionCardTitleMuted: { color: '#9ca3af' },
+  actionCardSub: { fontSize: 13, color: '#6b7280', marginTop: 2 },
+  actionCardArrow: { fontSize: 20, color: '#FF9800', marginLeft: 8 },
 
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  cardTitleMuted: { fontSize: 14, fontWeight: '600' },
-  cardDesc: { fontSize: 13, color: '#6b7280', marginTop: 2 },
-  arrow: { fontSize: 18, color: '#FF9800', marginLeft: 8 },
+  // ── Kontextové CTA (pokračovat u farmáře) ─────────────────
+  continueCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff3e0',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+  },
+  continueCtaText: { fontSize: 13, color: '#f57c00', fontWeight: '600', flex: 1 },
+  continueCtaClose: { padding: 4, marginLeft: 8 },
+  continueCtaCloseText: { fontSize: 14, color: '#9ca3af', fontWeight: '600' },
 
-  // Shared pill badge
-  pill: { borderRadius: 9, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 5, marginRight: 4 },
-  pillText: { color: '#fff', fontSize: 11, fontWeight: '700' },
-
-  // Cart summary
-  divider: { height: 1, backgroundColor: '#f0f0f0', marginTop: 12, marginBottom: 6 },
-  cartLabel: { fontSize: 13, color: '#FF9800', fontWeight: '600', flex: 1 },
-  chevron: { fontSize: 11, color: '#6a8a6a' },
-  cartList: { marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
+  // ── Košík summary ──────────────────────────────────────────
+  cartSummary: {
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  cartSummaryRow: { flexDirection: 'row', alignItems: 'center' },
+  cartSummaryLabel: { fontSize: 13, color: '#FF9800', fontWeight: '600', flex: 1 },
+  cartList: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
   groupSep: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
   groupName: { fontSize: 13, fontWeight: '600', color: '#1a1a1a', marginBottom: 3 },
   groupItem: { fontSize: 12, color: '#6b7280', marginLeft: 8, lineHeight: 18 },
   goBtn: { marginTop: 10, backgroundColor: '#FF9800', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   goBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
-  // Cart floating button
+  // ── Sdílené ────────────────────────────────────────────────
+  pill: { borderRadius: 9, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 5, marginRight: 4 },
+  pillText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  chevron: { fontSize: 11, color: '#9ca3af' },
+
+  // ── Plovoucí košík ─────────────────────────────────────────
   cartButton: {
     position: 'absolute', top: 8, right: 16, zIndex: 10,
     backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: 22, width: 44, height: 44,
@@ -552,43 +663,14 @@ const s = StyleSheet.create({
   badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
   cartIcon: { fontSize: 20 },
 
-  // CTA
-  ctaRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6 },
-  ctaText: { fontSize: 13, color: '#FF9800', fontWeight: '600' },
-  ctaClose: { padding: 4, marginLeft: 8 },
-  ctaCloseText: { fontSize: 14, color: '#6a8a6a', fontWeight: '600' },
-
-  // Hero banner (nepřihlášení)
-  heroBanner: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 20,
-    marginHorizontal: 16,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#f0f0f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 1,
+  // ── Footer ─────────────────────────────────────────────────
+  footer: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    marginTop: 12,
   },
-  heroTitle: { fontSize: 20, fontWeight: '800', color: '#1a1a1a', textAlign: 'center', marginBottom: 16 },
-  heroGrid: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  heroItem: {
-    flex: 1,
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 10,
-  },
-  heroEmoji: { fontSize: 22, marginBottom: 6 },
-  heroItemTitle: { fontSize: 12, fontWeight: '700', color: '#4caf50', textAlign: 'center', marginBottom: 4 },
-  heroItemText: { fontSize: 11, color: '#6b7280', textAlign: 'center', lineHeight: 15 },
-  heroTagline: { fontSize: 14, fontWeight: '700', color: '#4caf50', textAlign: 'center' },
-
-  // Footer
-  footer: { paddingHorizontal: 16, paddingVertical: 20, borderTopWidth: 1, borderTopColor: '#f0f0f0', marginTop: 8, marginBottom: 8 },
-  footerText: { fontSize: 12, color: '#9ca3af', textAlign: 'center' },
-  footerEmail: { fontSize: 12, color: '#9ca3af', textAlign: 'center', marginTop: 8 },
+  footerText: { fontSize: 12, color: '#9ca3af', textAlign: 'center', lineHeight: 18 },
+  footerEmail: { fontSize: 12, color: '#9ca3af', textAlign: 'center', marginTop: 6 },
 });
