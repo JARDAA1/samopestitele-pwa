@@ -155,11 +155,11 @@ export default function VytvoritPinScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#33691e' },
+  container: { flex: 1, backgroundColor: '#1a1a1a' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingTop: 50, paddingBottom: 12, paddingHorizontal: 15,
-    backgroundColor: '#33691e', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#1a1a1a', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#ffffff' },
   headerSpacer: { width: 80 },

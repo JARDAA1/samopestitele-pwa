@@ -470,7 +470,7 @@ export default function FarmarDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#33691e',
+    backgroundColor: '#1a1a1a',
   },
   centerContent: {
     justifyContent: 'center',
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
     paddingTop: 44,
     paddingBottom: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#33691e',
+    backgroundColor: '#1a1a1a',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#33691e',
+    color: '#1a1a1a',
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -795,7 +795,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#33691e',
+    backgroundColor: '#1a1a1a',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -808,7 +808,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 44,
     borderWidth: 2,
-    borderColor: '#33691e',
+    borderColor: '#1a1a1a',
     borderRadius: 8,
     textAlign: 'center',
     fontSize: 18,
@@ -830,8 +830,8 @@ const styles = StyleSheet.create({
     borderColor: '#f0f0f0',
   },
   jednotkaBtnActive: {
-    backgroundColor: '#33691e',
-    borderColor: '#33691e',
+    backgroundColor: '#1a1a1a',
+    borderColor: '#1a1a1a',
   },
   jednotkaBtnText: {
     fontSize: 14,
@@ -886,13 +886,13 @@ const styles = StyleSheet.create({
     borderColor: '#d0b8e8',
   },
   presetChipActive: {
-    backgroundColor: '#33691e',
-    borderColor: '#33691e',
+    backgroundColor: '#1a1a1a',
+    borderColor: '#1a1a1a',
   },
   presetChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#33691e',
+    color: '#1a1a1a',
   },
   presetChipTextActive: {
     color: '#ffffff',

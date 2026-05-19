@@ -76,7 +76,7 @@ export default function SellingModeModal({
 const s = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' },
   sheet: {
-    backgroundColor: '#33691e',
+    backgroundColor: '#1a1a1a',
     borderTopLeftRadius: 20, borderTopRightRadius: 20,
     padding: 24, paddingBottom: 36,
     borderTopWidth: 1, borderColor: 'rgba(255,255,255,0.15)',

@@ -183,9 +183,9 @@ export default function SeznamProduktScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#33691e' },
+  container: { flex: 1, backgroundColor: '#1a1a1a' },
   header: {
-    backgroundColor: '#33691e',
+    backgroundColor: '#1a1a1a',
     paddingTop: 44,
     paddingBottom: 8,
     paddingHorizontal: 12,

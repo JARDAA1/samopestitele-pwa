@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
 
   // Moderní header s gradientem - responzivní pro všechna zařízení
   header: {
-    backgroundColor: '#33691e',
+    backgroundColor: '#1a1a1a',
     paddingTop: layout.header.paddingTop,
     paddingBottom: layout.header.paddingBottom,
     paddingHorizontal: spacing.lg,
@@ -337,10 +337,10 @@ const styles = StyleSheet.create({
   loadingText: { fontSize: 16, color: '#666' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
   emptyIcon: { fontSize: 80, marginBottom: 20 },
-  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#33691e', marginBottom: 10 },
+  emptyTitle: { fontSize: 22, fontWeight: 'bold', color: '#1a1a1a', marginBottom: 10 },
   emptyText: { fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 30 },
-  buttonPrimary: { backgroundColor: '#33691e', paddingVertical: 16, paddingHorizontal: 40, borderRadius: 10, marginBottom: 15, width: '80%', alignItems: 'center' },
+  buttonPrimary: { backgroundColor: '#1a1a1a', paddingVertical: 16, paddingHorizontal: 40, borderRadius: 10, marginBottom: 15, width: '80%', alignItems: 'center' },
   buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  buttonSecondary: { backgroundColor: '#F5F5F5', paddingVertical: 16, paddingHorizontal: 40, borderRadius: 10, width: '80%', alignItems: 'center', borderWidth: 2, borderColor: '#33691e' },
-  buttonSecondaryText: { color: '#33691e', fontSize: 16, fontWeight: '600' },
+  buttonSecondary: { backgroundColor: '#F5F5F5', paddingVertical: 16, paddingHorizontal: 40, borderRadius: 10, width: '80%', alignItems: 'center', borderWidth: 2, borderColor: '#1a1a1a' },
+  buttonSecondaryText: { color: '#1a1a1a', fontSize: 16, fontWeight: '600' },
 });

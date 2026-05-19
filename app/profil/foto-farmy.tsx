@@ -187,10 +187,10 @@ export default function FotoFarmyScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#33691e' },
+  container: { flex: 1, backgroundColor: '#1a1a1a' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   header: {
-    backgroundColor: '#33691e', paddingTop: 44, paddingBottom: 8, paddingHorizontal: 12,
+    backgroundColor: '#1a1a1a', paddingTop: 44, paddingBottom: 8, paddingHorizontal: 12,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
   },

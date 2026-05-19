@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   },
   centeredContent: {
     flex: 1,
-    backgroundColor: '#f0f7ee',
+    backgroundColor: '#ffffff',
     // Jemný stín pro vizuální oddělení
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 0 },

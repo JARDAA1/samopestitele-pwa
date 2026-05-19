@@ -239,12 +239,12 @@ export default function MojeStankyScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#33691e' },
+  container: { flex: 1, backgroundColor: '#1a1a1a' },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 10, fontSize: 16, color: 'rgba(255,255,255,0.7)' },
 
   header: {
-    backgroundColor: '#33691e',
+    backgroundColor: '#1a1a1a',
     paddingTop: 44,
     paddingBottom: 12,
     paddingHorizontal: 12,

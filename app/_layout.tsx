@@ -53,7 +53,15 @@ export default function RootLayout() {
 
 const GreenLightTheme = {
   ...DefaultTheme,
-  colors: { ...DefaultTheme.colors, background: '#f0f7ee' },
+  colors: {
+    ...DefaultTheme.colors,
+    background: '#ffffff',
+    primary: '#4caf50',
+    text: '#1a1a1a',
+    border: '#f0f0f0',
+    card: '#ffffff',
+    notification: '#4caf50',
+  },
 };
 
 function RootLayoutNav() {
@@ -69,7 +77,12 @@ function RootLayoutNav() {
           <CustomerListProvider>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : GreenLightTheme}>
             <AppLayout>
-              <Stack screenOptions={{ headerShown: false }}>
+              <Stack screenOptions={{
+                headerShown: false,
+                headerStyle: { backgroundColor: '#ffffff' },
+                headerTintColor: '#1a1a1a',
+                headerShadowVisible: false,
+              }}>
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="mapa/index" />

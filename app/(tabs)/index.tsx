@@ -295,12 +295,12 @@ export default function HomeScreen() {
 
         {/* ─── 1. ZÁKAZNÍCI ────────────────────────────────── */}
         <View style={[s.zone, isDesktop && s.zoneDesktop]}>
-          <Text style={[s.zoneLabel, { color: '#66BB6A' }]}>🍎 Zákazníci</Text>
+          <Text style={[s.zoneLabel, { color: '#4caf50' }]}>🍎 Zákazníci</Text>
 
           <View style={s.card}>
             <TouchableOpacity onPress={() => router.push('/mapa')} activeOpacity={0.7}>
               <View style={s.cardRow}>
-                <View style={[s.iconBg, { backgroundColor: 'rgba(102,187,106,0.12)' }]}>
+                <View style={[s.iconBg, { backgroundColor: '#f1f8e9' }]}>
                   <Text style={s.emoji}>🍎</Text>
                 </View>
                 <View style={s.cardContent}>
@@ -368,7 +368,7 @@ export default function HomeScreen() {
 
         {/* ─── 2. FARMÁŘI A PĚSTITELÉ ─────────────────────── */}
         <View style={[s.zone, s.zoneSep, isDesktop && s.zoneDesktop]}>
-          <Text style={[s.zoneLabel, { color: '#558b2f' }]}>🧺 Farmáři a pěstitelé</Text>
+          <Text style={[s.zoneLabel, { color: '#4caf50' }]}>🧺 Farmáři a pěstitelé</Text>
 
           {showStatusCard && (
             <FarmerStatusCard
@@ -389,7 +389,7 @@ export default function HomeScreen() {
             )}
           >
             <View style={s.cardRow}>
-              <View style={[s.iconBg, { backgroundColor: 'rgba(58,122,24,0.1)' }]}>
+              <View style={[s.iconBg, { backgroundColor: '#e0f2f1' }]}>
                 <Text style={s.emoji}>🏠</Text>
               </View>
               <View style={s.cardContent}>
@@ -419,7 +419,7 @@ export default function HomeScreen() {
             activeOpacity={0.75}
           >
             <View style={s.cardRow}>
-              <View style={[s.iconBg, { backgroundColor: 'rgba(255,167,38,0.12)' }]}>
+              <View style={[s.iconBg, { backgroundColor: '#fff8e1' }]}>
                 <Text style={s.emoji}>🌻</Text>
               </View>
               <View style={s.cardContent}>
@@ -446,42 +446,42 @@ export default function HomeScreen() {
 }
 
 const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f0f7ee' },
+  safeArea: { flex: 1, backgroundColor: '#ffffff' },
   center: { justifyContent: 'center', alignItems: 'center' },
-  container: { flex: 1, backgroundColor: '#f0f7ee' },
+  container: { flex: 1, backgroundColor: '#ffffff' },
   content: { flexGrow: 1, paddingBottom: 24 },
 
   // Hero
   betaBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(26,58,26,0.08)',
+    backgroundColor: '#f1f8e9',
     borderWidth: 1,
-    borderColor: 'rgba(26,58,26,0.2)',
+    borderColor: '#c8e6c9',
     borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 3,
     marginBottom: 12,
   },
   betaBadgeText: {
-    color: '#558b2f',
+    color: '#4caf50',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1.5,
   },
   hero: { paddingTop: 20, paddingBottom: 16, paddingHorizontal: 16 },
   heroDesktop: { paddingTop: 40, paddingBottom: 32, paddingHorizontal: 80, alignItems: 'center' },
-  appName: { fontSize: 36, fontWeight: '800', color: '#33691e', letterSpacing: -1, marginBottom: 4 },
+  appName: { fontSize: 36, fontWeight: '800', color: '#1a1a1a', letterSpacing: -1, marginBottom: 4 },
   appNameDesktop: { fontSize: 56, textAlign: 'center', marginBottom: 8 },
-  title: { fontSize: 16, fontWeight: '400', color: '#558b2f', lineHeight: 24, marginBottom: 8 },
+  title: { fontSize: 16, fontWeight: '400', color: '#6b7280', lineHeight: 24, marginBottom: 8 },
   titleDesktop: { fontSize: 20, lineHeight: 28, textAlign: 'center' },
-  subtitle: { fontSize: 14, color: '#558b2f', lineHeight: 22, marginBottom: 8 },
+  subtitle: { fontSize: 14, color: '#6b7280', lineHeight: 22, marginBottom: 8 },
   subtitleDesktop: { fontSize: 17, textAlign: 'center', lineHeight: 26, marginBottom: 12 },
-  subtitleSecondary: { fontSize: 13, color: '#6a8a6a', fontStyle: 'italic', marginBottom: 16 },
+  subtitleSecondary: { fontSize: 13, color: '#9ca3af', fontStyle: 'italic', marginBottom: 16 },
   subtitleSecondaryDesktop: { fontSize: 15, textAlign: 'center', marginBottom: 24 },
 
   // Zóny
   zone: { paddingHorizontal: 16, paddingTop: 16, marginBottom: 24 },
-  zoneSep: { borderTopWidth: 1, borderTopColor: '#d1e8c4', paddingTop: 24 },
+  zoneSep: { borderTopWidth: 1, borderTopColor: '#f0f0f0', paddingTop: 24 },
   zoneDesktop: { maxWidth: 720, alignSelf: 'center', width: '100%', paddingHorizontal: 40 },
   zoneLabel: {
     fontSize: 11,
@@ -498,13 +498,13 @@ const s = StyleSheet.create({
     padding: 18,
     borderWidth: 0,
     marginBottom: 10,
-    shadowColor: '#33691e',
+    shadowColor: '#1a1a1a',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 3,
   },
-  cardSecondary: { backgroundColor: '#f0f7e8' },
+  cardSecondary: { backgroundColor: '#f9fafb' },
   cardRow: { flexDirection: 'row', alignItems: 'center' },
   cardContent: { flex: 1, marginLeft: 14 },
 
@@ -518,7 +518,7 @@ const s = StyleSheet.create({
   },
   emoji: { fontSize: 26 },
 
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#33691e' },
+  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
   cardTitleMuted: { fontSize: 14, fontWeight: '600' },
   cardDesc: { fontSize: 13, color: '#6b7280', marginTop: 2 },
   arrow: { fontSize: 18, color: '#FF9800', marginLeft: 8 },
@@ -533,7 +533,7 @@ const s = StyleSheet.create({
   chevron: { fontSize: 11, color: '#6a8a6a' },
   cartList: { marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
   groupSep: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f0f0f0' },
-  groupName: { fontSize: 13, fontWeight: '600', color: '#33691e', marginBottom: 3 },
+  groupName: { fontSize: 13, fontWeight: '600', color: '#1a1a1a', marginBottom: 3 },
   groupItem: { fontSize: 12, color: '#6b7280', marginLeft: 8, lineHeight: 18 },
   goBtn: { marginTop: 10, backgroundColor: '#FF9800', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   goBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
@@ -541,7 +541,7 @@ const s = StyleSheet.create({
   // Cart floating button
   cartButton: {
     position: 'absolute', top: 8, right: 16, zIndex: 10,
-    backgroundColor: 'rgba(26,58,26,0.08)', borderRadius: 22, width: 44, height: 44,
+    backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: 22, width: 44, height: 44,
     justifyContent: 'center', alignItems: 'center',
   },
   badge: {
@@ -560,28 +560,35 @@ const s = StyleSheet.create({
 
   // Hero banner (nepřihlášení)
   heroBanner: {
-    backgroundColor: '#33691e',
+    backgroundColor: '#ffffff',
     borderRadius: 20,
     padding: 20,
     marginHorizontal: 16,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 1,
   },
-  heroTitle: { fontSize: 20, fontWeight: '800', color: '#ffffff', textAlign: 'center', marginBottom: 16 },
+  heroTitle: { fontSize: 20, fontWeight: '800', color: '#1a1a1a', textAlign: 'center', marginBottom: 16 },
   heroGrid: { flexDirection: 'row', gap: 8, marginBottom: 16 },
   heroItem: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: '#f9fafb',
     borderRadius: 12,
     padding: 10,
   },
   heroEmoji: { fontSize: 22, marginBottom: 6 },
-  heroItemTitle: { fontSize: 12, fontWeight: '700', color: '#8bc34a', textAlign: 'center', marginBottom: 4 },
-  heroItemText: { fontSize: 11, color: 'rgba(255,255,255,0.75)', textAlign: 'center', lineHeight: 15 },
-  heroTagline: { fontSize: 14, fontWeight: '700', color: '#8bc34a', textAlign: 'center' },
+  heroItemTitle: { fontSize: 12, fontWeight: '700', color: '#4caf50', textAlign: 'center', marginBottom: 4 },
+  heroItemText: { fontSize: 11, color: '#6b7280', textAlign: 'center', lineHeight: 15 },
+  heroTagline: { fontSize: 14, fontWeight: '700', color: '#4caf50', textAlign: 'center' },
 
   // Footer
-  footer: { paddingHorizontal: 16, paddingVertical: 20, borderTopWidth: 1, borderTopColor: '#e8eee0', marginTop: 8, marginBottom: 8 },
-  footerText: { fontSize: 12, color: '#558b2f', textAlign: 'center' },
-  footerEmail: { fontSize: 12, color: '#6a8a6a', textAlign: 'center', marginTop: 8 },
+  footer: { paddingHorizontal: 16, paddingVertical: 20, borderTopWidth: 1, borderTopColor: '#f0f0f0', marginTop: 8, marginBottom: 8 },
+  footerText: { fontSize: 12, color: '#9ca3af', textAlign: 'center' },
+  footerEmail: { fontSize: 12, color: '#9ca3af', textAlign: 'center', marginTop: 8 },
 });

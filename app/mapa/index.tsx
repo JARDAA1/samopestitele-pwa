@@ -914,7 +914,7 @@ export default function MapaScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#33691e' },
+  container: { flex: 1, backgroundColor: '#1a1a1a' },
   scrollContainer: { flex: 1 },
   scrollContent: { paddingBottom: 20 },
   scrollContentDesktop: { paddingHorizontal: 24 },
@@ -930,7 +930,7 @@ const styles = StyleSheet.create({
     paddingTop: 44,
     paddingBottom: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#33691e',
+    backgroundColor: '#1a1a1a',
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,

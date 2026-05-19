@@ -108,7 +108,7 @@ export default function AuthCallbackScreen() {
         {/* Načítání */}
         {status === 'loading' && (
           <>
-            <ActivityIndicator size="large" color="#33691e" />
+            <ActivityIndicator size="large" color="#1a1a1a" />
             <Text style={styles.title}>Ověřuji...</Text>
             <Text style={styles.subtitle}>Zpracováváme váš odkaz</Text>
           </>
@@ -180,7 +180,7 @@ export default function AuthCallbackScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#33691e',
+    backgroundColor: '#1a1a1a',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,

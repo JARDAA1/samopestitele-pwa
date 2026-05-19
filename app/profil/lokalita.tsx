@@ -312,14 +312,14 @@ export default function LokalitaScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#33691e'
+    backgroundColor: '#1a1a1a'
   },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center'
   },
   header: {
-    backgroundColor: '#33691e',
+    backgroundColor: '#1a1a1a',
     paddingTop: 44,
     paddingBottom: 12,
     paddingHorizontal: 16,
