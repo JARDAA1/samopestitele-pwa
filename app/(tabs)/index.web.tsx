@@ -247,92 +247,90 @@ export default function HomeScreenWeb() {
         showsVerticalScrollIndicator={false}
       >
         {/* ── HERO ──────────────────────────────────────────────── */}
-        <View style={[s.heroWrapper, { marginBottom: CARDS_OVERLAP }]}>
-          <ImageBackground
-            source={HERO_IMAGE}
-            style={s.heroBg}
-            resizeMode="cover"
-          >
-            <View style={s.heroOverlay} />
-            <View style={s.heroContent}>
-              <View style={s.betaBadge}>
-                <Text style={s.betaBadgeText}>BETA</Text>
-              </View>
-              <Text style={[s.heroTitle, isDesktop && s.heroTitleDesktop]}>
-                Samopěstitelé
-              </Text>
-              <Text style={[s.heroTagline, isDesktop && s.heroTaglineDesktop]}>
-                Čerstvé produkty přímo od lidí ve vašem okolí.
-              </Text>
-              <Text style={s.heroSub}>
-                Vyhledejte, domluvte odběr nebo nabídněte vlastní přebytky.
-              </Text>
+        <ImageBackground
+          source={HERO_IMAGE}
+          style={s.heroBg}
+          resizeMode="cover"
+        >
+          <View style={s.heroOverlay} />
+          <View style={s.heroContent}>
+            <View style={s.betaBadge}>
+              <Text style={s.betaBadgeText}>BETA</Text>
             </View>
-          </ImageBackground>
-
-          {/* ── TŘI KARTY PŘEKRÝVAJÍCÍ HERO ─────────────────────── */}
-          <View style={[s.cards, isDesktop && s.cardsDesktop]}>
-
-            <TouchableOpacity
-              style={[s.card, s.cardPrimary, isDesktop && s.cardFlex]}
-              onPress={() => router.push('/mapa')}
-              activeOpacity={0.88}
-            >
-              <Text style={s.cardEmoji}>🍎</Text>
-              <Text style={[s.cardTitle, s.cardTitleWhite]}>Zákazníci</Text>
-              <Text style={[s.cardDesc, s.cardDescWhite]}>
-                Najděte čerstvé produkty v okolí.
-              </Text>
-              <View style={s.cardTagWhite}>
-                <Text style={s.cardTagTextWhite}>Bez registrace</Text>
-              </View>
-              <View style={s.cardCta}>
-                <Text style={s.cardCtaTextWhite}>Vyhledat →</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[s.card, isDesktop && s.cardFlex]}
-              onPress={() => router.push(prodejnaRoute)}
-              activeOpacity={0.88}
-            >
-              <Text style={s.cardEmoji}>🏡</Text>
-              <Text style={s.cardTitle}>Moje prodejna</Text>
-              <Text style={s.cardDesc}>
-                {isAuthenticated ? 'Správa prodejny, produktů a objednávek.' : 'Přihlášení a správa prodejny pěstitele.'}
-              </Text>
-              <View style={s.cardTag}>
-                <Text style={s.cardTagText}>Pro registrované pěstitele</Text>
-              </View>
-              {newOrdersCount > 0 && (
-                <View style={s.cardTagRed}>
-                  <Text style={s.cardTagTextRed}>{newOrdersCount} nových objednávek</Text>
-                </View>
-              )}
-              <View style={s.cardCta}>
-                <Text style={s.cardCtaText}>Přejít →</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[s.card, isDesktop && s.cardFlex]}
-              onPress={() => router.push('/stanky/pridat')}
-              activeOpacity={0.88}
-            >
-              <Text style={s.cardEmoji}>📦</Text>
-              <Text style={s.cardTitle}>Nabízím bez registrace</Text>
-              <Text style={s.cardDesc}>
-                Rychle nabídnu přebytky bez zakládání prodejny.
-              </Text>
-              <View style={s.cardTagOrange}>
-                <Text style={s.cardTagTextOrange}>Jednorázová nabídka</Text>
-              </View>
-              <View style={s.cardCta}>
-                <Text style={s.cardCtaText}>Přidat nabídku →</Text>
-              </View>
-            </TouchableOpacity>
-
+            <Text style={[s.heroTitle, isDesktop && s.heroTitleDesktop]}>
+              Samopěstitelé
+            </Text>
+            <Text style={[s.heroTagline, isDesktop && s.heroTaglineDesktop]}>
+              Čerstvé produkty přímo od lidí ve vašem okolí.
+            </Text>
+            <Text style={s.heroSub}>
+              Vyhledejte, domluvte odběr nebo nabídněte vlastní přebytky.
+            </Text>
           </View>
+        </ImageBackground>
+
+        {/* ── TŘI KARTY (překrývají spodek hero přes záporný marginTop) ─ */}
+        <View style={[s.cards, isDesktop && s.cardsDesktop]}>
+
+          <TouchableOpacity
+            style={[s.card, s.cardPrimary, isDesktop && s.cardFlex]}
+            onPress={() => router.push('/mapa')}
+            activeOpacity={0.88}
+          >
+            <Text style={s.cardEmoji}>🍎</Text>
+            <Text style={[s.cardTitle, s.cardTitleWhite]}>Zákazníci</Text>
+            <Text style={[s.cardDesc, s.cardDescWhite]}>
+              Najděte čerstvé produkty v okolí.
+            </Text>
+            <View style={s.cardTagWhite}>
+              <Text style={s.cardTagTextWhite}>Bez registrace</Text>
+            </View>
+            <View style={s.cardCta}>
+              <Text style={s.cardCtaTextWhite}>Vyhledat →</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[s.card, isDesktop && s.cardFlex]}
+            onPress={() => router.push(prodejnaRoute)}
+            activeOpacity={0.88}
+          >
+            <Text style={s.cardEmoji}>🏡</Text>
+            <Text style={s.cardTitle}>Moje prodejna</Text>
+            <Text style={s.cardDesc}>
+              {isAuthenticated ? 'Správa prodejny, produktů a objednávek.' : 'Přihlášení a správa prodejny pěstitele.'}
+            </Text>
+            <View style={s.cardTag}>
+              <Text style={s.cardTagText}>Pro registrované pěstitele</Text>
+            </View>
+            {newOrdersCount > 0 && (
+              <View style={s.cardTagRed}>
+                <Text style={s.cardTagTextRed}>{newOrdersCount} nových objednávek</Text>
+              </View>
+            )}
+            <View style={s.cardCta}>
+              <Text style={s.cardCtaText}>Přejít →</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[s.card, isDesktop && s.cardFlex]}
+            onPress={() => router.push('/stanky/pridat')}
+            activeOpacity={0.88}
+          >
+            <Text style={s.cardEmoji}>📦</Text>
+            <Text style={s.cardTitle}>Nabízím bez registrace</Text>
+            <Text style={s.cardDesc}>
+              Rychle nabídnu přebytky bez zakládání prodejny.
+            </Text>
+            <View style={s.cardTagOrange}>
+              <Text style={s.cardTagTextOrange}>Jednorázová nabídka</Text>
+            </View>
+            <View style={s.cardCta}>
+              <Text style={s.cardCtaText}>Přidat nabídku →</Text>
+            </View>
+          </TouchableOpacity>
+
         </View>
 
         {/* ── FARMER STATUS ─────────────────────────────────────── */}
@@ -407,25 +405,22 @@ const s = StyleSheet.create({
   safeArea:    { flex: 1, backgroundColor: '#f9fafb' },
   center:      { justifyContent: 'center', alignItems: 'center' },
   scroll:      { flex: 1 },
-  scrollContent: { maxWidth: 1100, alignSelf: 'center' as any, width: '100%', flexGrow: 1, paddingBottom: 60 },
-
-  heroWrapper: { position: 'relative' },
+  scrollContent: { maxWidth: 1200, alignSelf: 'center' as any, width: '100%', flexGrow: 1, paddingBottom: 60 },
 
   heroBg: {
     height: HERO_HEIGHT,
-    justifyContent: 'flex-end',
     overflow: 'hidden',
   },
 
   heroOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.38)',
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
 
   heroContent: {
+    paddingTop: 52,
     paddingHorizontal: 40,
-    paddingBottom: CARDS_OVERLAP + 20,
-    zIndex: 1,
+    paddingBottom: 20,
   },
 
   betaBadge: {
@@ -468,16 +463,14 @@ const s = StyleSheet.create({
   },
 
   cards: {
-    position: 'absolute',
-    bottom: -CARDS_OVERLAP,
-    left: 0, right: 0,
-    paddingHorizontal: 20,
+    marginTop: -CARDS_OVERLAP,
+    zIndex: 10,
+    paddingHorizontal: 24,
     gap: 14,
   },
   cardsDesktop: {
     flexDirection: 'row',
     paddingHorizontal: 40,
-    bottom: -CARDS_OVERLAP,
   },
 
   card: {
@@ -549,14 +542,14 @@ const s = StyleSheet.create({
   cardCtaTextWhite: { fontSize: 14, fontWeight: '700', color: '#fff' },
 
   statusSection: {
-    paddingHorizontal: 20,
-    marginTop: CARDS_OVERLAP + 16,
+    paddingHorizontal: 24,
+    marginTop: 20,
   },
 
   continueBanner: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#fff3e0',
-    marginHorizontal: 20, marginTop: 14,
+    marginHorizontal: 24, marginTop: 14,
     borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14,
   },
   continueBannerText: { fontSize: 13, color: '#f57c00', fontWeight: '600', flex: 1 },
@@ -565,7 +558,7 @@ const s = StyleSheet.create({
 
   cartSection: {
     backgroundColor: '#fff',
-    marginHorizontal: 20, marginTop: 14,
+    marginHorizontal: 24, marginTop: 14,
     borderRadius: 14, padding: 14,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05, shadowRadius: 6, elevation: 1,
