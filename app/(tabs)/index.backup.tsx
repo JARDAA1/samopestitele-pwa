@@ -1,10 +1,10 @@
 import {
-  View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, ActivityIndicator,
+  View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
+  ScrollView, ActivityIndicator, Platform, ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useFarmarAuth } from '../_utils/farmarAuthContext';
 import { fetchPocetNovychObjednavek } from '@/features/objednavky/services/objednavkyService';
 import { useCart } from '../_utils/cartContext';
@@ -13,6 +13,8 @@ import { formatMnozstvi } from '../_utils/formatKc';
 import { supabase } from '@/lib/supabaseClient';
 import SellingModeModal from '../_components/SellingModeModal';
 import FarmerStatusCard from '../_components/FarmerStatusCard';
+
+const HERO_IMAGE = require('../../assets/images/hero-krajina.jpg');
 
 type ProdejniMisto = { id: number; nazev: string | null; adresa: string | null };
 
@@ -34,6 +36,8 @@ const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
 };
 
 export default function HomeScreen() {
+  const { width } = useWindowDimensions();
+  const [isMounted, setIsMounted] = useState(false);
   const { isAuthenticated, isSessionChecked, farmar } = useFarmarAuth();
   const { itemCount, cart } = useCart();
   const { itemCount: listItemCount, lastFarmer } = useCustomerList();
@@ -53,6 +57,11 @@ export default function HomeScreen() {
     nazev_farmy: string | null; adresa: string | null; mesto: string | null;
     gps_lat: number | null; gps_lng: number | null;
   } | null>(null);
+
+  useEffect(() => { setIsMounted(true); }, []);
+
+  const isMobile = isMounted && width < 768;
+  const isDesktop = isMounted && width >= 768;
 
   useFocusEffect(
     useCallback(() => {
@@ -198,15 +207,39 @@ export default function HomeScreen() {
 
   const showStatusCard = isAuthenticated && pestitelRowId !== null && activeMisto !== undefined;
   const isActive = showStatusCard && activeMisto !== null;
-  const prodejnaRoute: any = isAuthenticated ? '/(tabs)/moje-prodejna/operativa' : '/registrace';
 
   if (!isSessionChecked) {
     return (
       <SafeAreaView style={[s.safeArea, s.center]} edges={['top']}>
-        <ActivityIndicator size="large" color="#ffffff" />
+        <ActivityIndicator size="large" color="#4caf50" />
       </SafeAreaView>
     );
   }
+
+  const prodejnaRoute: any = isAuthenticated
+    ? (isMobile ? '/(tabs)/moje-prodejna/operativa' : '/(tabs)/moje-prodejna')
+    : '/registrace';
+
+  const heroContent = (
+    <>
+      {/* Overlay ztmavení */}
+      <View style={s.heroOverlay} />
+
+      {/* Obsah hero */}
+      <View style={s.heroContent}>
+        <View style={s.betaBadge}>
+          <Text style={s.betaBadgeText}>BETA</Text>
+        </View>
+        <Text style={[s.heroTitle, isDesktop && s.heroTitleDesktop]}>Samopěstitelé</Text>
+        <Text style={[s.heroTagline, isDesktop && s.heroTaglineDesktop]}>
+          Čerstvé produkty přímo od lidí ve vašem okolí.
+        </Text>
+        <Text style={s.heroSub}>
+          Vyhledejte, domluvte odběr nebo nabídněte vlastní přebytky.
+        </Text>
+      </View>
+    </>
+  );
 
   return (
     <SafeAreaView style={s.safeArea} edges={['top']}>
@@ -222,105 +255,125 @@ export default function HomeScreen() {
         onClose={() => { setShowModal(false); setGeoError(''); }}
       />
 
-      {/* ── HEADER ─────────────────────────────────────────────── */}
-      <View style={s.header}>
-        <Text style={s.headerTitle}>Samopěstitelé</Text>
-        {itemCount > 0 && (
-          <TouchableOpacity style={s.cartBtn} onPress={() => router.push('/kosik')}>
-            <Text style={s.cartBtnIcon}>🛒</Text>
-            <View style={s.cartBadge}>
-              <Text style={s.cartBadgeText}>{itemCount > 99 ? '99+' : itemCount}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      </View>
+      {itemCount > 0 && (
+        <TouchableOpacity style={s.cartButton} onPress={() => router.push('/kosik')}>
+          <Text style={s.cartIcon}>🛒</Text>
+          <View style={s.cartBadge}>
+            <Text style={s.cartBadgeText}>{itemCount > 99 ? '99+' : itemCount}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       <ScrollView
         style={s.scroll}
-        contentContainerStyle={s.content}
+        contentContainerStyle={[
+          s.content,
+          Platform.OS === 'web' && { maxWidth: 900, alignSelf: 'center' as const, width: '100%' },
+        ]}
         showsVerticalScrollIndicator={false}
       >
 
-        {/* ── TŘI AKČNÍ KARTY ────────────────────────────────────── */}
-        <View style={s.cards}>
+        {/* ══ HERO ══════════════════════════════════════════════ */}
+        <View style={[s.heroWrapper, isDesktop && s.heroWrapperDesktop]}>
 
-          {/* Zákazníci */}
-          <TouchableOpacity
-            style={[s.card, s.cardGreen]}
-            onPress={() => router.push('/mapa')}
-            activeOpacity={0.85}
+          <ImageBackground
+            source={HERO_IMAGE}
+            style={[s.heroBg, isDesktop && s.heroBgDesktop]}
+            resizeMode="cover"
           >
-            <View style={s.cardLeft}>
-              <Text style={s.cardEmoji}>🍎</Text>
-              <View style={s.cardText}>
-                <Text style={[s.cardTitle, s.cardTitleWhite]}>Zákazníci</Text>
-                <Text style={[s.cardSub, s.cardSubWhite]}>Najděte čerstvé produkty v okolí</Text>
-              </View>
-            </View>
-            <View style={s.cardArrowWrap}>
-              <Text style={[s.cardArrow, s.cardArrowWhite]}>→</Text>
-            </View>
-          </TouchableOpacity>
+            {heroContent}
+          </ImageBackground>
 
-          {/* Moje prodejna */}
-          <TouchableOpacity
-            style={s.card}
-            onPress={() => router.push(prodejnaRoute)}
-            activeOpacity={0.85}
-          >
-            <View style={s.cardLeft}>
-              <Text style={s.cardEmoji}>🏡</Text>
-              <View style={s.cardText}>
-                <Text style={s.cardTitle}>Moje prodejna</Text>
-                <Text style={s.cardSub}>
-                  {isAuthenticated ? 'Správa prodejny a objednávek' : 'Přihlášení pro pěstitele'}
-                </Text>
+          {/* ══ TŘI KARTY (překrývají spodek hero) ═══════════════ */}
+          <View style={[s.cards, isDesktop && s.cardsDesktop]}>
+
+            {/* Karta 1 — Zákazníci (primární) */}
+            <TouchableOpacity
+              style={[s.card, s.cardPrimary, isDesktop && s.cardDesktop]}
+              onPress={() => router.push('/mapa')}
+              activeOpacity={0.88}
+            >
+              <View style={s.cardIconWrap}>
+                <Text style={s.cardIconEmoji}>🍎</Text>
               </View>
-            </View>
-            <View style={s.cardRight}>
+              <Text style={[s.cardTitle, s.cardTitlePrimary]}>Zákazníci</Text>
+              <Text style={[s.cardDesc, s.cardDescPrimary]}>
+                Najděte čerstvé produkty v okolí.
+              </Text>
+              <View style={[s.cardBadge, s.cardBadgePrimary]}>
+                <Text style={[s.cardBadgeText, s.cardBadgeTextPrimary]}>Bez registrace</Text>
+              </View>
+              <View style={s.cardBtn}>
+                <Text style={[s.cardBtnText, s.cardBtnTextPrimary]}>Vyhledat →</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Karta 2 — Moje prodejna */}
+            <TouchableOpacity
+              style={[s.card, isDesktop && s.cardDesktop]}
+              onPress={() => router.push(prodejnaRoute)}
+              activeOpacity={0.88}
+            >
+              <View style={s.cardIconWrap}>
+                <Text style={s.cardIconEmoji}>🏡</Text>
+              </View>
+              <Text style={s.cardTitle}>Moje prodejna</Text>
+              <Text style={s.cardDesc}>
+                {isAuthenticated
+                  ? 'Správa prodejny, produktů a objednávek.'
+                  : 'Přihlášení a správa prodejny pěstitele.'}
+              </Text>
+              <View style={s.cardBadge}>
+                <Text style={s.cardBadgeText}>Pro registrované pěstitele</Text>
+              </View>
               {newOrdersCount > 0 && (
-                <View style={s.newOrdersPill}>
-                  <Text style={s.newOrdersPillText}>{newOrdersCount}</Text>
+                <View style={s.newOrdersBadge}>
+                  <Text style={s.newOrdersBadgeText}>{newOrdersCount} nových objednávek</Text>
                 </View>
               )}
-              <Text style={s.cardArrow}>→</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Nabízím bez registrace */}
-          <TouchableOpacity
-            style={s.card}
-            onPress={() => router.push('/stanky/pridat')}
-            activeOpacity={0.85}
-          >
-            <View style={s.cardLeft}>
-              <Text style={s.cardEmoji}>📦</Text>
-              <View style={s.cardText}>
-                <Text style={s.cardTitle}>Nabízím bez registrace</Text>
-                <Text style={s.cardSub}>Jednorázová nabídka přebytků</Text>
+              <View style={s.cardBtn}>
+                <Text style={s.cardBtnText}>Přejít →</Text>
               </View>
-            </View>
-            <View style={s.cardArrowWrap}>
-              <Text style={s.cardArrow}>→</Text>
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
 
+            {/* Karta 3 — Nabízím bez registrace */}
+            <TouchableOpacity
+              style={[s.card, isDesktop && s.cardDesktop]}
+              onPress={() => router.push('/stanky/pridat')}
+              activeOpacity={0.88}
+            >
+              <View style={s.cardIconWrap}>
+                <Text style={s.cardIconEmoji}>📦</Text>
+              </View>
+              <Text style={s.cardTitle}>Nabízím bez registrace</Text>
+              <Text style={s.cardDesc}>
+                Rychle nabídnu přebytky bez zakládání prodejny.
+              </Text>
+              <View style={[s.cardBadge, s.cardBadgeOrange]}>
+                <Text style={[s.cardBadgeText, s.cardBadgeTextOrange]}>Jednorázová nabídka</Text>
+              </View>
+              <View style={s.cardBtn}>
+                <Text style={s.cardBtnText}>Přidat nabídku →</Text>
+              </View>
+            </TouchableOpacity>
+
+          </View>
         </View>
 
-        {/* ── FARMER STATUS ──────────────────────────────────────── */}
+        {/* ══ FARMER STATUS (jen přihlášení farmáři) ═══════════ */}
         {showStatusCard && (
           <View style={s.statusSection}>
             <FarmerStatusCard
               isActive={isActive}
               activeMisto={activeMisto}
-              isDesktop={false}
+              isDesktop={isDesktop}
               defaultAdresa={farmerProfile?.adresa || farmerProfile?.mesto || undefined}
               onPress={handleCardPress}
             />
           </View>
         )}
 
-        {/* ── POKRAČOVAT U FARMÁŘE ───────────────────────────────── */}
+        {/* ══ KONTEXTOVÉ CTA (pokračovat u farmáře) ════════════ */}
         {listItemCount > 0 && lastFarmer && !ctaDismissed && (
           <View style={s.continueBanner}>
             <TouchableOpacity
@@ -336,7 +389,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── KOŠÍK SUMMARY ──────────────────────────────────────── */}
+        {/* ══ KOŠÍK SUMMARY ════════════════════════════════════ */}
         {itemCount > 0 && (
           <View style={s.cartSection}>
             <TouchableOpacity style={s.cartRow} onPress={() => setCartExpanded(p => !p)} activeOpacity={0.7}>
@@ -366,6 +419,7 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* ══ FOOTER ══════════════════════════════════════════ */}
         <View style={s.footer}>
           <Text style={s.footerText}>samopestitele.cz · info@samopestitele.cz</Text>
         </View>
@@ -375,123 +429,207 @@ export default function HomeScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#558b2f' },
-  center:   { justifyContent: 'center', alignItems: 'center' },
+const HERO_HEIGHT = 300;
+const HERO_HEIGHT_DESKTOP = 400;
+const CARDS_OVERLAP = 72;
 
-  // ── Header ─────────────────────────────────────────────────────
-  header: {
-    backgroundColor: '#558b2f',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+const s = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#f9fafb' },
+  center:   { justifyContent: 'center', alignItems: 'center' },
+  scroll:   { flex: 1 },
+  content:  { flexGrow: 1, paddingBottom: 40 },
+
+  // ── Hero wrapper — zajišťuje overlap karet přes hero ─────────
+  heroWrapper: {
+    // Na mobilu: hero + karty pod sebou, karty přesahují hero dolů
+    marginBottom: CARDS_OVERLAP,
   },
-  headerTitle: {
-    fontSize: 22,
+  heroWrapperDesktop: {
+    marginBottom: CARDS_OVERLAP + 20,
+  },
+
+  heroBg: {
+    height: HERO_HEIGHT,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  heroBgDesktop: {
+    height: HERO_HEIGHT_DESKTOP,
+  },
+
+  heroOverlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.42)',
+  },
+
+  heroContent: {
+    paddingHorizontal: 22,
+    paddingTop: 28,
+    paddingBottom: CARDS_OVERLAP + 18,
+    zIndex: 1,
+  },
+  betaBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 14,
+  },
+  betaBadgeText: { color: '#ffffff', fontSize: 10, fontWeight: '700', letterSpacing: 1.5 },
+  heroTitle: {
+    fontSize: 40,
     fontWeight: '800',
     color: '#ffffff',
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+    marginBottom: 10,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
   },
-  cartBtn: {
-    width: 44, height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    justifyContent: 'center', alignItems: 'center',
+  heroTitleDesktop: { fontSize: 58 },
+  heroTagline: {
+    fontSize: 17,
+    color: 'rgba(255,255,255,0.92)',
+    lineHeight: 26,
+    marginBottom: 8,
+    fontWeight: '500',
   },
-  cartBtnIcon: { fontSize: 20 },
-  cartBadge: {
-    position: 'absolute', top: 2, right: 2,
-    backgroundColor: '#FF9800', borderRadius: 8,
-    minWidth: 18, height: 18, justifyContent: 'center',
-    alignItems: 'center', paddingHorizontal: 3,
+  heroTaglineDesktop: { fontSize: 21 },
+  heroSub: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+    lineHeight: 20,
   },
-  cartBadgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
 
-  // ── ScrollView ─────────────────────────────────────────────────
-  scroll:   { flex: 1, backgroundColor: '#f4f7f2' },
-  content:  { paddingTop: 12, paddingBottom: 48 },
-
-  // ── Karty ──────────────────────────────────────────────────────
+  // ── Tři karty překrývající hero ──────────────────────────────
   cards: {
+    position: 'absolute',
+    bottom: -CARDS_OVERLAP,
+    left: 0,
+    right: 0,
     paddingHorizontal: 14,
-    gap: 10,
+    gap: 12,
+  },
+  cardsDesktop: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    bottom: -(CARDS_OVERLAP + 20),
   },
 
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 72,
+    borderRadius: 18,
+    padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 5,
+    alignItems: 'center',
   },
-  cardGreen: { backgroundColor: '#558b2f' },
+  cardDesktop: { flex: 1 },
+  cardPrimary: { backgroundColor: '#4caf50' },
 
-  cardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 14 },
-  cardEmoji: { fontSize: 28 },
-  cardText:  { flex: 1 },
+  cardIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardIconEmoji: { fontSize: 26 },
 
   cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: '#1a1a1a',
-    marginBottom: 3,
-    letterSpacing: -0.2,
+    textAlign: 'center',
+    marginBottom: 6,
+    letterSpacing: -0.3,
   },
-  cardTitleWhite: { color: '#ffffff' },
+  cardTitlePrimary: { color: '#ffffff' },
 
-  cardSub: {
+  cardDesc: {
     fontSize: 13,
     color: '#6b7280',
-    lineHeight: 18,
+    textAlign: 'center',
+    lineHeight: 19,
+    marginBottom: 12,
   },
-  cardSubWhite: { color: 'rgba(255,255,255,0.82)' },
+  cardDescPrimary: { color: 'rgba(255,255,255,0.88)' },
 
-  cardRight:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  cardArrowWrap: { justifyContent: 'center', alignItems: 'center' },
-  cardArrow:     { fontSize: 18, color: '#558b2f', fontWeight: '700' },
-  cardArrowWhite: { color: 'rgba(255,255,255,0.9)' },
-
-  newOrdersPill: {
-    backgroundColor: '#FF9800', borderRadius: 10,
-    minWidth: 22, height: 22, justifyContent: 'center',
-    alignItems: 'center', paddingHorizontal: 5,
+  cardBadge: {
+    backgroundColor: '#f1f8e9',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginBottom: 14,
   },
-  newOrdersPillText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  cardBadgePrimary: { backgroundColor: 'rgba(255,255,255,0.22)' },
+  cardBadgeOrange: { backgroundColor: '#fff3e0' },
+  cardBadgeText: { fontSize: 11, color: '#2e7d32', fontWeight: '600' },
+  cardBadgeTextPrimary: { color: '#ffffff' },
+  cardBadgeTextOrange: { color: '#f57c00' },
 
-  // ── Farmer status ───────────────────────────────────────────────
+  newOrdersBadge: {
+    backgroundColor: '#ffebee',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginBottom: 14,
+  },
+  newOrdersBadgeText: { fontSize: 11, color: '#c62828', fontWeight: '700' },
+
+  cardBtn: {
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    minWidth: 120,
+  },
+  cardBtnText: { fontSize: 14, fontWeight: '700', color: '#FF9800' },
+  cardBtnTextPrimary: { color: '#ffffff' },
+
+  // ── Farmer status ────────────────────────────────────────────
   statusSection: {
     paddingHorizontal: 14,
-    marginTop: 14,
+    paddingTop: 16,
+    marginTop: CARDS_OVERLAP + 8,
   },
 
-  // ── Kontextové CTA ──────────────────────────────────────────────
+  // ── Kontextové CTA ───────────────────────────────────────────
   continueBanner: {
-    flexDirection: 'row', alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#fff3e0',
-    marginHorizontal: 14, marginTop: 12,
-    borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14,
+    marginHorizontal: 14,
+    marginTop: 12,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
   },
   continueBannerText: { fontSize: 13, color: '#f57c00', fontWeight: '600', flex: 1 },
   continueBannerClose: { padding: 4, marginLeft: 8 },
   continueBannerCloseText: { fontSize: 14, color: '#9ca3af', fontWeight: '600' },
 
-  // ── Košík summary ───────────────────────────────────────────────
+  // ── Košík summary ────────────────────────────────────────────
   cartSection: {
     backgroundColor: '#ffffff',
-    marginHorizontal: 14, marginTop: 12,
-    borderRadius: 14, padding: 14,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05, shadowRadius: 6, elevation: 1,
+    marginHorizontal: 14,
+    marginTop: 12,
+    borderRadius: 14,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
   },
   cartRow: { flexDirection: 'row', alignItems: 'center' },
   cartLabel: { fontSize: 13, color: '#FF9800', fontWeight: '600', flex: 1 },
@@ -509,7 +647,26 @@ const s = StyleSheet.create({
   cartGoBtn: { marginTop: 10, backgroundColor: '#FF9800', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   cartGoBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
-  // ── Footer ──────────────────────────────────────────────────────
-  footer: { paddingHorizontal: 20, paddingVertical: 28, alignItems: 'center', marginTop: 8 },
-  footerText: { fontSize: 12, color: '#b0b8bf' },
+  // ── Plovoucí košík tlačítko ──────────────────────────────────
+  cartButton: {
+    position: 'absolute', top: 8, right: 16, zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 22,
+    width: 44, height: 44, justifyContent: 'center', alignItems: 'center',
+  },
+  cartBadge: {
+    position: 'absolute', top: -2, right: -2,
+    backgroundColor: '#FF9800', borderRadius: 9, minWidth: 18, height: 18,
+    justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4,
+  },
+  cartBadgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  cartIcon: { fontSize: 20 },
+
+  // ── Footer ───────────────────────────────────────────────────
+  footer: {
+    paddingHorizontal: 20,
+    paddingVertical: 28,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  footerText: { fontSize: 12, color: '#c4c9d0' },
 });
