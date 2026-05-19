@@ -14,10 +14,7 @@ import { supabase } from '@/lib/supabaseClient';
 import SellingModeModal from '../_components/SellingModeModal';
 import FarmerStatusCard from '../_components/FarmerStatusCard';
 
-// TODO: doplnit hero obrázek krajiny / vinohradu / aleje
-// Příklad: const HERO_IMAGE = require('../../../assets/images/hero-krajina.jpg');
-// nebo:    const HERO_IMAGE = { uri: 'https://cdn.samopestitele.cz/hero.jpg' };
-const HERO_IMAGE: any = null;
+const HERO_IMAGE = require('../../assets/images/hero-krajina.jpg');
 
 type ProdejniMisto = { id: number; nazev: string | null; adresa: string | null };
 
@@ -279,23 +276,13 @@ export default function HomeScreen() {
         {/* ══ HERO ══════════════════════════════════════════════ */}
         <View style={[s.heroWrapper, isDesktop && s.heroWrapperDesktop]}>
 
-          {HERO_IMAGE ? (
-            <ImageBackground
-              source={HERO_IMAGE}
-              style={[s.heroBg, isDesktop && s.heroBgDesktop]}
-              resizeMode="cover"
-            >
-              {heroContent}
-            </ImageBackground>
-          ) : (
-            // TODO: nahradit View za ImageBackground s hero obrázkem krajiny/vinohradu/aleje
-            <View style={[s.heroBg, s.heroBgPlaceholder, isDesktop && s.heroBgDesktop]}>
-              {/* Dekorativní vrstvy pro atmosféru než bude obrázek */}
-              <View style={s.heroBgLayer1} />
-              <View style={s.heroBgLayer2} />
-              {heroContent}
-            </View>
-          )}
+          <ImageBackground
+            source={HERO_IMAGE}
+            style={[s.heroBg, isDesktop && s.heroBgDesktop]}
+            resizeMode="cover"
+          >
+            {heroContent}
+          </ImageBackground>
 
           {/* ══ TŘI KARTY (překrývají spodek hero) ═══════════════ */}
           <View style={[s.cards, isDesktop && s.cardsDesktop]}>
@@ -468,23 +455,6 @@ const s = StyleSheet.create({
   },
   heroBgDesktop: {
     height: HERO_HEIGHT_DESKTOP,
-  },
-
-  // TODO: nahradit placeholderové pozadí hero obrázkem
-  heroBgPlaceholder: {
-    backgroundColor: '#1c3a1c',
-  },
-  // Dekorativní vrstvy pro placeholderový gradient efekt
-  heroBgLayer1: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: '#2a5c2a',
-    opacity: 0.5,
-  },
-  heroBgLayer2: {
-    position: 'absolute', top: 0, left: '30%', right: 0, bottom: 0,
-    backgroundColor: '#1a3a1a',
-    opacity: 0.6,
-    borderTopLeftRadius: 200,
   },
 
   heroOverlay: {
