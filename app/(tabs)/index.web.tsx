@@ -6,7 +6,8 @@ import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../_utils/farmarAuthContext';
 
-const SPLASH = require('../../assets/images/splash.png');
+const HERO_IMG = require('../../web-landing/back1.png');
+const SPLASH_FALLBACK = require('../../assets/images/splash.png');
 
 export default function HomeScreenWeb() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function HomeScreenWeb() {
     <ScrollView style={s.root} showsVerticalScrollIndicator={false}>
 
       {/* ── HERO ── */}
-      <ImageBackground source={SPLASH} style={s.hero} resizeMode="cover">
+      <ImageBackground source={HERO_IMG} defaultSource={SPLASH_FALLBACK} style={s.hero} resizeMode="cover">
         <View style={s.heroOverlay} />
         <View style={s.heroInner}>
           <Text style={s.heroTitle}>Samopěstitelé</Text>
@@ -107,7 +108,7 @@ export default function HomeScreenWeb() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f9fafb' },
+  root: { flex: 1, backgroundColor: '#ffffff' },
 
   // Hero
   hero: { width: '100%' as any, height: 500, justifyContent: 'center', alignItems: 'center' },
@@ -129,7 +130,8 @@ const s = StyleSheet.create({
   // Cards outer
   cardsOuter: {
     width: '100%' as any, alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 48, backgroundColor: '#f9fafb',
+    paddingHorizontal: 40, paddingBottom: 48, paddingTop: 0,
+    backgroundColor: '#ffffff', marginTop: -60, zIndex: 10,
   },
   cardsRow: {
     flexDirection: 'row', flexWrap: 'wrap',
@@ -139,9 +141,9 @@ const s = StyleSheet.create({
 
   // Card base
   card: {
-    borderRadius: 20, padding: 28, alignItems: 'center',
+    borderRadius: 16, padding: 28, alignItems: 'center',
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1, shadowRadius: 16, elevation: 5,
+    shadowOpacity: 0.08, shadowRadius: 16, elevation: 5,
   },
   cardWide: { flex: 1 },
   cardGreen: { backgroundColor: '#4caf50' },
@@ -175,6 +177,6 @@ const s = StyleSheet.create({
   btnDarkText: { fontSize: 15, fontWeight: '700', color: '#ffffff' },
 
   // Footer
-  footer: { paddingVertical: 24, alignItems: 'center', backgroundColor: '#f9fafb', borderTopWidth: 1, borderTopColor: '#e5e7eb' },
+  footer: { paddingVertical: 24, alignItems: 'center', backgroundColor: '#ffffff', borderTopWidth: 1, borderTopColor: '#e5e7eb' },
   footerText: { fontSize: 13, color: '#9ca3af' },
 });
