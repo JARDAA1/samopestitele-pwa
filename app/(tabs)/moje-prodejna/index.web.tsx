@@ -1,17 +1,25 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  View, Text, StyleSheet, TouchableOpacity, ScrollView,
+  ActivityIndicator, useWindowDimensions, Share,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
 import { useFarmarAuth } from '../../_utils/farmarAuthContext';
-import { fetchAktivniObjednavky, zmeniStavPolozky as zmeniStavPolozkyService, zmeniStavObjednavky } from '@/features/objednavky/services/objednavkyService';
+import {
+  fetchAktivniObjednavky,
+  zmeniStavPolozky as zmeniStavPolozkyService,
+  zmeniStavObjednavky,
+} from '@/features/objednavky/services/objednavkyService';
 import { fetchPocetAktivnichProduktu } from '@/features/produkty/services/produktyService';
 import {
   fetchPocetProdejnichMist,
   fetchCasovaDostupnostMist,
 } from '@/features/prodejni-mista/services/locationService';
-import { ProtectedRoute } from '../../_utils/ProtectedRoute';
 import { useRealtimeOrders } from '../../_utils/useRealtimeOrders';
 import { formatKc, formatMnozstvi } from '../../_utils/formatKc';
 
+// ── Typy ────────────────────────────────────────────────────────
 interface ObjednavkaPolozka {
   id: string;
   nazev_produktu: string;
@@ -20,7 +28,6 @@ interface ObjednavkaPolozka {
   cena?: number;
   stav_polozky?: string;
 }
-
 interface Objednavka {
   id: string;
   stav: string;
@@ -33,885 +40,554 @@ interface Objednavka {
   polozky: ObjednavkaPolozka[];
 }
 
-function MojeProdejnaScreenContent() {
-  const { farmar, logout } = useFarmarAuth();
+// ── Nav items ────────────────────────────────────────────────────
+const NAV_ITEMS = [
+  { icon: 'receipt' as const,             label: 'Objednávky',     route: '/(tabs)/moje-prodejna' },
+  { icon: 'basket-outline' as const,      label: 'Produkty',       route: '/(tabs)/moje-prodejna/seznam-produktu' },
+  { icon: 'location-outline' as const,    label: 'Prodejní místa', route: '/(tabs)/moje-prodejna/prodejni-mista' },
+  { icon: 'settings-outline' as const,    label: 'Operativa',      route: '/(tabs)/moje-prodejna/operativa' },
+  { icon: 'document-text-outline' as const, label: 'Dokončené',   route: '/(tabs)/moje-prodejna/dokoncene-objednavky' },
+  { icon: 'person-outline' as const,      label: 'Profil',         route: '/profil' },
+];
 
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [objednavky, setObjednavky] = useState<Objednavka[]>([]);
-  const [pocetProduktu, setPocetProduktu] = useState(0);
-  const [pocetProdejnichMist, setPocetProdejnichMist] = useState(0);
-  const [casovaDostupnost, setCasovaDostupnost] = useState<string | null>(null);
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+// ── Helpers ──────────────────────────────────────────────────────
+function formatDate(datum: string) {
+  return new Date(datum).toLocaleDateString('cs-CZ', {
+    day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+}
 
-  const handleNewOrder = useCallback((newOrder: any) => {
-    setObjednavky(prev => [{
-      ...newOrder,
-      polozky: []
-    }, ...prev]);
+function getOrderBadge(stav: string) {
+  if (stav === 'ceka_na_vyzvednuti')              return { text: 'ČEKÁ',     color: '#f59e0b' };
+  if (stav === 'zpracovana' || stav === 'dokoncena') return { text: 'HOTOVO', color: '#4caf50' };
+  if (stav === 'potvrzena')                       return { text: 'POTVRZENA', color: '#3b82f6' };
+  return { text: 'NOVÁ', color: '#ef4444' };
+}
+
+// ── Nepřihlášený stav ────────────────────────────────────────────
+function UnauthScreen() {
+  return (
+    <View style={s.unauthRoot}>
+      <View style={s.unauthCard}>
+        <Ionicons name="storefront-outline" size={56} color="#6aa84f" style={{ marginBottom: 20 }} />
+        <Text style={s.unauthTitle}>Moje prodejna</Text>
+        <Text style={s.unauthSub}>
+          Pro přístup k prodejně se přihlaste nebo si vytvořte nový účet.
+        </Text>
+        <TouchableOpacity style={s.unauthBtnGreen} onPress={() => router.push('/prihlaseni')}>
+          <Text style={s.unauthBtnGreenText}>Přihlásit se</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.unauthBtnWhite} onPress={() => router.push('/registrace')}>
+          <Text style={s.unauthBtnWhiteText}>Registrovat se</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+// ── Hlavní komponenta ────────────────────────────────────────────
+export default function MojeProdejnaWeb() {
+  const { farmar, logout, isAuthenticated, isSessionChecked } = useFarmarAuth();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+
+  const [objednavky, setObjednavky]           = useState<Objednavka[]>([]);
+  const [pocetProduktu, setPocetProduktu]     = useState(0);
+  const [pocetMist, setPocetMist]             = useState(0);
+  const [loading, setLoading]                 = useState(true);
+  const [refreshing, setRefreshing]           = useState(false);
+  const [selectedId, setSelectedId]           = useState<string | null>(null);
+
+  const handleNewOrder = useCallback((o: any) => {
+    setObjednavky(prev => [{ ...o, polozky: [] }, ...prev]);
   }, []);
-
   useRealtimeOrders(farmar?.id, handleNewOrder);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (farmar?.id) {
-        loadData(farmar.id);
-      } else {
-        setLoading(false);
-      }
-    }, [farmar])
-  );
+  useFocusEffect(useCallback(() => {
+    if (farmar?.id) loadData(farmar.id);
+    else            setLoading(false);
+  }, [farmar]));
 
-  const loadData = async (pestitelId: string, isRefresh = false) => {
+  async function loadData(id: string, isRefresh = false) {
+    isRefresh ? setRefreshing(true) : setLoading(true);
     try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
-      const objednavkyWithPolozky = await fetchAktivniObjednavky(pestitelId);
-      setObjednavky(objednavkyWithPolozky as Objednavka[]);
-
-      const pocetProd = await fetchPocetAktivnichProduktu(pestitelId);
-      setPocetProduktu(pocetProd);
-
-      const pocetMist = await fetchPocetProdejnichMist(Number(pestitelId));
-      setPocetProdejnichMist(pocetMist);
-
-      const cas = await fetchCasovaDostupnostMist(Number(pestitelId));
-      setCasovaDostupnost(cas);
-    } catch (error) {
-      console.error('Chyba:', error);
+      const [objs, prod, mist] = await Promise.all([
+        fetchAktivniObjednavky(id),
+        fetchPocetAktivnichProduktu(id),
+        fetchPocetProdejnichMist(Number(id)),
+      ]);
+      setObjednavky(objs as Objednavka[]);
+      setPocetProduktu(prod);
+      setPocetMist(mist);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }
 
-  const onRefresh = useCallback(() => {
-    if (farmar?.id) {
-      loadData(farmar.id, true);
-    }
-  }, [farmar]);
-
-  const zmeniStavPolozky = async (polozkaId: string, novyStav: string, objednavkaId: string) => {
+  async function zmeniStav(polozkaId: string, novyStav: string, objednavkaId: string) {
     try {
       await zmeniStavPolozkyService(polozkaId, novyStav);
-
       setObjednavky(prev => prev.map(obj => {
-        if (obj.id === objednavkaId) {
-          return {
-            ...obj,
-            polozky: obj.polozky.map(pol =>
-              pol.id === polozkaId ? { ...pol, stav_polozky: novyStav } : pol
-            )
-          };
-        }
-        return obj;
+        if (obj.id !== objednavkaId) return obj;
+        const updated = obj.polozky.map(p => p.id === polozkaId ? { ...p, stav_polozky: novyStav } : p);
+        const vsechnyVyrizene = updated.every(p => p.stav_polozky && p.stav_polozky !== 'novy');
+        if (vsechnyVyrizene) zmeniStavObjednavky(objednavkaId, 'zpracovana');
+        else if (obj.stav === 'nova' || obj.stav === 'cekajici_na_potvrzeni')
+          zmeniStavObjednavky(objednavkaId, 'potvrzena');
+        return { ...obj, polozky: updated };
       }));
+    } catch (e) { console.error(e); }
+  }
 
-      const objednavka = objednavky.find(o => o.id === objednavkaId);
-      if (objednavka) {
-        const updatedPolozky = objednavka.polozky.map(pol =>
-          pol.id === polozkaId ? { ...pol, stav_polozky: novyStav } : pol
-        );
-
-        const vsechnyVyrizene = updatedPolozky.every(
-          pol => pol.stav_polozky && pol.stav_polozky !== 'novy'
-        );
-
-        if (vsechnyVyrizene) {
-          await zmeniStavObjednavky(objednavkaId, 'zpracovana');
-          setObjednavky(prev => prev.map(obj =>
-            obj.id === objednavkaId ? { ...obj, stav: 'zpracovana' } : obj
-          ));
-        } else if (objednavka.stav === 'nova' || objednavka.stav === 'cekajici_na_potvrzeni') {
-          await zmeniStavObjednavky(objednavkaId, 'potvrzena');
-          setObjednavky(prev => prev.map(obj =>
-            obj.id === objednavkaId ? { ...obj, stav: 'potvrzena' } : obj
-          ));
-        }
-      }
-    } catch (error) {
-      console.error('Chyba:', error);
-    }
-  };
-
-  const formatCreatedAt = (datum: string) => {
-    const d = new Date(datum);
-    return d.toLocaleDateString('cs-CZ', {
-      day: 'numeric',
-      month: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getOrderBadge = (objednavka: Objednavka) => {
-    if (objednavka.stav === 'ceka_na_vyzvednuti') {
-      return { text: 'ČEKÁ', color: '#FF9800' };
-    } else if (objednavka.stav === 'zpracovana' || objednavka.stav === 'dokoncena') {
-      return { text: 'HOTOVO', color: '#4caf50' };
-    } else if (objednavka.stav === 'potvrzena') {
-      return { text: 'POTVRZENA', color: '#2196F3' };
-    } else {
-      return { text: 'NOVÁ', color: '#F44336' };
-    }
-  };
-
-  const getPolozkaStavColor = (stav?: string) => {
-    switch (stav) {
-      case 'pripraveno': return '#4caf50';
-      case 'neni_k_dispozici': return '#9E9E9E';
-      case 'zruseno': return '#F44336';
-      default: return 'transparent';
-    }
-  };
-
+  // ── Stavy před renderem ──────────────────────────────────────
+  if (!isSessionChecked) {
+    return (
+      <View style={s.centered}>
+        <ActivityIndicator size="large" color="#4caf50" />
+      </View>
+    );
+  }
+  if (!isAuthenticated) return <UnauthScreen />;
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
+      <View style={s.centered}>
         <ActivityIndicator size="large" color="#4caf50" />
-        <Text style={styles.loadingText}>Načítám...</Text>
+        <Text style={s.loadingText}>Načítám...</Text>
       </View>
     );
   }
 
-  const newOrdersCount = objednavky.filter(
-    o => o.stav === 'nova' || o.stav === 'cekajici_na_potvrzeni'
-  ).length;
+  const selectedOrder = objednavky.find(o => o.id === selectedId) ?? null;
+  const newCount = objednavky.filter(o => o.stav === 'nova' || o.stav === 'cekajici_na_potvrzeni').length;
 
-  const selectedOrder = selectedOrderId
-    ? objednavky.find(o => o.id === selectedOrderId)
-    : null;
-
-  const navItems = [
-    { icon: '📋', label: 'Objednávky', active: true, onPress: () => {} },
-    { icon: '📦', label: 'Produkty', active: false, onPress: () => router.push('/moje-prodejna/seznam-produktu') },
-    { icon: '📍', label: 'Prodejní místa', active: false, onPress: () => router.push('/moje-prodejna/prodejni-mista') },
-    { icon: '⚡', label: 'Operativa', active: false, onPress: () => router.push('/moje-prodejna/operativa') },
-    { icon: '📚', label: 'Dokončené', active: false, onPress: () => router.push('/moje-prodejna/dokoncene-objednavky') },
-    { icon: '👤', label: 'Profil', active: false, onPress: () => router.push('/profil') },
-  ];
-
-  const renderSidebar = () => (
-    <View style={styles.sidebar}>
-      <View style={styles.sidebarTop}>
-        <Text style={styles.sidebarBrand}>🌿 Samopestitele</Text>
-        <View style={styles.sidebarNav}>
-          {navItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.navItem, item.active && styles.navItemActive]}
-              onPress={item.onPress}
-            >
-              <Text style={styles.navItemIcon}>{item.icon}</Text>
-              <Text style={[styles.navItemLabel, item.active && styles.navItemLabelActive]}>
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+  // ── Sidebar ──────────────────────────────────────────────────
+  const Sidebar = () => (
+    <View style={s.sidebar}>
+      {/* Logo */}
+      <View style={s.sidebarLogo}>
+        <Text style={s.sidebarLogoText}>🌾 Samopěstitelé</Text>
+        <Text style={s.sidebarLogoSub}>Moje prodejna</Text>
       </View>
 
-      <View style={styles.sidebarBottom}>
+      {/* Nav */}
+      <ScrollView style={s.sidebarNav} showsVerticalScrollIndicator={false}>
+        {NAV_ITEMS.map((item) => {
+          const active = item.route === '/(tabs)/moje-prodejna';
+          return (
+            <TouchableOpacity
+              key={item.route}
+              style={[s.navItem, active && s.navItemActive]}
+              onPress={() => router.push(item.route as any)}
+              activeOpacity={0.75}
+            >
+              <Ionicons
+                name={item.icon}
+                size={20}
+                color={active ? '#ffffff' : '#6b7280'}
+              />
+              <Text style={[s.navLabel, active && s.navLabelActive]}>{item.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {/* Stats + logout */}
+      <View style={s.sidebarBottom}>
         {farmar && (
-          <View style={styles.sidebarFarmInfo}>
-            <Text style={styles.sidebarFarmName} numberOfLines={1}>
+          <View style={s.farmStats}>
+            <Text style={s.farmStatsName} numberOfLines={1}>
               {farmar.nazev_farmy || farmar.jmeno || 'Moje farma'}
             </Text>
-            <Text style={styles.sidebarFarmStats}>
-              {pocetProduktu} produktů • {pocetProdejnichMist} míst
-            </Text>
+            <Text style={s.farmStatsSub}>{pocetProduktu} produktů · {pocetMist} prodejních míst</Text>
           </View>
         )}
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={() => logout && logout()}
-        >
-          <Text style={styles.logoutButtonText}>Odhlásit se</Text>
+        <TouchableOpacity style={s.logoutBtn} onPress={() => logout && logout()} activeOpacity={0.8}>
+          <Ionicons name="log-out-outline" size={18} color="#ef4444" />
+          <Text style={s.logoutText}>Odhlásit se</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  const renderMiddlePanel = () => (
-    <View style={styles.middlePanel}>
-      {/* Panel header */}
-      <View style={styles.panelHeader}>
-        <Text style={styles.panelTitle}>Objednávky ({objednavky.length})</Text>
+  // ── Hlavní obsah ─────────────────────────────────────────────
+  const MainContent = () => (
+    <ScrollView style={s.main} contentContainerStyle={s.mainContent} showsVerticalScrollIndicator={false}>
+
+      {/* Nadpis */}
+      <View style={s.mainHeader}>
+        <Text style={s.mainTitle}>Objednávky ({objednavky.length})</Text>
         <TouchableOpacity
-          style={styles.refreshButton}
-          onPress={onRefresh}
+          style={s.refreshBtn}
+          onPress={() => farmar?.id && loadData(farmar.id, true)}
           disabled={refreshing}
         >
-          <Text style={styles.refreshButtonText}>{refreshing ? '...' : '↺'}</Text>
+          <Ionicons name="refresh-outline" size={20} color={refreshing ? '#9ca3af' : '#4caf50'} />
         </TouchableOpacity>
       </View>
 
-      {/* New orders alert */}
-      {newOrdersCount > 0 && (
-        <View style={styles.newOrdersAlert}>
-          <Text style={styles.newOrdersAlertText}>
-            🔔 {newOrdersCount} {newOrdersCount === 1 ? 'nová objednávka' : newOrdersCount < 5 ? 'nové objednávky' : 'nových objednávek'}
+      {/* Nové objednávky alert */}
+      {newCount > 0 && (
+        <View style={s.alertBanner}>
+          <Ionicons name="notifications" size={16} color="#dc2626" />
+          <Text style={s.alertText}>
+            {newCount} {newCount === 1 ? 'nová objednávka' : newCount < 5 ? 'nové objednávky' : 'nových objednávek'}
           </Text>
         </View>
       )}
 
-      {/* Orders list */}
-      <ScrollView style={styles.ordersList} showsVerticalScrollIndicator={false}>
-        {objednavky.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>✅</Text>
-            <Text style={styles.emptyText}>Žádné aktivní objednávky</Text>
-            <Text style={styles.emptySubtext}>
-              Jakmile vám někdo pošle objednávku, zobrazí se zde
-            </Text>
+      {/* Prázdný stav */}
+      {objednavky.length === 0 ? (
+        <View style={s.emptyCard}>
+          <Ionicons name="receipt-outline" size={52} color="#9ca3af" style={{ marginBottom: 16 }} />
+          <Text style={s.emptyTitle}>Zatím žádné objednávky</Text>
+          <Text style={s.emptySub}>Jakmile vám někdo pošle objednávku, zobrazí se zde.</Text>
+
+          <TouchableOpacity
+            style={s.ctaGreen}
+            onPress={() => router.push('/(tabs)/moje-prodejna/pridat-produkt' as any)}
+          >
+            <Ionicons name="add-circle-outline" size={18} color="#ffffff" />
+            <Text style={s.ctaGreenText}>Přidat první produkt</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={s.ctaWhite}
+            onPress={() => Share.share({ message: `Podívej se na moji prodejnu! ${farmar?.nazev_farmy ?? ''}` })}
+          >
+            <Ionicons name="share-outline" size={18} color="#1a1a1a" />
+            <Text style={s.ctaWhiteText}>Sdílet prodejnu</Text>
+          </TouchableOpacity>
+
+          <View style={s.helpLinks}>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/moje-prodejna/prodejni-mista' as any)}>
+              <Text style={s.helpLink}>📍 Nastavit prodejní místo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/moje-prodejna/seznam-produktu' as any)}>
+              <Text style={s.helpLink}>🧺 Spravovat produkty</Text>
+            </TouchableOpacity>
           </View>
-        ) : (
-          objednavky.map((objednavka) => {
-            const badge = getOrderBadge(objednavka);
-            const isSelected = selectedOrderId === objednavka.id;
-
-            return (
-              <TouchableOpacity
-                key={objednavka.id}
-                style={[
-                  styles.orderCard,
-                  isSelected && styles.orderCardSelected,
-                ]}
-                onPress={() => setSelectedOrderId(objednavka.id)}
-              >
-                <View style={styles.orderCardInner}>
-                  <View style={styles.orderTopRow}>
-                    <Text style={styles.customerCode} numberOfLines={1}>
-                      {objednavka.poznamka_farmare ||
-                        (objednavka.anon_customer_code
-                          ? `Zákazník ${objednavka.anon_customer_code}`
-                          : 'Zákazník')}
-                    </Text>
-                    <View style={[styles.badge, { backgroundColor: badge.color }]}>
-                      <Text style={styles.badgeText}>{badge.text}</Text>
-                    </View>
-                  </View>
-
-                  {objednavka.zakaznik_telefon && (
-                    <Text style={styles.orderPhone}>
-                      📱 {objednavka.zakaznik_telefon}
-                    </Text>
-                  )}
-
-                  <Text style={styles.orderMeta}>
-                    {formatCreatedAt(objednavka.created_at)} • {objednavka.polozky.length} položek
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })
-        )}
-
-        <TouchableOpacity
-          style={styles.archiveLink}
-          onPress={() => router.push('/moje-prodejna/dokoncene-objednavky')}
-        >
-          <Text style={styles.archiveLinkText}>📚 Zobrazit dokončené objednávky</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
-  );
-
-  const renderRightPanel = () => {
-    if (!selectedOrder) {
-      return (
-        <View style={styles.rightPanelEmpty}>
-          <Text style={styles.detailEmptyIcon}>📋</Text>
-          <Text style={styles.detailEmptyText}>Vyberte objednávku ze seznamu</Text>
-          <Text style={styles.detailEmptySubtext}>
-            Klikněte na objednávku vlevo pro zobrazení detailu
-          </Text>
         </View>
-      );
-    }
-
-    const badge = getOrderBadge(selectedOrder);
-
-    return (
-      <ScrollView style={styles.rightPanel} showsVerticalScrollIndicator={false}>
-        {/* Detail header */}
-        <View style={styles.detailHeader}>
-          <View style={styles.detailHeaderTopRow}>
-            <Text style={styles.detailTitle}>
-              {selectedOrder.poznamka_farmare ||
-                (selectedOrder.anon_customer_code
-                  ? `Zákazník ${selectedOrder.anon_customer_code}`
-                  : 'Zákazník')}
-            </Text>
-            <View style={[styles.badge, { backgroundColor: badge.color }]}>
-              <Text style={styles.badgeText}>{badge.text}</Text>
-            </View>
-          </View>
-
-          {selectedOrder.zakaznik_telefon && (
-            <Text style={styles.detailPhone}>📱 {selectedOrder.zakaznik_telefon}</Text>
-          )}
-          <Text style={styles.detailDate}>
-            Vytvořeno: {formatCreatedAt(selectedOrder.created_at)}
-          </Text>
-        </View>
-
-        {/* Items */}
-        <View style={styles.detailSection}>
-          <Text style={styles.detailSectionTitle}>
-            Položky ({selectedOrder.polozky.length})
-          </Text>
-
-          {selectedOrder.polozky.map((polozka) => (
-            <View
-              key={polozka.id}
-              style={[
-                styles.polozkaRow,
-                polozka.stav_polozky && polozka.stav_polozky !== 'novy'
-                  ? { borderLeftWidth: 3, borderLeftColor: getPolozkaStavColor(polozka.stav_polozky) }
-                  : {}
-              ]}
+      ) : (
+        /* Seznam objednávek */
+        objednavky.map((obj) => {
+          const badge = getOrderBadge(obj.stav);
+          const isSelected = selectedId === obj.id;
+          return (
+            <TouchableOpacity
+              key={obj.id}
+              style={[s.orderCard, isSelected && s.orderCardSelected]}
+              onPress={() => setSelectedId(isSelected ? null : obj.id)}
+              activeOpacity={0.85}
             >
-              <View style={styles.polozkaInfo}>
-                <Text style={styles.polozkaNazev}>{polozka.nazev_produktu}</Text>
-                <Text style={styles.polozkaMnozstvi}>
-                  {formatMnozstvi(polozka.mnozstvi)} {polozka.jednotka}
-                  {polozka.cena ? ` • ${formatKc(polozka.cena * polozka.mnozstvi)} Kč` : ''}
+              <View style={s.orderTopRow}>
+                <Text style={s.orderCustomer} numberOfLines={1}>
+                  {obj.poznamka_farmare || (obj.anon_customer_code ? `Zákazník ${obj.anon_customer_code}` : 'Zákazník')}
                 </Text>
+                <View style={[s.orderBadge, { backgroundColor: badge.color }]}>
+                  <Text style={s.orderBadgeText}>{badge.text}</Text>
+                </View>
               </View>
+              {obj.zakaznik_telefon && (
+                <Text style={s.orderPhone}>📱 {obj.zakaznik_telefon}</Text>
+              )}
+              <Text style={s.orderMeta}>{formatDate(obj.created_at)} · {obj.polozky.length} položek</Text>
 
-              <View style={styles.polozkaActions}>
+              {isSelected && obj.polozky.map((pol) => (
+                <View key={pol.id} style={s.polozkaRow}>
+                  <View style={s.polozkaInfo}>
+                    <Text style={s.polozkaNazev}>{pol.nazev_produktu}</Text>
+                    <Text style={s.polozkaMeta}>
+                      {formatMnozstvi(pol.mnozstvi)} {pol.jednotka}
+                      {pol.cena ? ` · ${formatKc(pol.cena * pol.mnozstvi)} Kč` : ''}
+                    </Text>
+                  </View>
+                  <View style={s.polozkaActions}>
+                    <TouchableOpacity
+                      style={[s.actionBtn, pol.stav_polozky === 'pripraveno' && s.actionBtnActiveGreen]}
+                      onPress={() => zmeniStav(pol.id, 'pripraveno', obj.id)}
+                    >
+                      <Ionicons name="checkmark" size={18}
+                        color={pol.stav_polozky === 'pripraveno' ? '#ffffff' : '#4caf50'} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[s.actionBtnGray, pol.stav_polozky === 'neni_k_dispozici' && s.actionBtnActiveGray]}
+                      onPress={() => zmeniStav(pol.id, 'neni_k_dispozici', obj.id)}
+                    >
+                      <Ionicons name="close" size={18}
+                        color={pol.stav_polozky === 'neni_k_dispozici' ? '#ffffff' : '#9ca3af'} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+
+              {isSelected && (
                 <TouchableOpacity
-                  style={[
-                    styles.actionBtn,
-                    styles.actionBtnGreen,
-                    polozka.stav_polozky === 'pripraveno' && styles.actionBtnActiveGreen,
-                  ]}
-                  onPress={() => zmeniStavPolozky(polozka.id, 'pripraveno', selectedOrder.id)}
+                  style={s.detailBtn}
+                  onPress={() => router.push(`/moje-prodejna/detail-objednavky?id=${obj.id}` as any)}
                 >
-                  <Text style={styles.actionBtnText}>✓</Text>
+                  <Text style={s.detailBtnText}>Otevřít plný detail →</Text>
                 </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+          );
+        })
+      )}
 
-                <TouchableOpacity
-                  style={[
-                    styles.actionBtn,
-                    styles.actionBtnGray,
-                    polozka.stav_polozky === 'neni_k_dispozici' && styles.actionBtnActiveGray,
-                  ]}
-                  onPress={() => zmeniStavPolozky(polozka.id, 'neni_k_dispozici', selectedOrder.id)}
-                >
-                  <Text style={styles.actionBtnTextGray}>✗</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        {/* Full detail button */}
+      {objednavky.length > 0 && (
         <TouchableOpacity
-          style={styles.detailFullButton}
-          onPress={() => router.push(`/moje-prodejna/detail-objednavky?id=${selectedOrder.id}`)}
+          style={s.archiveLink}
+          onPress={() => router.push('/(tabs)/moje-prodejna/dokoncene-objednavky' as any)}
         >
-          <Text style={styles.detailFullButtonText}>Otevřít plný detail</Text>
+          <Ionicons name="document-text-outline" size={14} color="#9ca3af" />
+          <Text style={s.archiveLinkText}>Zobrazit dokončené objednávky</Text>
         </TouchableOpacity>
-      </ScrollView>
-    );
-  };
+      )}
+    </ScrollView>
+  );
+
+  // ── Bottom nav (mobil) ───────────────────────────────────────
+  const BottomNav = () => (
+    <View style={s.bottomNav}>
+      {NAV_ITEMS.slice(0, 5).map((item) => {
+        const active = item.route === '/(tabs)/moje-prodejna';
+        return (
+          <TouchableOpacity
+            key={item.route}
+            style={s.bottomNavItem}
+            onPress={() => router.push(item.route as any)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name={item.icon} size={22} color={active ? '#4caf50' : '#9ca3af'} />
+            <Text style={[s.bottomNavLabel, active && s.bottomNavLabelActive]}>{item.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
 
   return (
-    <View style={styles.container}>
-      {/* Top header */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.push('/')}>
-          <Text style={styles.backButtonText}>← Zpět</Text>
+    <View style={s.root}>
+      {/* ── Header ── */}
+      <View style={s.header}>
+        <TouchableOpacity style={s.headerHome} onPress={() => router.push('/')} activeOpacity={0.8}>
+          <Ionicons name="home-outline" size={20} color="#6b7280" />
         </TouchableOpacity>
-        <Text style={styles.topHeaderTitle}>🌿 Moje prodejna</Text>
-        <TouchableOpacity style={styles.profileHeaderButton} onPress={() => router.push('/profil')}>
-          <Text style={styles.profileHeaderButtonText}>👤 Profil</Text>
-        </TouchableOpacity>
+
+        <Text style={s.headerTitle} numberOfLines={1}>
+          {farmar?.nazev_farmy || 'Moje prodejna'}
+        </Text>
+
+        <View style={s.headerRight}>
+          <TouchableOpacity style={s.headerIconBtn} onPress={() => {}}>
+            <Ionicons name="notifications-outline" size={20} color="#6b7280" />
+            {newCount > 0 && <View style={s.notifDot} />}
+          </TouchableOpacity>
+          <TouchableOpacity style={s.headerIconBtn} onPress={() => router.push('/profil')}>
+            <Ionicons name="ellipsis-vertical" size={20} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Three-panel layout */}
-      <View style={styles.mainLayout}>
-        {renderSidebar()}
-        {renderMiddlePanel()}
-        {selectedOrder ? renderRightPanel() : (
-          <View style={styles.rightPanelEmpty}>
-            <Text style={styles.detailEmptyIcon}>📋</Text>
-            <Text style={styles.detailEmptyText}>Vyberte objednávku ze seznamu</Text>
-            <Text style={styles.detailEmptySubtext}>
-              Klikněte na objednávku vlevo pro zobrazení detailu
-            </Text>
-          </View>
-        )}
+      {/* ── Layout ── */}
+      <View style={s.body}>
+        {isDesktop && <Sidebar />}
+        <MainContent />
       </View>
+
+      {/* ── Bottom nav (mobil) ── */}
+      {!isDesktop && <BottomNav />}
     </View>
   );
 }
 
-export default function MojeProdejnaScreen() {
-  return (
-    <ProtectedRoute>
-      <MojeProdejnaScreenContent />
-    </ProtectedRoute>
-  );
-}
+// ── Styly ────────────────────────────────────────────────────────
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#f5f1e8' },
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#6b7280',
-  },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' },
+  loadingText: { marginTop: 10, fontSize: 14, color: '#6b7280' },
 
-  // Top header
-  topHeader: {
-    height: 60,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
+  // Unauth
+  unauthRoot: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff', padding: 24 },
+  unauthCard: {
+    width: '100%' as any, maxWidth: 400, backgroundColor: '#ffffff',
+    borderRadius: 20, padding: 36, alignItems: 'center',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08, shadowRadius: 20, elevation: 8,
+    borderWidth: 1, borderColor: '#e5e7eb',
   },
-  backButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
+  unauthTitle: { fontSize: 24, fontWeight: '800', color: '#1a1a1a', marginBottom: 10 },
+  unauthSub: { fontSize: 15, color: '#6b7280', textAlign: 'center', lineHeight: 22, marginBottom: 28 },
+  unauthBtnGreen: {
+    backgroundColor: '#4caf50', borderRadius: 12, paddingVertical: 14,
+    width: '100%' as any, alignItems: 'center', marginBottom: 12,
   },
-  backButtonText: {
-    fontSize: 14,
-    color: '#1a1a1a',
-    fontWeight: '500',
+  unauthBtnGreenText: { fontSize: 16, fontWeight: '700', color: '#ffffff' },
+  unauthBtnWhite: {
+    backgroundColor: '#ffffff', borderRadius: 12, paddingVertical: 14,
+    width: '100%' as any, alignItems: 'center',
+    borderWidth: 1, borderColor: '#e5e7eb',
   },
-  topHeaderTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a1a',
+  unauthBtnWhiteText: { fontSize: 16, fontWeight: '600', color: '#1a1a1a' },
+
+  // Header
+  header: {
+    height: 60, backgroundColor: '#ffffff',
+    borderBottomWidth: 1, borderBottomColor: '#e5e7eb',
+    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16,
   },
-  profileHeaderButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
-  },
-  profileHeaderButtonText: {
-    fontSize: 14,
-    color: '#1a1a1a',
-    fontWeight: '500',
+  headerHome: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: { flex: 1, fontSize: 17, fontWeight: '700', color: '#1a1a1a', textAlign: 'center', paddingHorizontal: 8 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  headerIconBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  notifDot: {
+    position: 'absolute', top: 8, right: 8,
+    width: 8, height: 8, borderRadius: 4, backgroundColor: '#ef4444',
   },
 
-  // Three-panel layout
-  mainLayout: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: '#f8f9fa',
-  },
+  // Body
+  body: { flex: 1, flexDirection: 'row' },
 
-  // Left sidebar
+  // Sidebar
   sidebar: {
-    width: 260,
-    backgroundColor: '#ffffff',
-    borderRightWidth: 1,
-    borderRightColor: '#e5e7eb',
+    width: 240, backgroundColor: '#ffffff',
+    borderRightWidth: 1, borderRightColor: '#e5e7eb',
     flexDirection: 'column',
-    justifyContent: 'space-between',
   },
-  sidebarTop: {
-    flex: 1,
+  sidebarLogo: {
+    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16,
+    borderBottomWidth: 1, borderBottomColor: '#f3f4f6',
   },
-  sidebarBrand: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  sidebarNav: {
-    paddingTop: 12,
-    paddingHorizontal: 12,
-    gap: 4,
-  },
+  sidebarLogoText: { fontSize: 15, fontWeight: '800', color: '#1a1a1a' },
+  sidebarLogoSub: { fontSize: 12, color: '#9ca3af', marginTop: 2 },
+  sidebarNav: { flex: 1, paddingTop: 10, paddingHorizontal: 10 },
   navItem: {
-    height: 48,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    gap: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingHorizontal: 14, height: 46, borderRadius: 10, marginBottom: 2,
   },
-  navItemActive: {
-    backgroundColor: '#4caf50',
-  },
-  navItemIcon: {
-    fontSize: 18,
-  },
-  navItemLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#4b5563',
-  },
-  navItemLabelActive: {
-    color: '#ffffff',
-    fontWeight: '600',
-  },
+  navItemActive: { backgroundColor: '#4caf50' },
+  navLabel: { fontSize: 14, fontWeight: '500', color: '#4b5563' },
+  navLabelActive: { color: '#ffffff', fontWeight: '700' },
   sidebarBottom: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-    paddingTop: 16,
-    gap: 12,
+    paddingHorizontal: 16, paddingBottom: 24, paddingTop: 16,
+    borderTopWidth: 1, borderTopColor: '#f3f4f6', gap: 12,
   },
-  sidebarFarmInfo: {
-    gap: 4,
+  farmStats: { gap: 3 },
+  farmStatsName: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
+  farmStatsSub: { fontSize: 12, color: '#9ca3af' },
+  logoutBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingVertical: 10, paddingHorizontal: 14,
+    borderRadius: 10, borderWidth: 1, borderColor: '#fee2e2', backgroundColor: '#fff5f5',
   },
-  sidebarFarmName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1a1a',
-  },
-  sidebarFarmStats: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  logoutButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    alignItems: 'center',
-  },
-  logoutButtonText: {
-    fontSize: 13,
-    color: '#6b7280',
-    fontWeight: '500',
-  },
+  logoutText: { fontSize: 13, fontWeight: '600', color: '#ef4444' },
 
-  // Middle panel
-  middlePanel: {
-    width: 380,
-    backgroundColor: '#ffffff',
-    borderRightWidth: 1,
-    borderRightColor: '#e5e7eb',
-    flexDirection: 'column',
+  // Main
+  main: { flex: 1, backgroundColor: '#f5f1e8' },
+  mainContent: { padding: 24, paddingBottom: 48 },
+  mainHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16,
   },
-  panelHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  mainTitle: { fontSize: 22, fontWeight: '800', color: '#1a1a1a' },
+  refreshBtn: {
+    width: 38, height: 38, borderRadius: 10,
+    backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e5e7eb',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  alertBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: '#fef2f2', borderRadius: 10,
+    paddingHorizontal: 14, paddingVertical: 10, marginBottom: 16,
+    borderWidth: 1, borderColor: '#fecaca',
+  },
+  alertText: { fontSize: 13, fontWeight: '600', color: '#dc2626' },
+
+  // Empty state
+  emptyCard: {
+    backgroundColor: '#ffffff', borderRadius: 20, padding: 36,
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06, shadowRadius: 12, elevation: 4,
   },
-  panelTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1a1a',
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 },
+  emptySub: { fontSize: 14, color: '#6b7280', textAlign: 'center', lineHeight: 21, marginBottom: 28 },
+  ctaGreen: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: '#4caf50', borderRadius: 12,
+    paddingVertical: 13, paddingHorizontal: 24,
+    width: '100%' as any, justifyContent: 'center', marginBottom: 12,
   },
-  refreshButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
+  ctaGreenText: { fontSize: 15, fontWeight: '700', color: '#ffffff' },
+  ctaWhite: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: '#ffffff', borderRadius: 12,
+    paddingVertical: 13, paddingHorizontal: 24,
+    width: '100%' as any, justifyContent: 'center',
+    borderWidth: 1, borderColor: '#e5e7eb', marginBottom: 24,
   },
-  refreshButtonText: {
-    fontSize: 18,
-    color: '#4caf50',
-    fontWeight: '600',
-  },
-  newOrdersAlert: {
-    backgroundColor: '#fef2f2',
-    borderBottomWidth: 1,
-    borderBottomColor: '#fecaca',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  newOrdersAlertText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#dc2626',
-  },
-  ordersList: {
-    flex: 1,
-    paddingHorizontal: 12,
-    paddingTop: 8,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingTop: 48,
-    paddingHorizontal: 24,
-  },
-  emptyIcon: {
-    fontSize: 40,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptySubtext: {
-    fontSize: 13,
-    color: '#6b7280',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
+  ctaWhiteText: { fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
+  helpLinks: { gap: 12, width: '100%' as any },
+  helpLink: { fontSize: 14, color: '#6b7280', textAlign: 'center' },
 
   // Order cards
   orderCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    backgroundColor: '#ffffff', borderRadius: 14,
+    borderWidth: 1, borderColor: '#e5e7eb',
+    padding: 16, marginBottom: 10,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
   },
-  orderCardSelected: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#4caf50',
-    backgroundColor: '#f0fdf4',
-    borderColor: '#bbf7d0',
-  },
-  orderCardInner: {
-    padding: 14,
-    gap: 4,
-  },
-  orderTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 8,
-  },
-  customerCode: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#1a1a1a',
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#ffffff',
-    letterSpacing: 0.3,
-  },
-  orderPhone: {
-    fontSize: 12,
-    color: '#2563eb',
-    fontWeight: '500',
-  },
-  orderMeta: {
-    fontSize: 12,
-    color: '#9ca3af',
-  },
-
-  archiveLink: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  archiveLinkText: {
-    fontSize: 13,
-    color: '#9ca3af',
-  },
-
-  // Right panel
-  rightPanelEmpty: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    padding: 24,
-  },
-  detailEmptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-    opacity: 0.4,
-  },
-  detailEmptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#6b7280',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  detailEmptySubtext: {
-    fontSize: 14,
-    color: '#9ca3af',
-    textAlign: 'center',
-  },
-  rightPanel: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-    padding: 24,
-  },
-
-  // Detail header
-  detailHeader: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 20,
-    marginBottom: 16,
-    gap: 6,
-  },
-  detailHeaderTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 4,
-  },
-  detailTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1a1a1a',
-  },
-  detailPhone: {
-    fontSize: 14,
-    color: '#2563eb',
-    fontWeight: '500',
-  },
-  detailDate: {
-    fontSize: 13,
-    color: '#6b7280',
-  },
-
-  // Detail section
-  detailSection: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 20,
-    marginBottom: 16,
-  },
-  detailSectionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
+  orderCardSelected: { borderLeftWidth: 4, borderLeftColor: '#4caf50', backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' },
+  orderTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  orderCustomer: { flex: 1, fontSize: 15, fontWeight: '700', color: '#1a1a1a' },
+  orderBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  orderBadgeText: { fontSize: 10, fontWeight: '800', color: '#ffffff', letterSpacing: 0.5 },
+  orderPhone: { fontSize: 12, color: '#2563eb', marginBottom: 4 },
+  orderMeta: { fontSize: 12, color: '#9ca3af' },
 
   // Polozky
   polozkaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingLeft: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#f3f4f6', marginTop: 8,
   },
-  polozkaInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  polozkaNazev: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1a1a',
-  },
-  polozkaMnozstvi: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  polozkaActions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginLeft: 12,
-  },
+  polozkaInfo: { flex: 1 },
+  polozkaNazev: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
+  polozkaMeta: { fontSize: 12, color: '#6b7280' },
+  polozkaActions: { flexDirection: 'row', gap: 8, marginLeft: 12 },
   actionBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 36, height: 36, borderRadius: 8,
+    backgroundColor: '#dcfce7', borderWidth: 1, borderColor: '#bbf7d0',
+    justifyContent: 'center', alignItems: 'center',
   },
-  actionBtnGreen: {
-    backgroundColor: '#dcfce7',
-    borderWidth: 1,
-    borderColor: '#bbf7d0',
-  },
+  actionBtnActiveGreen: { backgroundColor: '#4caf50', borderColor: '#4caf50' },
   actionBtnGray: {
-    backgroundColor: '#f3f4f6',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    width: 36, height: 36, borderRadius: 8,
+    backgroundColor: '#f3f4f6', borderWidth: 1, borderColor: '#e5e7eb',
+    justifyContent: 'center', alignItems: 'center',
   },
-  actionBtnActiveGreen: {
-    backgroundColor: '#4caf50',
-    borderColor: '#4caf50',
+  actionBtnActiveGray: { backgroundColor: '#6b7280', borderColor: '#6b7280' },
+  detailBtn: {
+    marginTop: 12, paddingVertical: 10, backgroundColor: '#f0fdf4',
+    borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#bbf7d0',
   },
-  actionBtnActiveGray: {
-    backgroundColor: '#6b7280',
-    borderColor: '#6b7280',
-  },
-  actionBtnText: {
-    fontSize: 16,
-    color: '#4caf50',
-    fontWeight: '700',
-  },
-  actionBtnTextGray: {
-    fontSize: 16,
-    color: '#9ca3af',
-    fontWeight: '700',
-  },
+  detailBtnText: { fontSize: 13, fontWeight: '600', color: '#4caf50' },
 
-  // Full detail button
-  detailFullButton: {
-    backgroundColor: '#4caf50',
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    marginBottom: 24,
+  archiveLink: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    justifyContent: 'center', paddingVertical: 16,
   },
-  detailFullButtonText: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '600',
+  archiveLinkText: { fontSize: 13, color: '#9ca3af' },
+
+  // Bottom nav
+  bottomNav: {
+    height: 64, backgroundColor: '#ffffff',
+    borderTopWidth: 1, borderTopColor: '#e5e7eb',
+    flexDirection: 'row', alignItems: 'center',
   },
+  bottomNavItem: { flex: 1, alignItems: 'center', gap: 3 },
+  bottomNavLabel: { fontSize: 10, color: '#9ca3af' },
+  bottomNavLabelActive: { color: '#4caf50', fontWeight: '600' },
 });
