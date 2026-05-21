@@ -48,6 +48,7 @@ export default function RegistraceRozcestnikWeb() {
   const [kontakt, setKontakt] = useState('');
   const [misto, setMisto] = useState('');
   const [selectedProdukty, setSelectedProdukty] = useState<string[]>([]);
+  const [volnyPopis, setVolnyPopis] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -182,6 +183,16 @@ export default function RegistraceRozcestnikWeb() {
               </TouchableOpacity>
             ))}
           </View>
+
+          <TextInput
+            style={s.volnyPopisInput}
+            value={volnyPopis}
+            onChangeText={setVolnyPopis}
+            placeholder="Co dalšího nabízíte? (např. med, džemy, bylinky...)"
+            placeholderTextColor="#9ca3af"
+            multiline
+            numberOfLines={3}
+          />
 
           <TouchableOpacity
             style={[s.btnWhite, loading && s.btnDisabled]}
@@ -318,7 +329,14 @@ const s = StyleSheet.create({
     outlineStyle: 'none' as any,
   },
 
-  checkboxGroup: { gap: 10, marginTop: 4, marginBottom: 4 },
+  checkboxGroup: { gap: 10, marginTop: 4, marginBottom: 12 },
+  volnyPopisInput: {
+    backgroundColor: '#ffffff', borderRadius: 12,
+    borderWidth: 1, borderColor: '#e5e7eb',
+    padding: 12, fontSize: 14, color: '#1a1a1a',
+    minHeight: 72 as any, textAlignVertical: 'top' as any,
+    outlineStyle: 'none' as any,
+  },
   checkboxRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   checkbox: {
     width: 22, height: 22, borderRadius: 6,
