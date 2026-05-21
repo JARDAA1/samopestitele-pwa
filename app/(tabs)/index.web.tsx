@@ -18,6 +18,7 @@ export default function HomeScreenWeb() {
   useEffect(() => { setMounted(true); }, []);
 
   const isMobile = !mounted || width < 768;
+  const isMini = mounted && width < 390;
   const prodejnaRoute: any = isAuthenticated ? '/(tabs)/moje-prodejna' : '/registrace';
 
   return (
@@ -27,7 +28,7 @@ export default function HomeScreenWeb() {
       <ImageBackground
         source={HERO_IMG}
         defaultSource={SPLASH_FALLBACK}
-        style={[s.hero, { height: isMobile ? 280 : 500, overflow: 'hidden' }]}
+        style={[s.hero, { height: isMini ? 220 : isMobile ? 280 : 500, overflow: 'hidden' }]}
         resizeMode="cover"
       >
         <View style={s.heroOverlay} />
@@ -36,14 +37,15 @@ export default function HomeScreenWeb() {
           alignItems: isMobile ? 'flex-start' : 'center',
         }]}>
           <Text style={[s.heroTitle, {
-            fontSize: isMobile ? 28 : 56,
+            fontSize: isMini ? 24 : isMobile ? 28 : 56,
             textAlign: isMobile ? 'left' : 'center',
+            marginBottom: 6,
           }]}>Samopěstitelé</Text>
           <Text style={[s.heroTagline, {
-            fontSize: isMobile ? 15 : 22,
+            fontSize: isMini ? 13 : isMobile ? 15 : 22,
             textAlign: isMobile ? 'left' : 'center',
           }]}>
-            Čerstvé produkty přímo od lidí ve vašem okolí.
+            {isMobile ? 'Čerstvé produkty přímo od pěstitelů.' : 'Čerstvé produkty přímo od lidí ve vašem okolí.'}
           </Text>
           <Text style={[s.heroSub, {
             fontSize: isMobile ? 13 : 16,
@@ -56,19 +58,22 @@ export default function HomeScreenWeb() {
 
       {/* ── KARTY ── */}
       <View style={[s.cardsOuter, {
-        paddingHorizontal: isMobile ? 16 : 40,
+        paddingHorizontal: isMini ? 12 : isMobile ? 16 : 40,
         marginTop: isMobile ? 20 : -60,
       }]}>
-        <View style={[s.cardsRow, isMobile && s.cardsRowNarrow]}>
+        <View style={[s.cardsRow, isMobile && s.cardsRowNarrow,
+          isMobile && { gap: isMini ? 8 : 12 }]}>
 
           {/* Karta 1 – Zákazníci */}
           <View style={[s.card, s.cardGreen, !isMobile && s.cardWide,
-            isMobile && { padding: 16, borderRadius: 16, marginBottom: 12 }]}>
+            isMobile && { padding: isMini ? 14 : 16, borderRadius: 16, marginBottom: isMini ? 8 : 12 }]}>
             <View style={[s.badge, s.badgeWhite]}>
-              <Text style={s.badgeWhiteText}>Bez registrace</Text>
+              <Text style={[s.badgeWhiteText, isMobile && { fontSize: 11 }]}>Bez registrace</Text>
             </View>
-            <Text style={[s.cardTitle, s.cardTitleWhite]}>Zákazníci</Text>
-            <Text style={[s.cardDesc, s.cardDescWhite]}>
+            <Text style={[s.cardTitle, s.cardTitleWhite,
+              isMobile && { fontSize: 20 }]}>Zákazníci</Text>
+            <Text style={[s.cardDesc, s.cardDescWhite,
+              isMobile && { fontSize: 13 }]}>
               Najděte čerstvé produkty v okolí.
             </Text>
             <TouchableOpacity
@@ -82,12 +87,12 @@ export default function HomeScreenWeb() {
 
           {/* Karta 2 – Moje prodejna */}
           <View style={[s.card, s.cardWhite, !isMobile && s.cardWide,
-            isMobile && { padding: 16, borderRadius: 16, marginBottom: 12 }]}>
+            isMobile && { padding: isMini ? 14 : 16, borderRadius: 16, marginBottom: isMini ? 8 : 12 }]}>
             <View style={[s.badge, s.badgeGray]}>
-              <Text style={s.badgeGrayText}>Pro registrované pěstitele</Text>
+              <Text style={[s.badgeGrayText, isMobile && { fontSize: 11 }]}>Pro registrované pěstitele</Text>
             </View>
-            <Text style={s.cardTitle}>Moje prodejna</Text>
-            <Text style={s.cardDesc}>
+            <Text style={[s.cardTitle, isMobile && { fontSize: 20 }]}>Moje prodejna</Text>
+            <Text style={[s.cardDesc, isMobile && { fontSize: 13 }]}>
               Přihlášení a správa prodejny pěstitele.
             </Text>
             <TouchableOpacity
@@ -101,12 +106,12 @@ export default function HomeScreenWeb() {
 
           {/* Karta 3 – Nabízím bez registrace */}
           <View style={[s.card, s.cardWhite, !isMobile && s.cardWide,
-            isMobile && { padding: 16, borderRadius: 16, marginBottom: 12 }]}>
+            isMobile && { padding: isMini ? 14 : 16, borderRadius: 16, marginBottom: isMini ? 8 : 12 }]}>
             <View style={[s.badge, s.badgeOrange]}>
-              <Text style={s.badgeOrangeText}>Jednorázová nabídka</Text>
+              <Text style={[s.badgeOrangeText, isMobile && { fontSize: 11 }]}>Jednorázová nabídka</Text>
             </View>
-            <Text style={s.cardTitle}>Nabízím bez registrace</Text>
-            <Text style={s.cardDesc}>
+            <Text style={[s.cardTitle, isMobile && { fontSize: 20 }]}>Nabízím bez registrace</Text>
+            <Text style={[s.cardDesc, isMobile && { fontSize: 13 }]}>
               Rychle nabídnu přebytky bez zakládání prodejny.
             </Text>
             <TouchableOpacity
