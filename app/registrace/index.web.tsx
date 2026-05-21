@@ -8,10 +8,10 @@ import { useFarmarAuth } from '../_utils/farmarAuthContext';
 
 // ── Produkty k výběru ────────────────────────────────────────────
 const PRODUKTY = [
-  { id: 'zelenina', label: 'Čerstvá zelenina', emoji: '🥦' },
-  { id: 'bylinky',  label: 'Bylinky',           emoji: '🌿' },
-  { id: 'sadky',   label: 'Sádky / Byliny',     emoji: '🌱' },
-  { id: 'ovoce',   label: 'Ovoce',              emoji: '🍎' },
+  { id: 'zelenina', label: 'Zelenina',         emoji: '🥦' },
+  { id: 'ovoce',   label: 'Ovoce',             emoji: '🍎' },
+  { id: 'vejce',   label: 'Vajíčka',           emoji: '🥚' },
+  { id: 'mlecne',  label: 'Mléčné výrobky',   emoji: '🥛' },
 ];
 
 // ── Pomocné funkce ───────────────────────────────────────────────
@@ -48,8 +48,6 @@ export default function RegistraceRozcestnikWeb() {
   const [kontakt, setKontakt] = useState('');
   const [misto, setMisto] = useState('');
   const [selectedProdukty, setSelectedProdukty] = useState<string[]>([]);
-  const [showJine, setShowJine] = useState(false);
-  const [jineText, setJineText] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -183,27 +181,6 @@ export default function RegistraceRozcestnikWeb() {
                 <Text style={s.checkboxLabel}>{p.emoji} {p.label}</Text>
               </TouchableOpacity>
             ))}
-
-            <TouchableOpacity
-              style={s.checkboxRow}
-              onPress={() => setShowJine(prev => !prev)}
-              activeOpacity={0.75}
-            >
-              <View style={[s.checkbox, showJine && s.checkboxChecked]}>
-                {showJine && <Text style={s.checkmark}>✓</Text>}
-              </View>
-              <Text style={s.checkboxLabel}>✏️ Jiné</Text>
-            </TouchableOpacity>
-
-            {showJine && (
-              <TextInput
-                style={[s.formInput, { marginTop: 6 }]}
-                value={jineText}
-                onChangeText={setJineText}
-                placeholder="Co nabízíte..."
-                placeholderTextColor="rgba(255,255,255,0.45)"
-              />
-            )}
           </View>
 
           <TouchableOpacity
