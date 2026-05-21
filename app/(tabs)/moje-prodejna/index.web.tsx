@@ -250,7 +250,7 @@ export default function MojeProdejnaWeb() {
             onPress={() => router.push('/(tabs)/moje-prodejna/pridat-produkt' as any)}
           >
             <Ionicons name="add-circle-outline" size={18} color="#ffffff" />
-            <Text style={s.ctaGreenText}>Přidat první produkt</Text>
+            <Text style={s.ctaGreenText}>Přidat produkt</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
