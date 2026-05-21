@@ -1,6 +1,6 @@
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
-  ScrollView, ActivityIndicator, useWindowDimensions,
+  ScrollView, ActivityIndicator, useWindowDimensions, Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -113,6 +113,17 @@ export default function RegistraceRozcestnikWeb() {
         <Text style={[s.mainTitle, isMobile && { fontSize: 26 }]}>🌾 Jak chcete začít?</Text>
         <Text style={s.mainSubtitle}>Vyberte co vám vyhovuje</Text>
       </View>
+
+      {/* ── Ilustrace ── */}
+      <Image
+        source={require('../../assets/images/registrace-uvod.png')}
+        style={s.illustration}
+        resizeMode="contain"
+      />
+
+      <TouchableOpacity onPress={() => router.push('/prihlaseni')} style={s.loginLink}>
+        <Text style={s.loginLinkText}>Účet již mám, tak se přihlásím</Text>
+      </TouchableOpacity>
 
       {/* ── Karty ── */}
       <View style={[s.cardsRow, isMobile && s.cardsRowMobile]}>
@@ -265,6 +276,16 @@ const s = StyleSheet.create({
   scrollContent: { paddingBottom: 60 },
 
   topBar: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 4 },
+
+  illustration: {
+    width: '100%' as any, maxWidth: 400, height: 280,
+    alignSelf: 'center' as any, marginBottom: 8,
+  },
+  loginLink: { alignSelf: 'center' as any, marginBottom: 24 },
+  loginLinkText: {
+    fontSize: 15, color: '#4caf50',
+    textDecorationLine: 'underline' as any, textAlign: 'center' as any,
+  },
   backLink: { fontSize: 14, color: '#9ca3af' },
 
   titleSection: {
