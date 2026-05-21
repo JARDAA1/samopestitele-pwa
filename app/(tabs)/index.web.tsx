@@ -1,6 +1,6 @@
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
-  ScrollView, ImageBackground,
+  ScrollView, ImageBackground, Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -17,32 +17,40 @@ export default function HomeScreenWeb() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  const isWide = mounted && width >= 768;
+  const isMobile = !mounted || width < 768;
   const prodejnaRoute: any = isAuthenticated ? '/(tabs)/moje-prodejna' : '/registrace';
 
   return (
     <ScrollView style={s.root} showsVerticalScrollIndicator={false}>
 
       {/* ── HERO ── */}
-      <ImageBackground source={HERO_IMG} defaultSource={SPLASH_FALLBACK} style={s.hero} resizeMode="cover">
+      <ImageBackground
+        source={HERO_IMG}
+        defaultSource={SPLASH_FALLBACK}
+        style={[s.hero, { height: isMobile ? 400 : 500, overflow: 'hidden' }]}
+        resizeMode="cover"
+      >
         <View style={s.heroOverlay} />
-        <View style={s.heroInner}>
-          <Text style={s.heroTitle}>Samopěstitelé</Text>
-          <Text style={s.heroTagline}>
+        <View style={[s.heroInner, { paddingHorizontal: isMobile ? 20 : 60 }]}>
+          <Text style={[s.heroTitle, { fontSize: isMobile ? 32 : 56 }]}>Samopěstitelé</Text>
+          <Text style={[s.heroTagline, { fontSize: isMobile ? 16 : 22 }]}>
             Čerstvé produkty přímo od lidí ve vašem okolí.
           </Text>
-          <Text style={s.heroSub}>
+          <Text style={[s.heroSub, { fontSize: isMobile ? 13 : 16 }]}>
             Vyhledejte, domluvte odběr nebo nabídněte vlastní přebytky.
           </Text>
         </View>
       </ImageBackground>
 
       {/* ── KARTY ── */}
-      <View style={s.cardsOuter}>
-        <View style={[s.cardsRow, !isWide && s.cardsRowNarrow]}>
+      <View style={[s.cardsOuter, {
+        paddingHorizontal: isMobile ? 16 : 40,
+        marginTop: isMobile ? 20 : -60,
+      }]}>
+        <View style={[s.cardsRow, isMobile && s.cardsRowNarrow]}>
 
           {/* Karta 1 – Zákazníci */}
-          <View style={[s.card, s.cardGreen, isWide && s.cardWide]}>
+          <View style={[s.card, s.cardGreen, !isMobile && s.cardWide]}>
             <View style={[s.badge, s.badgeWhite]}>
               <Text style={s.badgeWhiteText}>Bez registrace</Text>
             </View>
@@ -60,7 +68,7 @@ export default function HomeScreenWeb() {
           </View>
 
           {/* Karta 2 – Moje prodejna */}
-          <View style={[s.card, s.cardWhite, isWide && s.cardWide]}>
+          <View style={[s.card, s.cardWhite, !isMobile && s.cardWide]}>
             <View style={[s.badge, s.badgeGray]}>
               <Text style={s.badgeGrayText}>Pro registrované pěstitele</Text>
             </View>
@@ -78,7 +86,7 @@ export default function HomeScreenWeb() {
           </View>
 
           {/* Karta 3 – Nabízím bez registrace */}
-          <View style={[s.card, s.cardWhite, isWide && s.cardWide]}>
+          <View style={[s.card, s.cardWhite, !isMobile && s.cardWide]}>
             <View style={[s.badge, s.badgeOrange]}>
               <Text style={s.badgeOrangeText}>Jednorázová nabídka</Text>
             </View>
@@ -130,8 +138,8 @@ const s = StyleSheet.create({
   // Cards outer
   cardsOuter: {
     width: '100%' as any, alignItems: 'center',
-    paddingHorizontal: 40, paddingBottom: 48, paddingTop: 0,
-    backgroundColor: '#ffffff', marginTop: -60, zIndex: 10,
+    paddingBottom: 48, paddingTop: 0,
+    backgroundColor: '#ffffff', zIndex: 10,
   },
   cardsRow: {
     flexDirection: 'row', flexWrap: 'wrap',
