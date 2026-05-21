@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   wideContainer: {
     flex: 1,
-    backgroundColor: '#e8f3d8', // Okraje vedle centrovaného obsahu
+    backgroundColor: '#ffffff',
     flexDirection: 'row',
     justifyContent: 'center',
   },
