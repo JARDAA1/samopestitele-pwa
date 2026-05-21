@@ -111,7 +111,6 @@ export default function RegistraceRozcestnikWeb() {
         {/* ── Header ── */}
         <View style={s.header}>
           <Text style={[s.headerTitle, isMobile && { fontSize: 32 }]}>🌾 Samopěstitelé</Text>
-          <Text style={s.headerSub}>Chci si založit prodejnu.</Text>
         </View>
 
         {/* ── 3 karty ── */}
@@ -301,7 +300,7 @@ const s = StyleSheet.create({
 
   cardsRow: {
     flexDirection: 'row', paddingHorizontal: 24,
-    gap: 16, alignItems: 'stretch',
+    gap: 16, alignItems: 'stretch', marginTop: 200,
     maxWidth: 1100 as any, width: '100%' as any, alignSelf: 'center' as any,
   },
   cardsRowMobile: { flexDirection: 'column' },
