@@ -1,6 +1,6 @@
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
-  ScrollView, ActivityIndicator, useWindowDimensions, Image,
+  ScrollView, ActivityIndicator, useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -105,6 +105,9 @@ export default function RegistraceRozcestnikWeb() {
       <View style={s.topBar}>
         <TouchableOpacity onPress={() => router.push('/')}>
           <Text style={s.backLink}>← Zpět na úvodní stránku</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/prihlaseni')}>
+          <Text style={s.loginTopLink}>Přihlásit se</Text>
         </TouchableOpacity>
       </View>
 
@@ -243,27 +246,13 @@ export default function RegistraceRozcestnikWeb() {
             <Text style={s.btnDarkText}>Pokračovat →</Text>
           </TouchableOpacity>
 
-          <Image
-            source={require('../../assets/images/registrace-uvod.png')}
-            style={s.cardIllustration}
-            resizeMode="contain"
-          />
-
-          <TouchableOpacity onPress={() => router.push('/prihlaseni')}>
-            <Text style={s.cardLoginLink}>Účet již mám, tak se přihlásím</Text>
-          </TouchableOpacity>
         </View>
 
       </View>
 
       {/* ── Footer ── */}
       <View style={s.footer}>
-        <Text style={s.footerText}>
-          Máte účet?{' '}
-          <Text style={s.footerLink} onPress={() => router.push('/prihlaseni')}>
-            Přihlásit se
-          </Text>
-        </Text>
+        <Text style={s.footerText}>© 2026 Samopěstitelé.cz</Text>
       </View>
     </ScrollView>
   );
@@ -274,18 +263,12 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f5f1e8' },
   scrollContent: { paddingBottom: 60 },
 
-  topBar: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 4 },
-
-  cardIllustration: {
-    width: '100%' as any, height: 200,
-    alignSelf: 'center' as any, marginTop: 16,
-  },
-  cardLoginLink: {
-    fontSize: 14, color: '#4caf50',
-    textDecorationLine: 'underline' as any, textAlign: 'center' as any,
-    marginTop: 8,
+  topBar: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 24, paddingTop: 20, paddingBottom: 4,
   },
   backLink: { fontSize: 14, color: '#9ca3af' },
+  loginTopLink: { fontSize: 16, fontWeight: '700', color: '#4caf50' },
 
   titleSection: {
     alignItems: 'center', paddingHorizontal: 24,
@@ -382,5 +365,4 @@ const s = StyleSheet.create({
 
   footer: { paddingVertical: 32, alignItems: 'center' },
   footerText: { fontSize: 14, color: '#9ca3af' },
-  footerLink: { color: '#6aa84f', fontWeight: '700' },
 });
