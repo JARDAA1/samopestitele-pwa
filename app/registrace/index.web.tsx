@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useFarmarAuth } from '../_utils/farmarAuthContext';
 
-const BG_IMG = require('../../assets/images/registrace-uvod.png');
+const BG_IMG = require('../../assets/images/Registrace_zahradka.png');
 
 const PRODUKTY = [
   { id: 'zelenina', label: 'Zelenina',       emoji: '🥦' },
@@ -124,7 +124,6 @@ export default function RegistraceRozcestnikWeb() {
             </View>
             <Text style={s.cardTitleDark}>Přihlásit se</Text>
             <Text style={s.cardDescGray}>Přihlaste se ke své stávající prodejně.</Text>
-            <View style={{ flex: 1 }} />
             <TouchableOpacity
               style={s.btnGreen}
               onPress={() => router.push('/prihlaseni')}
@@ -254,7 +253,6 @@ export default function RegistraceRozcestnikWeb() {
               ))}
             </View>
 
-            <View style={{ flex: 1 }} />
 
             <TouchableOpacity
               style={s.btnDark}
@@ -303,13 +301,13 @@ const s = StyleSheet.create({
 
   cardsRow: {
     flexDirection: 'row', paddingHorizontal: 24,
-    gap: 20, alignItems: 'flex-start',
+    gap: 16, alignItems: 'stretch',
     maxWidth: 1100 as any, width: '100%' as any, alignSelf: 'center' as any,
   },
   cardsRowMobile: { flexDirection: 'column' },
   cardThird: { flex: 1 },
 
-  card: { borderRadius: 20, padding: 24 },
+  card: { borderRadius: 20, padding: 24, flex: 1, justifyContent: 'space-between' },
   cardGreen: { backgroundColor: '#6aa84f' },
   cardWhite: {
     backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e5e7eb',
