@@ -115,6 +115,7 @@ export default function RegistraceRozcestnikWeb() {
       <View style={s.titleSection}>
         <Text style={[s.mainTitle, isMobile && { fontSize: 26 }]}>🌾 Jak chcete začít?</Text>
         <Text style={s.mainSubtitle}>Vyberte co vám vyhovuje</Text>
+        <Text style={s.mainSubtitle2}>Chci si založit prodejnu.</Text>
       </View>
 
       {/* ── Karty ── */}
@@ -276,6 +277,7 @@ const s = StyleSheet.create({
   },
   mainTitle: { fontSize: 32, fontWeight: '800', color: '#1a1a1a', textAlign: 'center', marginBottom: 8 },
   mainSubtitle: { fontSize: 16, color: '#6b7280', textAlign: 'center' },
+  mainSubtitle2: { fontSize: 16, color: '#6b7280', textAlign: 'center', marginTop: 4, marginBottom: 24 },
 
   cardsRow: {
     flexDirection: 'row', paddingHorizontal: 24,
