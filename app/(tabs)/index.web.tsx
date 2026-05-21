@@ -27,16 +27,28 @@ export default function HomeScreenWeb() {
       <ImageBackground
         source={HERO_IMG}
         defaultSource={SPLASH_FALLBACK}
-        style={[s.hero, { height: isMobile ? 400 : 500, overflow: 'hidden' }]}
+        style={[s.hero, { height: isMobile ? 280 : 500, overflow: 'hidden' }]}
         resizeMode="cover"
       >
         <View style={s.heroOverlay} />
-        <View style={[s.heroInner, { paddingHorizontal: isMobile ? 20 : 60 }]}>
-          <Text style={[s.heroTitle, { fontSize: isMobile ? 32 : 56 }]}>Samopěstitelé</Text>
-          <Text style={[s.heroTagline, { fontSize: isMobile ? 16 : 22 }]}>
+        <View style={[s.heroInner, {
+          paddingHorizontal: 20,
+          alignItems: isMobile ? 'flex-start' : 'center',
+        }]}>
+          <Text style={[s.heroTitle, {
+            fontSize: isMobile ? 28 : 56,
+            textAlign: isMobile ? 'left' : 'center',
+          }]}>Samopěstitelé</Text>
+          <Text style={[s.heroTagline, {
+            fontSize: isMobile ? 15 : 22,
+            textAlign: isMobile ? 'left' : 'center',
+          }]}>
             Čerstvé produkty přímo od lidí ve vašem okolí.
           </Text>
-          <Text style={[s.heroSub, { fontSize: isMobile ? 13 : 16 }]}>
+          <Text style={[s.heroSub, {
+            fontSize: isMobile ? 13 : 16,
+            display: isMobile ? 'none' : 'flex',
+          }]}>
             Vyhledejte, domluvte odběr nebo nabídněte vlastní přebytky.
           </Text>
         </View>
@@ -50,7 +62,8 @@ export default function HomeScreenWeb() {
         <View style={[s.cardsRow, isMobile && s.cardsRowNarrow]}>
 
           {/* Karta 1 – Zákazníci */}
-          <View style={[s.card, s.cardGreen, !isMobile && s.cardWide]}>
+          <View style={[s.card, s.cardGreen, !isMobile && s.cardWide,
+            isMobile && { padding: 16, borderRadius: 16, marginBottom: 12 }]}>
             <View style={[s.badge, s.badgeWhite]}>
               <Text style={s.badgeWhiteText}>Bez registrace</Text>
             </View>
@@ -68,7 +81,8 @@ export default function HomeScreenWeb() {
           </View>
 
           {/* Karta 2 – Moje prodejna */}
-          <View style={[s.card, s.cardWhite, !isMobile && s.cardWide]}>
+          <View style={[s.card, s.cardWhite, !isMobile && s.cardWide,
+            isMobile && { padding: 16, borderRadius: 16, marginBottom: 12 }]}>
             <View style={[s.badge, s.badgeGray]}>
               <Text style={s.badgeGrayText}>Pro registrované pěstitele</Text>
             </View>
@@ -86,7 +100,8 @@ export default function HomeScreenWeb() {
           </View>
 
           {/* Karta 3 – Nabízím bez registrace */}
-          <View style={[s.card, s.cardWhite, !isMobile && s.cardWide]}>
+          <View style={[s.card, s.cardWhite, !isMobile && s.cardWide,
+            isMobile && { padding: 16, borderRadius: 16, marginBottom: 12 }]}>
             <View style={[s.badge, s.badgeOrange]}>
               <Text style={s.badgeOrangeText}>Jednorázová nabídka</Text>
             </View>
