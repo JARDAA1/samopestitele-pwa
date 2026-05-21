@@ -114,17 +114,6 @@ export default function RegistraceRozcestnikWeb() {
         <Text style={s.mainSubtitle}>Vyberte co vám vyhovuje</Text>
       </View>
 
-      {/* ── Ilustrace ── */}
-      <Image
-        source={require('../../assets/images/registrace-uvod.png')}
-        style={s.illustration}
-        resizeMode="contain"
-      />
-
-      <TouchableOpacity onPress={() => router.push('/prihlaseni')} style={s.loginLink}>
-        <Text style={s.loginLinkText}>Účet již mám, tak se přihlásím</Text>
-      </TouchableOpacity>
-
       {/* ── Karty ── */}
       <View style={[s.cardsRow, isMobile && s.cardsRowMobile]}>
 
@@ -253,6 +242,16 @@ export default function RegistraceRozcestnikWeb() {
           >
             <Text style={s.btnDarkText}>Pokračovat →</Text>
           </TouchableOpacity>
+
+          <Image
+            source={require('../../assets/images/registrace-uvod.png')}
+            style={s.cardIllustration}
+            resizeMode="contain"
+          />
+
+          <TouchableOpacity onPress={() => router.push('/prihlaseni')}>
+            <Text style={s.cardLoginLink}>Účet již mám, tak se přihlásím</Text>
+          </TouchableOpacity>
         </View>
 
       </View>
@@ -277,14 +276,14 @@ const s = StyleSheet.create({
 
   topBar: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 4 },
 
-  illustration: {
-    width: '100%' as any, maxWidth: 400, height: 280,
-    alignSelf: 'center' as any, marginBottom: 8,
+  cardIllustration: {
+    width: '100%' as any, height: 200,
+    alignSelf: 'center' as any, marginTop: 16,
   },
-  loginLink: { alignSelf: 'center' as any, marginBottom: 24 },
-  loginLinkText: {
-    fontSize: 15, color: '#4caf50',
+  cardLoginLink: {
+    fontSize: 14, color: '#4caf50',
     textDecorationLine: 'underline' as any, textAlign: 'center' as any,
+    marginTop: 8,
   },
   backLink: { fontSize: 14, color: '#9ca3af' },
 
