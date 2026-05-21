@@ -14,7 +14,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     console.log('⏳ Waiting for session check to complete...');
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#7B1FA2" />
+        <ActivityIndicator size="large" color="#4caf50" />
       </View>
     );
   }
@@ -60,11 +60,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#ffffff',
   },
   container: {
     flex: 1,
-    backgroundColor: '#6A1B9A',
+    backgroundColor: '#ffffff',
   },
   content: {
     flex: 1,
@@ -79,13 +79,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
     marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
+    color: '#6b7280',
     textAlign: 'center',
     marginBottom: 40,
     lineHeight: 24,
@@ -95,28 +95,28 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   primaryButton: {
-    backgroundColor: '#FF9800',
+    backgroundColor: '#4caf50',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
     alignItems: 'center',
   },
   primaryButtonText: {
-    color: '#FFFFFF',
+    color: '#ffffff',
     fontSize: 18,
     fontWeight: '700',
   },
   secondaryButton: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: '#ffffff',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 12,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   secondaryButtonText: {
-    color: '#FFFFFF',
+    color: '#1a1a1a',
     fontSize: 18,
     fontWeight: '600',
   },
