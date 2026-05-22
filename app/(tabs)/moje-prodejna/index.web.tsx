@@ -231,7 +231,7 @@ export default function MojeProdejnaWeb() {
       {/* Nové objednávky alert */}
       {newCount > 0 && (
         <View style={s.alertBanner}>
-          <Ionicons name="notifications" size={16} color="#dc2626" />
+          <Ionicons name="notifications-outline" size={16} color="#dc2626" />
           <Text style={s.alertText}>
             {newCount} {newCount === 1 ? 'nová objednávka' : newCount < 5 ? 'nové objednávky' : 'nových objednávek'}
           </Text>

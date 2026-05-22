@@ -505,7 +505,7 @@ function MojeProdejnaScreenContent() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/')}>
-            <Feather name="arrow-left" size={22} color="#FFFFFF" />
+            <Feather name="arrow-back" size={22} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle} testID="page-title">Moje prodejna</Text>
           <TouchableOpacity

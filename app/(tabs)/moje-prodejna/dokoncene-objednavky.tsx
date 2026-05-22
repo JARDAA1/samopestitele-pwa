@@ -42,7 +42,7 @@ export default function DokonceneObjednavkyScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Feather name="arrow-left" size={22} color="#FFFFFF" />
+          <Feather name="arrow-back" size={22} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Dokončené objednávky</Text>
         <View style={{ width: 36 }} />

@@ -108,7 +108,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
             style={styles.menuItem}
             onPress={() => handleNavigate('/(tabs)')}
           >
-            <Feather name="home" size={24} color="#333" style={styles.menuItemIcon} />
+            <Feather name="home-outline" size={24} color="#333" style={styles.menuItemIcon} />
             <Text style={styles.menuItemText}>Domů</Text>
           </TouchableOpacity>
 
@@ -116,7 +116,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
             style={styles.menuItem}
             onPress={() => handleNavigate('/mapa')}
           >
-            <Feather name="map" size={24} color="#333" style={styles.menuItemIcon} />
+            <Feather name="map-outline" size={24} color="#333" style={styles.menuItemIcon} />
             <Text style={styles.menuItemText}>Najdi něco ze zahrádky</Text>
           </TouchableOpacity>
 
@@ -189,7 +189,7 @@ export function DrawerMenu({ visible, onClose }: DrawerMenuProps) {
               style={[styles.menuItem, styles.logoutItem]}
               onPress={handleLogout}
             >
-              <Feather name="log-out" size={24} color="#F44336" style={styles.menuItemIcon} />
+              <Feather name="log-out-outline" size={24} color="#F44336" style={styles.menuItemIcon} />
               <Text style={[styles.menuItemText, styles.logoutText]}>Odhlásit se</Text>
             </TouchableOpacity>
           )}

@@ -158,7 +158,7 @@ export default function MujProfilScreen() {
         {/* Odhlásit */}
         <View style={styles.section}>
           <TouchableOpacity style={styles.logoutButton} onPress={handleOdhlasit}>
-            <Feather name="log-out" size={22} color="#F44336" style={{ marginRight: 10 }} />
+            <Feather name="log-out-outline" size={22} color="#F44336" style={{ marginRight: 10 }} />
             <Text style={styles.logoutText}>Odhlásit se</Text>
           </TouchableOpacity>
         </View>
