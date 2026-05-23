@@ -1,10 +1,11 @@
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
-  ScrollView, ImageBackground, Dimensions,
+  ScrollView, ImageBackground, TextInput, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../_utils/farmarAuthContext';
+import { supabase } from '@/lib/supabaseClient';
 
 const HERO_IMG = require('../../web-landing/back1.png');
 const SPLASH_FALLBACK = require('../../assets/images/splash.png');
@@ -14,8 +15,24 @@ export default function HomeScreenWeb() {
   const { width } = useWindowDimensions();
   const { isAuthenticated } = useFarmarAuth();
   const [mounted, setMounted] = useState(false);
+  const [query, setQuery] = useState('');
+  const [distance, setDistance] = useState(20);
+  const [results, setResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+
+  const handleSearch = async () => {
+    if (!query.trim()) return;
+    setSearching(true);
+    const { data } = await supabase
+      .from('pestitele')
+      .select('id, nazev_farmy, jmeno, lokace, lat, lng, produkty')
+      .ilike('produkty', `%${query}%`)
+      .limit(10);
+    setResults(data || []);
+    setSearching(false);
+  };
 
   const isMobile = !mounted || width < 768;
   const isMini = mounted && width < 390;
@@ -53,8 +70,77 @@ export default function HomeScreenWeb() {
           }]}>
             Vyhledejte, domluvte odběr nebo nabídněte vlastní přebytky.
           </Text>
+
+          <View style={[s.searchWrap, { maxWidth: isMobile ? '100%' : 560, width: '100%' as any }]}>
+            <TextInput
+              style={s.searchInput}
+              placeholder="Co hledáte? (např. vejce, rajčata, med...)"
+              placeholderTextColor="#9ca3af"
+              value={query}
+              onChangeText={setQuery}
+              onSubmitEditing={handleSearch}
+              returnKeyType="search"
+            />
+            <TouchableOpacity style={s.searchBtn} onPress={handleSearch} disabled={searching}>
+              {searching
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Text style={s.searchBtnText}>Hledat</Text>
+              }
+            </TouchableOpacity>
+          </View>
         </View>
       </ImageBackground>
+
+      {/* ── VÝSLEDKY HLEDÁNÍ ── */}
+      {results.length > 0 && (
+        <View style={[s.resultsWrap, { marginHorizontal: isMini ? 12 : isMobile ? 16 : 40 }]}>
+          <View style={[s.resultsHeader, {
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: isMobile ? 'flex-start' : 'center',
+          }]}>
+            <Text style={s.resultsTitle}>
+              Nalezeno {results.length} pěstitelů · „{query}"
+            </Text>
+            <View style={s.distanceRow}>
+              <Text style={s.distanceLabel}>do</Text>
+              {[5, 10, 20, 50].map(d => (
+                <TouchableOpacity
+                  key={d}
+                  style={[s.distChip, distance === d && s.distChipActive]}
+                  onPress={() => setDistance(d)}
+                >
+                  <Text style={[s.distChipText, distance === d && s.distChipTextActive]}>
+                    {d} km
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity style={s.reSearchBtn} onPress={handleSearch}>
+                <Text style={s.reSearchText}>Hledat znovu</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {results.map(item => (
+            <TouchableOpacity
+              key={item.id}
+              style={s.resultItem}
+              onPress={() => router.push(`/pestitele/${item.id}` as any)}
+              activeOpacity={0.85}
+            >
+              <View style={s.resultIcon}>
+                <Text style={{ fontSize: 24 }}>🌾</Text>
+              </View>
+              <View style={s.resultBody}>
+                <Text style={s.resultName}>{item.nazev_farmy || item.jmeno}</Text>
+                <Text style={s.resultMeta}>{item.produkty}{item.lokace ? ` · ${item.lokace}` : ''}</Text>
+              </View>
+              <View style={s.resultRight}>
+                <Text style={s.resultLink}>Zobrazit prodejnu →</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {/* ── KARTY ── */}
       <View style={[s.cardsOuter, {
@@ -207,4 +293,57 @@ const s = StyleSheet.create({
   // Footer
   footer: { paddingVertical: 24, alignItems: 'center', backgroundColor: '#ffffff', borderTopWidth: 1, borderTopColor: '#e5e7eb' },
   footerText: { fontSize: 13, color: '#9ca3af' },
+
+  // Search
+  searchWrap: {
+    flexDirection: 'row', backgroundColor: '#ffffff', borderRadius: 12,
+    padding: 4, marginTop: 16, alignItems: 'center',
+  },
+  searchInput: {
+    flex: 1, fontSize: 14, padding: 10, color: '#1a1a1a',
+    outlineStyle: 'none' as any,
+  },
+  searchBtn: {
+    backgroundColor: '#4caf50', borderRadius: 8,
+    padding: 10, paddingHorizontal: 16, minWidth: 72, alignItems: 'center',
+  },
+  searchBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
+
+  // Results
+  resultsWrap: {
+    backgroundColor: '#ffffff', borderRadius: 16, marginTop: 12,
+    overflow: 'hidden' as any, borderWidth: 1, borderColor: '#e5e7eb',
+    marginBottom: 8,
+  },
+  resultsHeader: {
+    padding: 12, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', gap: 8,
+  },
+  resultsTitle: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
+  distanceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' as any },
+  distanceLabel: { fontSize: 12, color: '#6b7280' },
+  distChip: {
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
+    borderWidth: 1, borderColor: '#e5e7eb',
+  },
+  distChipActive: { backgroundColor: '#4caf50', borderColor: '#4caf50' },
+  distChipText: { fontSize: 12, color: '#6b7280' },
+  distChipTextActive: { color: '#ffffff' },
+  reSearchBtn: {
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
+    borderWidth: 1, borderColor: '#4caf50',
+  },
+  reSearchText: { fontSize: 12, color: '#4caf50', fontWeight: '500' },
+  resultItem: {
+    padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12,
+    borderBottomWidth: 1, borderBottomColor: '#e5e7eb',
+  },
+  resultIcon: {
+    width: 40, height: 40, backgroundColor: '#f9fafb', borderRadius: 8,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  resultBody: { flex: 1 },
+  resultName: { fontSize: 14, fontWeight: '500', color: '#1a1a1a' },
+  resultMeta: { fontSize: 12, color: '#6b7280', marginTop: 2 },
+  resultRight: { alignItems: 'flex-end' },
+  resultLink: { fontSize: 12, color: '#4caf50', textDecorationLine: 'underline' as any },
 });
