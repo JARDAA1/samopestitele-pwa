@@ -175,18 +175,18 @@ export default function HomeScreenWeb() {
           <View style={[s.card, s.cardWhite, !isMobile && s.cardWide,
             isMobile && { padding: isMini ? 14 : 16, borderRadius: 16, marginBottom: isMini ? 8 : 12 }]}>
             <View style={[s.badge, s.badgeGray]}>
-              <Text style={[s.badgeGrayText, isMobile && { fontSize: 11 }]}>Pro registrované pěstitele</Text>
+              <Text style={[s.badgeGrayText, isMobile && { fontSize: 11 }]}>Pro pěstitele</Text>
             </View>
-            <Text style={[s.cardTitle, isMobile && { fontSize: 20 }]}>Moje prodejna</Text>
+            <Text style={[s.cardTitle, isMobile && { fontSize: 20 }]}>Prodáváte pravidelně?</Text>
             <Text style={[s.cardDesc, isMobile && { fontSize: 13 }]}>
-              Přihlášení a správa prodejny pěstitele.
+              Založte si virtuální stánek
             </Text>
             <TouchableOpacity
               style={s.btnDark}
               onPress={() => router.push(prodejnaRoute)}
               activeOpacity={0.85}
             >
-              <Text style={s.btnDarkText}>Přejít</Text>
+              <Text style={s.btnDarkText}>Založit stánek →</Text>
             </TouchableOpacity>
           </View>
 
