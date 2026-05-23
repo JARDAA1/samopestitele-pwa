@@ -27,11 +27,32 @@ export default function HomeScreenWeb() {
     if (!query.trim()) return;
     setSearching(true);
     setHasSearched(true);
-    const { data } = await supabase
+
+    // Test 1 - načti VŠECHNY farmáře bez filtru
+    const { data: allData, error: allError } = await supabase
       .from('pestitele')
-      .select('id, nazev_farmy, jmeno, lokace, lat, lng')
-      .not('lat', 'is', null)
-      .limit(10);
+      .select('id, nazev_farmy, jmeno, adresa, mesto, gps_lat, gps_lng, nazev, popis')
+      .limit(20);
+    console.log('Všichni farmáři:', allData);
+    console.log('Error:', allError);
+
+    // Test 2 - hledej s normalizací diakritiky
+    const queryNorm = query.toLowerCase()
+      .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i')
+      .replace(/ó/g,'o').replace(/ú/g,'u').replace(/ů/g,'u')
+      .replace(/č/g,'c').replace(/š/g,'s').replace(/ž/g,'z')
+      .replace(/ř/g,'r').replace(/ě/g,'e').replace(/ý/g,'y')
+      .replace(/ň/g,'n').replace(/ť/g,'t').replace(/ď/g,'d');
+
+    const { data, error } = await supabase
+      .from('pestitele')
+      .select('id, nazev_farmy, jmeno, adresa, mesto, gps_lat, gps_lng, nazev, popis')
+      .or(`nazev_farmy.ilike.%${query}%,nazev.ilike.%${query}%,popis.ilike.%${query}%,jmeno.ilike.%${query}%,nazev_farmy.ilike.%${queryNorm}%,nazev.ilike.%${queryNorm}%`)
+      .limit(20);
+    console.log('Výsledky hledání:', data);
+    console.log('Query:', query, '/ Normalizovaný:', queryNorm);
+    console.log('Search error:', error);
+
     setResults(data || []);
     setSearching(false);
   };
@@ -175,7 +196,7 @@ export default function HomeScreenWeb() {
               </View>
               <View style={s.resultBody}>
                 <Text style={s.resultName}>{item.nazev_farmy || item.jmeno}</Text>
-                <Text style={s.resultMeta}>{item.lokace || ''}</Text>
+                <Text style={s.resultMeta}>{item.nazev || item.popis || ''}{item.mesto ? ` · ${item.mesto}` : ''}</Text>
               </View>
               <View style={s.resultRight}>
                 <Text style={s.resultLink}>Zobrazit prodejnu →</Text>
