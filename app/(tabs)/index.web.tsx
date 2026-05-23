@@ -45,27 +45,24 @@ export default function HomeScreenWeb() {
       <ImageBackground
         source={HERO_IMG}
         defaultSource={SPLASH_FALLBACK}
-        style={[s.hero, { height: isMini ? 220 : isMobile ? 280 : 500, overflow: 'hidden' }]}
+        style={[s.hero, { height: isMini ? 220 : isMobile ? 300 : 500 }]}
         resizeMode="cover"
       >
         <View style={s.heroOverlay} />
-        <View style={[s.heroInner, {
-          paddingHorizontal: 20,
-          alignItems: isMobile ? 'flex-start' : 'center',
-        }]}>
+        <View style={[s.heroInner, { paddingHorizontal: isMobile ? 16 : 24 }]}>
           <Text style={[s.heroTitle, {
             fontSize: isMini ? 24 : isMobile ? 28 : 56,
-            textAlign: isMobile ? 'left' : 'center',
+            textAlign: 'center',
             marginBottom: 6,
           }]}>Samopěstitelé</Text>
           <Text style={[s.heroTagline, {
             fontSize: isMini ? 13 : isMobile ? 15 : 22,
-            textAlign: isMobile ? 'left' : 'center',
+            textAlign: 'center',
           }]}>
             {isMobile ? 'Čerstvé produkty přímo od pěstitelů.' : 'Čerstvé produkty přímo od lidí ve vašem okolí.'}
           </Text>
           <Text style={[s.heroSub, {
-            fontSize: isMobile ? 13 : 16,
+            fontSize: 16,
             display: isMobile ? 'none' : 'flex',
           }]}>
             Vyhledejte, domluvte odběr nebo nabídněte vlastní přebytky.
@@ -143,74 +140,81 @@ export default function HomeScreenWeb() {
       )}
 
       {/* ── KARTY ── */}
-      <View style={[s.cardsOuter, {
-        paddingHorizontal: isMini ? 12 : isMobile ? 16 : 40,
-        marginTop: isMobile ? 20 : -60,
-      }]}>
-        <View style={[s.cardsRow, isMobile && s.cardsRowNarrow,
-          isMobile && { gap: isMini ? 8 : 12 }]}>
+      {isMobile ? (
+        /* ── MOBIL: nová hierarchie ── */
+        <View style={[s.cardsOuter, { paddingHorizontal: isMini ? 12 : 16, marginTop: 20, paddingBottom: 32 }]}>
 
-          {/* Karta 1 – Zákazníci */}
-          <View style={[s.card, s.cardGreen, !isMobile && s.cardWide,
-            isMobile && { padding: isMini ? 14 : 16, borderRadius: 16, marginBottom: isMini ? 8 : 12 }]}>
-            <View style={[s.badge, s.badgeWhite]}>
-              <Text style={[s.badgeWhiteText, isMobile && { fontSize: 11 }]}>Pokročilé hledání</Text>
-            </View>
-            <Text style={[s.cardTitle, s.cardTitleWhite,
-              isMobile && { fontSize: 20 }]}>Zákazníci</Text>
-            <Text style={[s.cardDesc, s.cardDescWhite,
-              isMobile && { fontSize: 13 }]}>
-              Filtrujte podle vzdálenosti, kategorie a sezóny.
-            </Text>
-            <TouchableOpacity
-              style={s.btnWhite}
-              onPress={() => router.push('/mapa')}
-              activeOpacity={0.85}
-            >
-              <Text style={s.btnWhiteText}>Hledat na mapě</Text>
+          {/* 1. Zákazníci – velká zelená karta */}
+          <View style={s.mCard1}>
+            <Text style={s.mCard1Title}>Hledat v okolí</Text>
+            <Text style={s.mCard1Desc}>Filtrujte podle vzdálenosti, kategorie a sezóny.</Text>
+            <TouchableOpacity style={s.mCard1Btn} onPress={() => router.push('/mapa')} activeOpacity={0.85}>
+              <Text style={s.mCard1BtnText}>Otevřít mapu →</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Karta 2 – Moje prodejna */}
-          <View style={[s.card, s.cardWhite, !isMobile && s.cardWide,
-            isMobile && { padding: isMini ? 14 : 16, borderRadius: 16, marginBottom: isMini ? 8 : 12 }]}>
-            <View style={[s.badge, s.badgeGray]}>
-              <Text style={[s.badgeGrayText, isMobile && { fontSize: 11 }]}>Pro pěstitele</Text>
-            </View>
-            <Text style={[s.cardTitle, isMobile && { fontSize: 20 }]}>Prodáváte pravidelně?</Text>
-            <Text style={[s.cardDesc, isMobile && { fontSize: 13 }]}>
-              Založte si virtuální stánek
-            </Text>
-            <TouchableOpacity
-              style={s.btnDark}
-              onPress={() => router.push(prodejnaRoute)}
-              activeOpacity={0.85}
-            >
-              <Text style={s.btnDarkText}>Založit stánek →</Text>
+          {/* 2. Dočasný stánek – střední karta s zeleným okrajem */}
+          <View style={s.mCard2}>
+            <Text style={s.mCard2Title}>Nabízím bez registrace</Text>
+            <Text style={s.mCard2Desc}>Rychle nabídnu přebytky bez zakládání prodejny.</Text>
+            <TouchableOpacity style={s.mCard2Btn} onPress={() => router.push('/stanky/pridat')} activeOpacity={0.85}>
+              <Text style={s.mCard2BtnText}>Přidat nabídku →</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Karta 3 – Nabízím bez registrace */}
-          <View style={[s.card, s.cardWhite, !isMobile && s.cardWide,
-            isMobile && { padding: isMini ? 14 : 16, borderRadius: 16, marginBottom: isMini ? 8 : 12 }]}>
-            <View style={[s.badge, s.badgeOrange]}>
-              <Text style={[s.badgeOrangeText, isMobile && { fontSize: 11 }]}>Jednorázová nabídka</Text>
-            </View>
-            <Text style={[s.cardTitle, isMobile && { fontSize: 20 }]}>Nabízím bez registrace</Text>
-            <Text style={[s.cardDesc, isMobile && { fontSize: 13 }]}>
-              Rychle nabídnu přebytky bez zakládání prodejny.
-            </Text>
-            <TouchableOpacity
-              style={s.btnDark}
-              onPress={() => router.push('/stanky/pridat')}
-              activeOpacity={0.85}
-            >
-              <Text style={s.btnDarkText}>Přidat nabídku</Text>
-            </TouchableOpacity>
-          </View>
+          {/* 3. Trvalý stánek – jen řádek */}
+          <TouchableOpacity style={s.mCard3Row} onPress={() => router.push(prodejnaRoute)} activeOpacity={0.7}>
+            <Text style={s.mCard3Label}>Prodáváte pravidelně?</Text>
+            <Text style={s.mCard3Link}>Založit stánek →</Text>
+          </TouchableOpacity>
 
         </View>
-      </View>
+      ) : (
+        /* ── DESKTOP: původní 3 karty vedle sebe ── */
+        <View style={[s.cardsOuter, { paddingHorizontal: 40, marginTop: -60 }]}>
+          <View style={s.cardsRow}>
+
+            {/* Karta 1 – Zákazníci */}
+            <View style={[s.card, s.cardGreen, s.cardWide]}>
+              <View style={[s.badge, s.badgeWhite]}>
+                <Text style={s.badgeWhiteText}>Pokročilé hledání</Text>
+              </View>
+              <Text style={[s.cardTitle, s.cardTitleWhite]}>Zákazníci</Text>
+              <Text style={[s.cardDesc, s.cardDescWhite]}>
+                Filtrujte podle vzdálenosti, kategorie a sezóny.
+              </Text>
+              <TouchableOpacity style={s.btnWhite} onPress={() => router.push('/mapa')} activeOpacity={0.85}>
+                <Text style={s.btnWhiteText}>Hledat na mapě</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Karta 2 – Moje prodejna */}
+            <View style={[s.card, s.cardWhite, s.cardWide]}>
+              <View style={[s.badge, s.badgeGray]}>
+                <Text style={s.badgeGrayText}>Pro pěstitele</Text>
+              </View>
+              <Text style={s.cardTitle}>Prodáváte pravidelně?</Text>
+              <Text style={s.cardDesc}>Založte si virtuální stánek</Text>
+              <TouchableOpacity style={s.btnDark} onPress={() => router.push(prodejnaRoute)} activeOpacity={0.85}>
+                <Text style={s.btnDarkText}>Založit stánek →</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Karta 3 – Nabízím bez registrace */}
+            <View style={[s.card, s.cardWhite, s.cardWide]}>
+              <View style={[s.badge, s.badgeOrange]}>
+                <Text style={s.badgeOrangeText}>Jednorázová nabídka</Text>
+              </View>
+              <Text style={s.cardTitle}>Nabízím bez registrace</Text>
+              <Text style={s.cardDesc}>Rychle nabídnu přebytky bez zakládání prodejny.</Text>
+              <TouchableOpacity style={s.btnDark} onPress={() => router.push('/stanky/pridat')} activeOpacity={0.85}>
+                <Text style={s.btnDarkText}>Přidat nabídku</Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        </View>
+      )}
 
       {/* ── FOOTER ── */}
       <View style={s.footer}>
@@ -227,7 +231,7 @@ const s = StyleSheet.create({
   // Hero
   hero: { width: '100%' as any, height: 500, justifyContent: 'center', alignItems: 'center' },
   heroOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)' },
-  heroInner: { alignItems: 'center', paddingHorizontal: 24, zIndex: 1 },
+  heroInner: { alignItems: 'center', width: '100%' as any, zIndex: 1 },
   heroTitle: {
     fontSize: 56, fontWeight: '800', color: '#ffffff',
     textAlign: 'center', marginBottom: 16,
@@ -293,6 +297,40 @@ const s = StyleSheet.create({
   // Footer
   footer: { paddingVertical: 24, alignItems: 'center', backgroundColor: '#ffffff', borderTopWidth: 1, borderTopColor: '#e5e7eb' },
   footerText: { fontSize: 13, color: '#9ca3af' },
+
+  // Mobile cards
+  mCard1: {
+    backgroundColor: '#4caf50', borderRadius: 16, padding: 18, marginBottom: 10,
+  },
+  mCard1Title: { fontSize: 20, fontWeight: '700', color: '#ffffff', marginBottom: 6 },
+  mCard1Desc: { fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 20, marginBottom: 14 },
+  mCard1Btn: {
+    backgroundColor: '#ffffff', borderRadius: 10, paddingVertical: 12,
+    paddingHorizontal: 20, alignSelf: 'flex-start' as any,
+  },
+  mCard1BtnText: { fontSize: 14, fontWeight: '700', color: '#4caf50' },
+
+  mCard2: {
+    backgroundColor: '#ffffff', borderRadius: 14, padding: 14, marginBottom: 0,
+    borderWidth: 2, borderColor: '#4caf50',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
+  },
+  mCard2Title: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
+  mCard2Desc: { fontSize: 12, color: '#6b7280', lineHeight: 18, marginBottom: 12 },
+  mCard2Btn: {
+    backgroundColor: '#4caf50', borderRadius: 10, paddingVertical: 10,
+    paddingHorizontal: 16, alignSelf: 'flex-start' as any,
+  },
+  mCard2BtnText: { fontSize: 13, fontWeight: '700', color: '#ffffff' },
+
+  mCard3Row: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: 12, marginTop: 8,
+    borderTopWidth: 1, borderTopColor: '#e5e7eb',
+  },
+  mCard3Label: { fontSize: 13, color: '#6b7280' },
+  mCard3Link: { fontSize: 13, color: '#4caf50', fontWeight: '600' },
 
   // Search
   searchWrap: {
