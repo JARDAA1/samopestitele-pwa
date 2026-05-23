@@ -10,6 +10,33 @@ import { supabase } from '@/lib/supabaseClient';
 const HERO_IMG = require('../../web-landing/back1.png');
 const SPLASH_FALLBACK = require('../../assets/images/splash.png');
 
+const synonyms: Record<string, string[]> = {
+  'vejce': ['vejce', 'vajicka', 'vajíčka', 'vejce', 'vajecko'],
+  'vajicka': ['vejce', 'vajicka', 'vajíčka'],
+  'vajíčka': ['vejce', 'vajicka', 'vajíčka'],
+  'jablko': ['jablko', 'jablka', 'jablkova', 'jablkový', 'jablon'],
+  'jablka': ['jablko', 'jablka', 'jablon'],
+  'rajce': ['rajce', 'rajčata', 'rajcata', 'rajče', 'tomat'],
+  'rajčata': ['rajce', 'rajčata', 'rajcata'],
+  'mrkev': ['mrkev', 'mrkve', 'mrkvova'],
+  'brambory': ['brambory', 'brambora', 'bramborak'],
+  'jahody': ['jahody', 'jahoda', 'jahodova'],
+  'med': ['med', 'vceli', 'včelí', 'vcelar'],
+  'mleko': ['mleko', 'mléko', 'mlekarsky'],
+  'syr': ['syr', 'sýr', 'syrova'],
+  'bylinky': ['bylinky', 'byliny', 'bylinka'],
+  'okurky': ['okurky', 'okurka', 'uhorka'],
+  'cibule': ['cibule', 'cibuli', 'cibulova'],
+  'cesnek': ['cesnek', 'česnek', 'cesnekovy'],
+};
+
+const normalize = (text: string) => text.toLowerCase()
+  .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i')
+  .replace(/ó/g,'o').replace(/ú/g,'u').replace(/ů/g,'u')
+  .replace(/č/g,'c').replace(/š/g,'s').replace(/ž/g,'z')
+  .replace(/ř/g,'r').replace(/ě/g,'e').replace(/ý/g,'y')
+  .replace(/ň/g,'n').replace(/ť/g,'t').replace(/ď/g,'d');
+
 export default function HomeScreenWeb() {
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -28,19 +55,27 @@ export default function HomeScreenWeb() {
     setSearching(true);
     setHasSearched(true);
 
-    const queryNorm = query.toLowerCase()
-      .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i')
-      .replace(/ó/g,'o').replace(/ú/g,'u').replace(/ů/g,'u')
-      .replace(/č/g,'c').replace(/š/g,'s').replace(/ž/g,'z')
-      .replace(/ř/g,'r').replace(/ě/g,'e').replace(/ý/g,'y')
-      .replace(/ň/g,'n').replace(/ť/g,'t').replace(/ď/g,'d');
+    const queryNorm = normalize(query.trim());
+    const terms = synonyms[queryNorm] || synonyms[query.toLowerCase()] || [query, queryNorm];
+    const uniqueTerms = [...new Set(terms)];
 
-    const { data } = await supabase
+    const orConditions = uniqueTerms.flatMap(term => [
+      `nazev_farmy.ilike.%${term}%`,
+      `jmeno.ilike.%${term}%`,
+      `popis.ilike.%${term}%`,
+      `mesto.ilike.%${term}%`,
+      `adresa.ilike.%${term}%`,
+    ]).join(',');
+
+    const { data, error } = await supabase
       .from('pestitele')
       .select('id, nazev_farmy, jmeno, adresa, mesto, gps_lat, gps_lng, popis')
       .eq('smazano', false)
-      .or(`nazev_farmy.ilike.%${query}%,jmeno.ilike.%${query}%,popis.ilike.%${query}%,mesto.ilike.%${query}%`)
+      .or(orConditions)
       .limit(20);
+
+    console.log('Hledám termy:', uniqueTerms);
+    console.log('Výsledky:', data, 'Error:', error);
 
     setResults(data || []);
     setSearching(false);
