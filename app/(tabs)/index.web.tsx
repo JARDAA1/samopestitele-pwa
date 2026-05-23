@@ -39,7 +39,7 @@ export default function HomeScreenWeb() {
       .from('pestitele')
       .select('id, nazev_farmy, jmeno, adresa, mesto, gps_lat, gps_lng, popis')
       .eq('smazano', false)
-      .or(`popis.ilike.%${query}%,popis.ilike.%${queryNorm}%,nazev_farmy.ilike.%${query}%,nazev_farmy.ilike.%${queryNorm}%`)
+      .or(`nazev_farmy.ilike.%${query}%,jmeno.ilike.%${query}%,popis.ilike.%${query}%,mesto.ilike.%${query}%`)
       .limit(20);
 
     setResults(data || []);
