@@ -214,18 +214,10 @@ export default function HomeScreenWeb() {
               key={item.id}
               style={s.resultItem}
               onPress={() => router.push(`/pestitele/${item.id}` as any)}
-              activeOpacity={0.85}
             >
-              <View style={s.resultIcon}>
-                <Text style={{ fontSize: 24 }}>🌾</Text>
-              </View>
-              <View style={s.resultBody}>
-                <Text style={s.resultName}>{item.nazev_farmy || item.jmeno}</Text>
-                <Text style={s.resultMeta}>{[item.popis, item.mesto].filter(Boolean).join(' · ')}</Text>
-              </View>
-              <View style={s.resultRight}>
-                <Text style={s.resultLink}>Zobrazit prodejnu →</Text>
-              </View>
+              <Text style={s.resultName}>{item.nazev_farmy || item.jmeno}</Text>
+              <Text style={s.resultMeta}>{item.mesto}</Text>
+              <Text style={s.resultLink}>Zobrazit prodejnu →</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -488,16 +480,10 @@ const s = StyleSheet.create({
   },
   reSearchText: { fontSize: 12, color: '#4caf50', fontWeight: '500' },
   resultItem: {
-    padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12,
-    borderBottomWidth: 0.5, borderBottomColor: '#e5e7eb',
+    padding: 14, borderBottomWidth: 0.5, borderBottomColor: '#e5e7eb',
+    width: '100%' as any,
   },
-  resultIcon: {
-    width: 40, height: 40, backgroundColor: '#f9fafb', borderRadius: 8,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  resultBody: { flex: 1, minWidth: 0, overflow: 'hidden' as any },
-  resultName: { fontSize: 14, fontWeight: '600', color: '#1a1a1a', flexShrink: 1, flexWrap: 'wrap' as any },
-  resultMeta: { fontSize: 12, color: '#6b7280', marginTop: 2, flexShrink: 1, flexWrap: 'wrap' as any },
-  resultRight: { flexShrink: 0, minWidth: 120, alignItems: 'flex-end' },
-  resultLink: { fontSize: 12, color: '#4caf50', textDecorationLine: 'underline' as any },
+  resultName: { fontSize: 15, fontWeight: '600', color: '#1a1a1a', width: '100%' as any },
+  resultMeta: { fontSize: 13, color: '#6b7280', marginTop: 2, width: '100%' as any },
+  resultLink: { fontSize: 13, color: '#4caf50', marginTop: 6, textDecorationLine: 'underline' as any },
 });
