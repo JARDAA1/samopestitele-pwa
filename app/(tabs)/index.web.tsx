@@ -183,11 +183,12 @@ export default function HomeScreenWeb() {
       {hasSearched && !searching && results.length > 0 && (
         <View style={[s.resultsWrap, { marginHorizontal: isMini ? 12 : isMobile ? 16 : 40 }]}>
           <View style={[s.resultsHeader, {
-            flexDirection: isMobile ? 'column' : 'row',
-            alignItems: isMobile ? 'flex-start' : 'center',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: 8,
           }]}>
             <Text style={s.resultsTitle}>
-              Nalezeno {results.length} pěstitelů · „{query}"
+              Nalezeno {results.length} pěstitelů pro {query}
             </Text>
             <View style={s.distanceRow}>
               <Text style={s.distanceLabel}>do</Text>
@@ -488,15 +489,15 @@ const s = StyleSheet.create({
   reSearchText: { fontSize: 12, color: '#4caf50', fontWeight: '500' },
   resultItem: {
     padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12,
-    borderBottomWidth: 1, borderBottomColor: '#e5e7eb',
+    borderBottomWidth: 0.5, borderBottomColor: '#e5e7eb',
   },
   resultIcon: {
     width: 40, height: 40, backgroundColor: '#f9fafb', borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
   },
-  resultBody: { flex: 1 },
-  resultName: { fontSize: 14, fontWeight: '500', color: '#1a1a1a' },
-  resultMeta: { fontSize: 12, color: '#6b7280', marginTop: 2 },
-  resultRight: { alignItems: 'flex-end' },
+  resultBody: { flex: 1, minWidth: 0, overflow: 'hidden' as any },
+  resultName: { fontSize: 14, fontWeight: '600', color: '#1a1a1a', flexShrink: 1, flexWrap: 'wrap' as any },
+  resultMeta: { fontSize: 12, color: '#6b7280', marginTop: 2, flexShrink: 1, flexWrap: 'wrap' as any },
+  resultRight: { flexShrink: 0, minWidth: 120, alignItems: 'flex-end' },
   resultLink: { fontSize: 12, color: '#4caf50', textDecorationLine: 'underline' as any },
 });
