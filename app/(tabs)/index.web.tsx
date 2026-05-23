@@ -142,7 +142,7 @@ export default function HomeScreenWeb() {
       {/* ── KARTY ── */}
       {isMobile ? (
         /* ── MOBIL: nová hierarchie ── */
-        <View style={[s.cardsOuter, { paddingHorizontal: isMini ? 12 : 16, marginTop: 20, paddingBottom: 32 }]}>
+        <View style={[s.cardsOuter, { paddingHorizontal: 12, paddingTop: 12, paddingBottom: 20, marginTop: 0 }]}>
 
           {/* 1. Zákazníci – velká zelená karta */}
           <View style={s.mCard1}>
@@ -300,15 +300,15 @@ const s = StyleSheet.create({
 
   // Mobile cards
   mCard1: {
-    backgroundColor: '#4caf50', borderRadius: 16, padding: 18, marginBottom: 10,
+    backgroundColor: '#4caf50', borderRadius: 16, padding: 16, marginBottom: 8,
   },
-  mCard1Title: { fontSize: 20, fontWeight: '700', color: '#ffffff', marginBottom: 6 },
-  mCard1Desc: { fontSize: 13, color: 'rgba(255,255,255,0.85)', lineHeight: 20, marginBottom: 14 },
+  mCard1Title: { fontSize: 18, fontWeight: '700', color: '#ffffff', marginBottom: 4 },
+  mCard1Desc: { fontSize: 12, color: 'rgba(255,255,255,0.85)', lineHeight: 18, marginBottom: 12 },
   mCard1Btn: {
-    backgroundColor: '#ffffff', borderRadius: 10, paddingVertical: 12,
-    paddingHorizontal: 20, alignSelf: 'flex-start' as any,
+    backgroundColor: '#ffffff', borderRadius: 10, paddingVertical: 10,
+    paddingHorizontal: 16, alignSelf: 'flex-start' as any,
   },
-  mCard1BtnText: { fontSize: 14, fontWeight: '700', color: '#4caf50' },
+  mCard1BtnText: { fontSize: 13, fontWeight: '700', color: '#4caf50' },
 
   mCard2: {
     backgroundColor: '#ffffff', borderRadius: 14, padding: 14, marginBottom: 0,
@@ -335,7 +335,7 @@ const s = StyleSheet.create({
   // Search
   searchWrap: {
     flexDirection: 'row', backgroundColor: '#ffffff', borderRadius: 12,
-    padding: 4, marginTop: 16, alignItems: 'center',
+    padding: 4, marginTop: 16, marginHorizontal: 12, alignItems: 'center',
   },
   searchInput: {
     flex: 1, fontSize: 14, padding: 10, color: '#1a1a1a',
@@ -343,7 +343,7 @@ const s = StyleSheet.create({
   },
   searchBtn: {
     backgroundColor: '#4caf50', borderRadius: 8,
-    padding: 10, paddingHorizontal: 16, minWidth: 72, alignItems: 'center',
+    padding: 10, paddingHorizontal: 12, minWidth: 70, alignItems: 'center',
   },
   searchBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
 
