@@ -111,16 +111,21 @@ export default function HomeScreenWeb() {
       {hasSearched && !searching && results.length === 0 && (
         <View style={[s.noResultsWrap, { marginHorizontal: isMini ? 12 : isMobile ? 16 : 40 }]}>
           <Text style={s.noResultsTitle}>🔍 Nic jsme nenašli pro „{query}" do {distance} km</Text>
-          <Text style={s.noResultsSub}>Zkus:</Text>
+          <Text style={s.noResultsSub}>Rozšiř hledání:</Text>
           <View style={s.noResultsChips}>
-            {[20, 50, 100].map(d => (
+            {[
+              { label: 'do 20 km', value: 20 },
+              { label: 'do 50 km', value: 50 },
+              { label: 'do 100 km', value: 100 },
+              { label: 'kdekoli', value: 999 },
+            ].map(({ label, value }) => (
               <TouchableOpacity
-                key={d}
-                style={[s.noResultsChip, distance === d && s.noResultsChipActive]}
-                onPress={() => setDistance(d)}
+                key={value}
+                style={[s.noResultsChip, distance === value && s.noResultsChipActive]}
+                onPress={() => setDistance(value)}
               >
-                <Text style={[s.noResultsChipText, distance === d && s.noResultsChipTextActive]}>
-                  {d} km
+                <Text style={[s.noResultsChipText, distance === value && s.noResultsChipTextActive]}>
+                  {label}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -376,7 +381,7 @@ const s = StyleSheet.create({
   // Search
   searchWrap: {
     flexDirection: 'row', backgroundColor: '#ffffff', borderRadius: 12,
-    padding: 4, marginTop: 16, marginHorizontal: 16, alignItems: 'center',
+    padding: 4, marginTop: 12, marginHorizontal: 16, alignItems: 'center',
   },
   searchInput: {
     flex: 1, fontSize: 14, padding: 10, color: '#1a1a1a',
@@ -402,9 +407,9 @@ const s = StyleSheet.create({
   },
   noResultsTitle: { fontSize: 15, fontWeight: '600', color: '#1a1a1a', textAlign: 'center', marginBottom: 12 },
   noResultsSub: { fontSize: 13, color: '#6b7280', marginBottom: 8 },
-  noResultsChips: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  noResultsChips: { flexDirection: 'row', flexWrap: 'wrap' as any, gap: 8, marginBottom: 12, justifyContent: 'center' },
   noResultsChip: {
-    paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
     borderWidth: 1, borderColor: '#d1d5db', backgroundColor: '#ffffff',
   },
   noResultsChipActive: { backgroundColor: '#4caf50', borderColor: '#4caf50' },
