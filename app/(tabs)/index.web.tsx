@@ -211,12 +211,9 @@ export default function HomeScreenWeb() {
 
       {/* STAV: nalezené výsledky */}
       {hasSearched && !searching && results.length > 0 && (
-        <View style={[s.resultsWrap, { marginHorizontal: isMini ? 12 : isMobile ? 16 : 40 }]}>
-          <View style={[s.resultsHeader, {
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            gap: 8,
-          }]}>
+        <View style={{ marginHorizontal: isMini ? 12 : isMobile ? 16 : 40, marginTop: 12, marginBottom: 8 }}>
+          {/* Hlavička s filtry */}
+          <View style={[s.resultsHeader, { flexDirection: 'column', alignItems: 'flex-start', gap: 8 }]}>
             <Text style={s.resultsTitle}>
               Nalezeno {results.length} pěstitelů pro {query}
             </Text>
@@ -239,17 +236,23 @@ export default function HomeScreenWeb() {
             </View>
           </View>
 
-          {results.map(item => (
-            <TouchableOpacity
-              key={item.id}
-              style={s.resultItem}
-              onPress={() => router.push(`/pestitele/${item.id}` as any)}
-            >
-              <Text style={s.resultName}>{item.nazev_farmy || item.jmeno}</Text>
-              <Text style={s.resultMeta}>{[item.mesto, item.distance < 999 ? `${Math.round(item.distance)} km` : null].filter(Boolean).join(' · ')}</Text>
-              <Text style={s.resultLink}>Zobrazit prodejnu →</Text>
-            </TouchableOpacity>
-          ))}
+          {/* Výsledky: list na mobilu, grid na desktopu */}
+          <View style={isMobile ? s.resultsList : s.resultsGrid}>
+            {results.map(item => (
+              <TouchableOpacity
+                key={item.id}
+                style={isMobile ? s.resultItem : s.resultGridCard}
+                onPress={() => router.push(`/pestitele/${item.id}` as any)}
+                activeOpacity={0.85}
+              >
+                <Text style={s.resultName}>{item.nazev_farmy || item.jmeno}</Text>
+                <Text style={s.resultMeta}>
+                  {[item.mesto, item.distance < 999 ? `${Math.round(item.distance)} km` : null].filter(Boolean).join(' · ')}
+                </Text>
+                <Text style={s.resultLink}>Zobrazit prodejnu →</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       )}
 
@@ -486,10 +489,16 @@ const s = StyleSheet.create({
   noResultsOr: { fontSize: 13, color: '#9ca3af' },
 
   // Results
-  resultsWrap: {
-    backgroundColor: '#ffffff', borderRadius: 16, marginTop: 12,
-    overflow: 'hidden' as any, borderWidth: 1, borderColor: '#e5e7eb',
-    marginBottom: 8,
+  resultsList: {
+    backgroundColor: '#ffffff', borderRadius: 12,
+    borderWidth: 1, borderColor: '#e5e7eb', overflow: 'hidden' as any,
+  },
+  resultsGrid: {
+    flexDirection: 'row' as any, flexWrap: 'wrap' as any, gap: 12, marginTop: 4,
+  },
+  resultGridCard: {
+    backgroundColor: '#ffffff', borderRadius: 12, padding: 16,
+    borderWidth: 1, borderColor: '#e5e7eb', minWidth: 280, flex: 1,
   },
   resultsHeader: {
     padding: 12, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', gap: 8,
@@ -515,5 +524,5 @@ const s = StyleSheet.create({
   },
   resultName: { fontSize: 15, fontWeight: '600', color: '#1a1a1a', width: '100%' as any },
   resultMeta: { fontSize: 13, color: '#6b7280', marginTop: 2, width: '100%' as any },
-  resultLink: { fontSize: 13, color: '#4caf50', marginTop: 6, textDecorationLine: 'underline' as any },
+  resultLink: { fontSize: 13, color: '#4caf50', textDecorationLine: 'underline' as any, marginTop: 4 },
 });
