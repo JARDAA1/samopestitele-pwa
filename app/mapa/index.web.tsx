@@ -407,6 +407,16 @@ export default function MapaScreenWeb() {
         {/* LEVÝ PANEL */}
         <ScrollView style={s.leftPanel} showsVerticalScrollIndicator={false}>
 
+          {/* Výsledky hledání – nahoře pokud přišlo z URL */}
+          {searchQuery.trim() ? (
+            <View style={s.searchResultHeader}>
+              <Text style={s.searchResultCount}>
+                Nalezeno {filteredPestitele.length} pěstitelů
+              </Text>
+              <Text style={s.searchResultQuery}>pro „{searchQuery}"</Text>
+            </View>
+          ) : null}
+
           {/* Vyhledávací pole */}
           <View style={s.searchBox}>
             <Text style={s.searchIcon}>🔎</Text>
@@ -706,6 +716,15 @@ const s = StyleSheet.create({
     marginTop: 4, backgroundColor: '#ffffff', borderRadius: 8,
     borderWidth: 1, borderColor: '#e5e7eb', overflow: 'hidden' as any,
   },
+
+  searchResultHeader: {
+    paddingHorizontal: 16, paddingVertical: 12,
+    borderBottomWidth: 0.5, borderBottomColor: '#e5e7eb',
+    backgroundColor: '#f0fdf4', marginBottom: 10,
+    marginHorizontal: -12, marginTop: -12,
+  },
+  searchResultCount: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
+  searchResultQuery: { fontSize: 13, color: '#6b7280', marginTop: 2 },
 });
 
 // Extra styly (bez StyleSheet pro jednodušší čtení)
