@@ -154,20 +154,20 @@ export default function HomeScreenWeb() {
           <View style={[s.card, s.cardGreen, !isMobile && s.cardWide,
             isMobile && { padding: isMini ? 14 : 16, borderRadius: 16, marginBottom: isMini ? 8 : 12 }]}>
             <View style={[s.badge, s.badgeWhite]}>
-              <Text style={[s.badgeWhiteText, isMobile && { fontSize: 11 }]}>Bez registrace</Text>
+              <Text style={[s.badgeWhiteText, isMobile && { fontSize: 11 }]}>Pokročilé hledání</Text>
             </View>
             <Text style={[s.cardTitle, s.cardTitleWhite,
               isMobile && { fontSize: 20 }]}>Zákazníci</Text>
             <Text style={[s.cardDesc, s.cardDescWhite,
               isMobile && { fontSize: 13 }]}>
-              Najděte čerstvé produkty v okolí.
+              Filtrujte podle vzdálenosti, kategorie a sezóny.
             </Text>
             <TouchableOpacity
               style={s.btnWhite}
               onPress={() => router.push('/mapa')}
               activeOpacity={0.85}
             >
-              <Text style={s.btnWhiteText}>Vyhledat</Text>
+              <Text style={s.btnWhiteText}>Hledat na mapě</Text>
             </TouchableOpacity>
           </View>
 
