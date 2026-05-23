@@ -19,20 +19,26 @@ export default function HomeScreenWeb() {
   const [distance, setDistance] = useState(20);
   const [results, setResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
     setSearching(true);
+    setHasSearched(true);
     const { data } = await supabase
       .from('pestitele')
-      .select('id, nazev_farmy, jmeno, lokace, lat, lng, produkty')
-      .ilike('produkty', `%${query}%`)
+      .select('id, nazev_farmy, jmeno, lokace, lat, lng')
+      .not('lat', 'is', null)
       .limit(10);
     setResults(data || []);
     setSearching(false);
   };
+
+  useEffect(() => {
+    if (query.trim()) handleSearch();
+  }, [distance]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isMobile = !mounted || width < 768;
   const isMini = mounted && width < 390;
@@ -92,7 +98,39 @@ export default function HomeScreenWeb() {
       </ImageBackground>
 
       {/* ── VÝSLEDKY HLEDÁNÍ ── */}
-      {results.length > 0 && (
+
+      {/* STAV: hledám... */}
+      {searching && (
+        <View style={s.searchingWrap}>
+          <ActivityIndicator size="small" color="#4caf50" style={{ marginBottom: 8 }} />
+          <Text style={s.searchingText}>Hledám v okolí...</Text>
+        </View>
+      )}
+
+      {/* STAV: 0 výsledků */}
+      {hasSearched && !searching && results.length === 0 && (
+        <View style={[s.noResultsWrap, { marginHorizontal: isMini ? 12 : isMobile ? 16 : 40 }]}>
+          <Text style={s.noResultsTitle}>🔍 Nic jsme nenašli pro „{query}" do {distance} km</Text>
+          <Text style={s.noResultsSub}>Zkus:</Text>
+          <View style={s.noResultsChips}>
+            {[20, 50, 100].map(d => (
+              <TouchableOpacity
+                key={d}
+                style={[s.noResultsChip, distance === d && s.noResultsChipActive]}
+                onPress={() => setDistance(d)}
+              >
+                <Text style={[s.noResultsChipText, distance === d && s.noResultsChipTextActive]}>
+                  {d} km
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={s.noResultsOr}>nebo zkus jiný výraz</Text>
+        </View>
+      )}
+
+      {/* STAV: nalezené výsledky */}
+      {hasSearched && !searching && results.length > 0 && (
         <View style={[s.resultsWrap, { marginHorizontal: isMini ? 12 : isMobile ? 16 : 40 }]}>
           <View style={[s.resultsHeader, {
             flexDirection: isMobile ? 'column' : 'row',
@@ -132,7 +170,7 @@ export default function HomeScreenWeb() {
               </View>
               <View style={s.resultBody}>
                 <Text style={s.resultName}>{item.nazev_farmy || item.jmeno}</Text>
-                <Text style={s.resultMeta}>{item.produkty}{item.lokace ? ` · ${item.lokace}` : ''}</Text>
+                <Text style={s.resultMeta}>{item.lokace || ''}</Text>
               </View>
               <View style={s.resultRight}>
                 <Text style={s.resultLink}>Zobrazit prodejnu →</Text>
@@ -349,6 +387,30 @@ const s = StyleSheet.create({
     padding: 10, paddingHorizontal: 10, minWidth: 44, alignItems: 'center',
   },
   searchBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 16 },
+
+  // Searching state
+  searchingWrap: {
+    backgroundColor: '#f9fafb', padding: 16, alignItems: 'center', marginTop: 12,
+  },
+  searchingText: { fontSize: 14, color: '#6b7280', textAlign: 'center' },
+
+  // No results state
+  noResultsWrap: {
+    backgroundColor: '#f9fafb', borderRadius: 16, padding: 20, marginTop: 12,
+    marginBottom: 8, alignItems: 'center',
+    borderWidth: 1, borderColor: '#e5e7eb',
+  },
+  noResultsTitle: { fontSize: 15, fontWeight: '600', color: '#1a1a1a', textAlign: 'center', marginBottom: 12 },
+  noResultsSub: { fontSize: 13, color: '#6b7280', marginBottom: 8 },
+  noResultsChips: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  noResultsChip: {
+    paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
+    borderWidth: 1, borderColor: '#d1d5db', backgroundColor: '#ffffff',
+  },
+  noResultsChipActive: { backgroundColor: '#4caf50', borderColor: '#4caf50' },
+  noResultsChipText: { fontSize: 13, color: '#374151', fontWeight: '500' },
+  noResultsChipTextActive: { color: '#ffffff' },
+  noResultsOr: { fontSize: 13, color: '#9ca3af' },
 
   // Results
   resultsWrap: {
