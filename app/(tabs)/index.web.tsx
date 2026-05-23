@@ -9,18 +9,53 @@ import { useFarmarAuth } from '../_utils/farmarAuthContext';
 const HERO_IMG = require('../../web-landing/back1.png');
 const SPLASH_FALLBACK = require('../../assets/images/splash.png');
 
+const allSuggestions = [
+  'vejce', 'vajíčka', 'jablka', 'rajčata', 'med', 'brambory',
+  'jahody', 'okurky', 'cibule', 'česnek', 'mrkev', 'salát',
+  'bylinky', 'petržel', 'cuketa', 'dýně', 'paprika', 'hrušky',
+  'švestky', 'třešně', 'maliny', 'borůvky', 'ořechy', 'vlašské ořechy',
+  'mléko', 'sýr', 'tvaroh', 'máslo', 'jogurt', 'kefír',
+  'kuřecí maso', 'vepřové maso', 'jehněčí', 'králík',
+  'květiny', 'sušené byliny', 'džem', 'zavařeniny', 'sirup',
+];
+
+const normalize = (text: string) => text.toLowerCase()
+  .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i')
+  .replace(/ó/g,'o').replace(/ú/g,'u').replace(/ů/g,'u')
+  .replace(/č/g,'c').replace(/š/g,'s').replace(/ž/g,'z')
+  .replace(/ř/g,'r').replace(/ě/g,'e').replace(/ý/g,'y')
+  .replace(/ň/g,'n').replace(/ť/g,'t').replace(/ď/g,'d');
+
 export default function HomeScreenWeb() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { isAuthenticated } = useFarmarAuth();
   const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
-  const handleSearch = () => {
-    if (!query.trim()) return;
-    router.push(`/mapa?q=${encodeURIComponent(query)}&distance=20` as any);
+  const handleSearch = (overrideQuery?: string) => {
+    const q = overrideQuery || query;
+    if (!q.trim()) return;
+    setShowSuggestions(false);
+    router.push(`/mapa?q=${encodeURIComponent(q)}&distance=20` as any);
+  };
+
+  const handleQueryChange = (text: string) => {
+    setQuery(text);
+    if (text.length >= 2) {
+      const norm = normalize(text);
+      const filtered = allSuggestions
+        .filter(s => normalize(s).startsWith(norm) || normalize(s).includes(norm))
+        .slice(0, 6);
+      setSuggestions(filtered);
+      setShowSuggestions(filtered.length > 0);
+    } else {
+      setShowSuggestions(false);
+    }
   };
 
   const isMobile = !mounted || width < 768;
@@ -58,21 +93,39 @@ export default function HomeScreenWeb() {
           </Text>
 
           <View style={[s.searchWrap, isMobile
-            ? { width: width - 32 }
-            : { maxWidth: 560, width: '100%' as any }
+            ? { width: width - 32, position: 'relative' as any, zIndex: 10 }
+            : { maxWidth: 560, width: '100%' as any, position: 'relative' as any, zIndex: 10 }
           ]}>
             <TextInput
               style={s.searchInput}
               placeholder="Co hledáte? (např. vejce, rajčata, med...)"
               placeholderTextColor="#9ca3af"
               value={query}
-              onChangeText={setQuery}
-              onSubmitEditing={handleSearch}
+              onChangeText={handleQueryChange}
+              onSubmitEditing={() => handleSearch()}
               returnKeyType="search"
             />
-            <TouchableOpacity style={s.searchBtn} onPress={handleSearch}>
+            <TouchableOpacity style={s.searchBtn} onPress={() => handleSearch()}>
               <Text style={s.searchBtnText}>🔍</Text>
             </TouchableOpacity>
+
+            {showSuggestions && (
+              <View style={s.suggestionsWrap}>
+                {suggestions.map((item, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    style={[s.suggestionItem, i === suggestions.length - 1 && { borderBottomWidth: 0 }]}
+                    onPress={() => {
+                      setQuery(item);
+                      setShowSuggestions(false);
+                      handleSearch(item);
+                    }}
+                  >
+                    <Text style={s.suggestionText}>🔍 {item}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </ImageBackground>
@@ -269,4 +322,19 @@ const s = StyleSheet.create({
   },
   mCard3Label: { fontSize: 13, color: '#6b7280' },
   mCard3Link: { fontSize: 13, color: '#4caf50', fontWeight: '600' },
+
+  // Našeptávač
+  suggestionsWrap: {
+    position: 'absolute' as any, top: 56, left: 0, right: 0,
+    backgroundColor: '#ffffff', borderRadius: 12,
+    borderWidth: 0.5, borderColor: '#e5e7eb',
+    zIndex: 100, elevation: 5,
+    shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    overflow: 'hidden' as any,
+  },
+  suggestionItem: {
+    padding: 12, borderBottomWidth: 0.5, borderBottomColor: '#f3f4f6',
+  },
+  suggestionText: { fontSize: 14, color: '#1a1a1a' },
 });
