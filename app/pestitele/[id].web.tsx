@@ -1,5 +1,6 @@
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView,
+  ActivityIndicator, Image, useWindowDimensions, Linking,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -20,6 +21,7 @@ interface Pestitel {
   adresa: string | null;
   popis: string | null;
   telefon: string;
+  email?: string | null;
   gps_lat?: number;
   gps_lng?: number;
   foto_url?: string | null;
@@ -53,11 +55,14 @@ const PRODUCT_ORDER: Record<string, number> = {
 
 export default function PestitelDetailScreen() {
   const { id } = useLocalSearchParams();
+  const { width } = useWindowDimensions();
   const { addToList, clearAndAddToList, itemCount } = useShoppingList();
   const [pestitel, setPestitel] = useState<Pestitel | null>(null);
   const [produkty, setProdukty] = useState<Produkt[]>([]);
   const [loading, setLoading] = useState(true);
   const [addedMsg, setAddedMsg] = useState('');
+
+  const isMobile = width < 768;
 
   useEffect(() => { loadData(); }, [id]);
 
@@ -66,11 +71,10 @@ export default function PestitelDetailScreen() {
       const pestitelData = await fetchPestitelDetail(String(id));
       if (!pestitelData) throw new Error('Farmář nenalezen');
       setPestitel(pestitelData as unknown as Pestitel);
-
       const produktyData = await fetchPestitelProdukty(String(id));
-      const sorted = (produktyData as unknown as Produkt[]).sort((a, b) => {
-        return (PRODUCT_ORDER[a.nazev] || 999) - (PRODUCT_ORDER[b.nazev] || 999);
-      });
+      const sorted = (produktyData as unknown as Produkt[]).sort((a, b) =>
+        (PRODUCT_ORDER[a.nazev] || 999) - (PRODUCT_ORDER[b.nazev] || 999)
+      );
       setProdukty(sorted);
     } catch (e) {
       console.error(e);
@@ -106,9 +110,12 @@ export default function PestitelDetailScreen() {
 
   const handleNavigate = () => {
     if (!pestitel?.gps_lat || !pestitel?.gps_lng) return;
-    const url = `https://www.google.com/maps/search/?api=1&query=${pestitel.gps_lat},${pestitel.gps_lng}`;
-    window.open(url, '_blank');
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${pestitel.gps_lat},${pestitel.gps_lng}`, '_blank');
   };
+
+  const initials = pestitel
+    ? (pestitel.nazev_farmy || pestitel.jmeno || '?')[0].toUpperCase()
+    : '?';
 
   if (loading) {
     return (
@@ -123,16 +130,137 @@ export default function PestitelDetailScreen() {
     return (
       <View style={s.center}>
         <Text style={s.errorText}>Farmář nebyl nalezen</Text>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={s.backBtnText}>← Zpět</Text>
+        <TouchableOpacity style={s.backBtnErr} onPress={() => router.back()}>
+          <Text style={s.backBtnErrText}>← Zpět</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
+  const hasGps = !!(pestitel.gps_lat && pestitel.gps_lng && pestitel.gps_lat !== 0 && pestitel.gps_lng !== 0);
+
+  /* ─────────── MOBILE LAYOUT ─────────── */
+  if (isMobile) {
+    return (
+      <View style={s.root}>
+        {/* 1. Header */}
+        <View style={s.mHeader}>
+          <TouchableOpacity onPress={() => router.back()} style={s.mBackBtn}>
+            <Text style={s.mBackBtnText}>← Zpět</Text>
+          </TouchableOpacity>
+          <Text style={s.mHeaderTitle} numberOfLines={1}>{pestitel.nazev_farmy}</Text>
+          <View style={{ width: 60 }} />
+        </View>
+
+        <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+
+          {/* 2. Profil sekce */}
+          <View style={s.mProfileSection}>
+            <View style={s.mAvatar}>
+              <Text style={s.mAvatarText}>{initials}</Text>
+            </View>
+            <Text style={s.mFarmName}>{pestitel.nazev_farmy}</Text>
+            {pestitel.mesto ? <Text style={s.mFarmCity}>📍 {pestitel.mesto}</Text> : null}
+
+            {/* 3 tlačítka */}
+            <View style={s.mBtnRow}>
+              {pestitel.telefon ? (
+                <TouchableOpacity
+                  style={s.mBtnGreen}
+                  onPress={() => Linking.openURL(`tel:${pestitel.telefon}`)}
+                >
+                  <Text style={s.mBtnGreenText}>📞 Zavolat</Text>
+                </TouchableOpacity>
+              ) : null}
+              {pestitel.email ? (
+                <TouchableOpacity
+                  style={s.mBtnWhite}
+                  onPress={() => Linking.openURL(`mailto:${pestitel.email}`)}
+                >
+                  <Text style={s.mBtnWhiteText}>✉️ Email</Text>
+                </TouchableOpacity>
+              ) : null}
+              {hasGps ? (
+                <TouchableOpacity style={s.mBtnWhite} onPress={handleNavigate}>
+                  <Text style={s.mBtnWhiteText}>🧭 Navigovat</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </View>
+
+          {/* 3. Popis */}
+          {pestitel.popis ? (
+            <View style={s.mCard}>
+              <Text style={s.mCardText}>{pestitel.popis}</Text>
+            </View>
+          ) : null}
+
+          {/* 4. Kontakt */}
+          <View style={s.mCard}>
+            <Text style={s.mCardTitle}>Kontakt</Text>
+            {pestitel.telefon ? (
+              <TouchableOpacity onPress={() => Linking.openURL(`tel:${pestitel.telefon}`)}>
+                <Text style={s.mContactRow}>📞 {pestitel.telefon}</Text>
+              </TouchableOpacity>
+            ) : null}
+            {pestitel.email ? (
+              <TouchableOpacity onPress={() => Linking.openURL(`mailto:${pestitel.email}`)}>
+                <Text style={s.mContactRow}>✉️ {pestitel.email}</Text>
+              </TouchableOpacity>
+            ) : null}
+            {(pestitel.adresa || pestitel.mesto) ? (
+              <Text style={s.mContactRow}>📍 {[pestitel.adresa, pestitel.mesto].filter(Boolean).join(', ')}</Text>
+            ) : null}
+          </View>
+
+          {/* 5. Mapa + trasa */}
+          {hasGps ? (
+            <View style={s.mCard}>
+              <Text style={s.mCardTitle}>📍 Poloha</Text>
+              {/* @ts-ignore */}
+              <iframe
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${pestitel.gps_lng! - 0.01},${pestitel.gps_lat! - 0.008},${pestitel.gps_lng! + 0.01},${pestitel.gps_lat! + 0.008}&layer=mapnik&marker=${pestitel.gps_lat},${pestitel.gps_lng}`}
+                style={{ width: '100%', height: 200, border: 'none', borderRadius: 8, display: 'block' }}
+                title="Mapa"
+              />
+              <TouchableOpacity style={s.mNavBtn} onPress={handleNavigate}>
+                <Text style={s.mNavBtnText}>🗺️ Zobrazit cestu</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+
+          {/* Produkty */}
+          {produkty.length > 0 && (
+            <View style={[s.mCard, { marginBottom: 32 }]}>
+              <Text style={s.mCardTitle}>🧺 Nabídka ({produkty.length})</Text>
+              {addedMsg ? (
+                <View style={s.addedMsg}><Text style={s.addedMsgText}>✓ {addedMsg}</Text></View>
+              ) : null}
+              {produkty.map(p => (
+                <View key={p.id} style={s.mProductRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.mProductName}>{p.nazev}</Text>
+                    {p.popis ? <Text style={s.mProductDesc} numberOfLines={1}>{p.popis}</Text> : null}
+                  </View>
+                  <Text style={s.mProductPrice}>
+                    {p.cena ? formatCenaJednotka(p.cena, p.jednotka) : `0 Kč/${p.jednotka}`}
+                  </Text>
+                  <TouchableOpacity style={s.mAddBtn} onPress={() => handleAddToList(p)}>
+                    <Text style={s.mAddBtnText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+
+        </ScrollView>
+      </View>
+    );
+  }
+
+  /* ─────────── DESKTOP LAYOUT ─────────── */
   return (
     <View style={s.root}>
-      {/* Navbar */}
       <View style={s.navbar}>
         <TouchableOpacity onPress={() => router.push('/')} style={s.logoBtn}>
           <Text style={s.logo}>🌿 Samopestitele</Text>
@@ -150,16 +278,12 @@ export default function PestitelDetailScreen() {
       </View>
 
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
-        {/* Hero photo */}
         {pestitel.foto_url && (
           <Image source={{ uri: pestitel.foto_url }} style={s.heroPhoto} resizeMode="cover" />
         )}
 
-        {/* Main content */}
         <View style={s.contentWrapper}>
-          {/* Left column: info + products */}
           <View style={s.mainCol}>
-            {/* Farmer info */}
             <View style={s.infoCard}>
               <Text style={s.farmerName}>{pestitel.nazev_farmy}</Text>
               <View style={s.farmerMetaRow}>
@@ -173,13 +297,9 @@ export default function PestitelDetailScreen() {
                   </>
                 )}
               </View>
-
-              {pestitel.popis && (
-                <Text style={s.farmerDesc}>{pestitel.popis}</Text>
-              )}
-
+              {pestitel.popis && <Text style={s.farmerDesc}>{pestitel.popis}</Text>}
               <View style={s.actionRow}>
-                {pestitel.gps_lat && pestitel.gps_lng && (
+                {hasGps && (
                   <TouchableOpacity style={s.navigateBtn} onPress={handleNavigate}>
                     <Text style={s.navigateBtnText}>🧭 Navigovat</Text>
                   </TouchableOpacity>
@@ -195,14 +315,12 @@ export default function PestitelDetailScreen() {
               </View>
             </View>
 
-            {/* Added to list message */}
             {addedMsg ? (
               <View style={s.addedMsg}>
                 <Text style={s.addedMsgText}>✓ {addedMsg}</Text>
               </View>
             ) : null}
 
-            {/* Products */}
             <View style={s.productsSection}>
               <Text style={s.sectionTitle}>🧺 Nabídka produktů ({produkty.length})</Text>
               {produkty.length === 0 ? (
@@ -224,9 +342,7 @@ export default function PestitelDetailScreen() {
                             {p.cena ? formatCenaJednotka(p.cena, p.jednotka) : `0 Kč/${p.jednotka}`}
                           </Text>
                         </View>
-                        {p.popis && (
-                          <Text style={s.productDesc} numberOfLines={2}>{p.popis}</Text>
-                        )}
+                        {p.popis && <Text style={s.productDesc} numberOfLines={2}>{p.popis}</Text>}
                         <TouchableOpacity style={s.addBtn} onPress={() => handleAddToList(p)}>
                           <Text style={s.addBtnText}>+ Do seznamu</Text>
                         </TouchableOpacity>
@@ -238,9 +354,7 @@ export default function PestitelDetailScreen() {
             </View>
           </View>
 
-          {/* Right column: hours + map */}
           <View style={s.sideCol}>
-            {/* Office hours */}
             {pestitel.office_hours && (
               <View style={s.hoursCard}>
                 <Text style={s.hoursTitle}>🕐 Otevírací doba</Text>
@@ -250,32 +364,27 @@ export default function PestitelDetailScreen() {
                   return (
                     <View key={key} style={s.hoursRow}>
                       <Text style={s.hoursDay}>{label}</Text>
-                      {day.otevreno ? (
-                        <Text style={s.hoursTime}>{day.od} – {day.do}</Text>
-                      ) : (
-                        <Text style={s.hoursClosed}>Zavřeno</Text>
-                      )}
+                      {day.otevreno
+                        ? <Text style={s.hoursTime}>{day.od} – {day.do}</Text>
+                        : <Text style={s.hoursClosed}>Zavřeno</Text>
+                      }
                     </View>
                   );
                 })}
               </View>
             )}
-
             {!pestitel.office_hours && pestitel.casova_dostupnost && (
               <View style={s.hoursCard}>
                 <Text style={s.hoursTitle}>🕐 Otevírací doba</Text>
                 <Text style={s.hoursFreeText}>{pestitel.casova_dostupnost}</Text>
               </View>
             )}
-
-            {/* Map */}
-            {pestitel.gps_lat && pestitel.gps_lng &&
-              pestitel.gps_lat !== 0 && pestitel.gps_lng !== 0 && (
+            {hasGps && (
               <View style={s.mapCard}>
                 <Text style={s.mapTitle}>📍 Poloha</Text>
                 {/* @ts-ignore */}
                 <iframe
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${pestitel.gps_lng - 0.01},${pestitel.gps_lat - 0.008},${pestitel.gps_lng + 0.01},${pestitel.gps_lat + 0.008}&layer=mapnik&marker=${pestitel.gps_lat},${pestitel.gps_lng}`}
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${pestitel.gps_lng! - 0.01},${pestitel.gps_lat! - 0.008},${pestitel.gps_lng! + 0.01},${pestitel.gps_lat! + 0.008}&layer=mapnik&marker=${pestitel.gps_lat},${pestitel.gps_lng}`}
                   style={{ width: '100%', height: 260, border: 'none', borderRadius: 10 }}
                   title="Mapa"
                 />
@@ -288,7 +397,6 @@ export default function PestitelDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Floating list button */}
       {itemCount > 0 && (
         <TouchableOpacity style={s.floatingBtn} onPress={() => router.push('/nakupni-seznam')}>
           <Text style={s.floatingBtnText}>🧺 Můj seznam ({itemCount})</Text>
@@ -299,13 +407,77 @@ export default function PestitelDetailScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f9fafb' },
+  root: { flex: 1, backgroundColor: '#f5f5f5' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9fafb', gap: 16 },
   loadingText: { fontSize: 16, color: '#6b7280' },
   errorText: { fontSize: 18, color: '#ef4444' },
-  backBtn: { backgroundColor: '#4caf50', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
-  backBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 15 },
+  backBtnErr: { backgroundColor: '#4caf50', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
+  backBtnErrText: { color: '#ffffff', fontWeight: '600', fontSize: 15 },
 
+  /* ── Mobile ── */
+  mHeader: {
+    backgroundColor: '#4caf50', paddingHorizontal: 16, paddingVertical: 14,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
+  mBackBtn: { paddingHorizontal: 4, paddingVertical: 4, minWidth: 60 },
+  mBackBtnText: { fontSize: 15, color: '#ffffff', fontWeight: '600' },
+  mHeaderTitle: { fontSize: 16, fontWeight: '700', color: '#ffffff', flex: 1, textAlign: 'center', marginHorizontal: 8 },
+
+  mProfileSection: {
+    backgroundColor: '#ffffff', padding: 20, alignItems: 'center',
+    borderBottomWidth: 1, borderBottomColor: '#e5e7eb',
+  },
+  mAvatar: {
+    width: 72, height: 72, borderRadius: 36, backgroundColor: '#4caf50',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 12,
+  },
+  mAvatarText: { fontSize: 32, fontWeight: '700', color: '#ffffff' },
+  mFarmName: { fontSize: 22, fontWeight: '800', color: '#1a1a1a', textAlign: 'center', marginBottom: 4 },
+  mFarmCity: { fontSize: 14, color: '#6b7280', marginBottom: 16 },
+
+  mBtnRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' as any, justifyContent: 'center' },
+  mBtnGreen: {
+    backgroundColor: '#4caf50', borderRadius: 10,
+    paddingVertical: 10, paddingHorizontal: 18,
+  },
+  mBtnGreenText: { fontSize: 14, fontWeight: '700', color: '#ffffff' },
+  mBtnWhite: {
+    backgroundColor: '#ffffff', borderRadius: 10,
+    paddingVertical: 10, paddingHorizontal: 18,
+    borderWidth: 1, borderColor: '#d1d5db',
+  },
+  mBtnWhiteText: { fontSize: 14, fontWeight: '600', color: '#374151' },
+
+  mCard: {
+    backgroundColor: '#ffffff', marginHorizontal: 12, marginTop: 12,
+    borderRadius: 14, padding: 16,
+    borderWidth: 1, borderColor: '#e5e7eb',
+    overflow: 'hidden' as any,
+  },
+  mCardTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a1a', marginBottom: 12 },
+  mCardText: { fontSize: 14, color: '#374151', lineHeight: 22 },
+  mContactRow: { fontSize: 14, color: '#374151', paddingVertical: 6, borderBottomWidth: 0.5, borderBottomColor: '#f3f4f6' },
+
+  mNavBtn: {
+    backgroundColor: '#4caf50', borderRadius: 10,
+    paddingVertical: 14, alignItems: 'center', marginTop: 12,
+  },
+  mNavBtnText: { fontSize: 15, fontWeight: '700', color: '#ffffff' },
+
+  mProductRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 10, borderBottomWidth: 0.5, borderBottomColor: '#f3f4f6',
+  },
+  mProductName: { fontSize: 14, fontWeight: '600', color: '#1a1a1a' },
+  mProductDesc: { fontSize: 12, color: '#9ca3af', marginTop: 2 },
+  mProductPrice: { fontSize: 13, fontWeight: '700', color: '#f59e0b' },
+  mAddBtn: {
+    backgroundColor: '#1a1a1a', width: 32, height: 32,
+    borderRadius: 8, alignItems: 'center', justifyContent: 'center',
+  },
+  mAddBtnText: { color: '#ffffff', fontSize: 18, fontWeight: '700' },
+
+  /* ── Desktop ── */
   navbar: {
     backgroundColor: '#4caf50', paddingHorizontal: 40, paddingVertical: 14,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -315,21 +487,18 @@ const s = StyleSheet.create({
   navRight: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   navLink: {},
   navLinkText: { fontSize: 14, color: 'rgba(255,255,255,0.9)', fontWeight: '600' },
-  cartBtn: {
-    backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 8,
-  },
+  cartBtn: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   cartBtnText: { color: '#ffffff', fontSize: 14, fontWeight: '700' },
 
   scroll: { flex: 1 },
-  heroPhoto: { width: '100%' as any, height: 360 as any, backgroundColor: '#e5e7eb' },
+  heroPhoto: { width: '100%' as any, height: 360, backgroundColor: '#e5e7eb' },
 
   contentWrapper: {
     maxWidth: 1200 as any, width: '100%' as any, alignSelf: 'center' as any,
     padding: 40, flexDirection: 'row', gap: 32, alignItems: 'flex-start' as any,
   },
-  mainCol: { flex: 1, gap: 24 },
-  sideCol: { width: 320 as any, gap: 20 },
+  mainCol: { flex: 1, gap: 24, minWidth: 0, overflow: 'hidden' as any },
+  sideCol: { width: 320, gap: 20 },
 
   infoCard: {
     backgroundColor: '#ffffff', borderRadius: 16, padding: 28,
@@ -343,20 +512,12 @@ const s = StyleSheet.create({
   metaSep: { fontSize: 14, color: '#d1d5db' },
   farmerDesc: { fontSize: 15, color: '#374151', lineHeight: 24, marginBottom: 16 },
   actionRow: { flexDirection: 'row', gap: 12 },
-  navigateBtn: {
-    flex: 1, backgroundColor: '#3b82f6', paddingVertical: 12, borderRadius: 10, alignItems: 'center',
-  },
+  navigateBtn: { flex: 1, backgroundColor: '#3b82f6', paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   navigateBtnText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
-  callBtn: {
-    flex: 1, backgroundColor: '#f0fdf4', paddingVertical: 12, borderRadius: 10, alignItems: 'center',
-    borderWidth: 1, borderColor: '#4caf50',
-  },
+  callBtn: { flex: 1, backgroundColor: '#f0fdf4', paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#4caf50' },
   callBtnText: { color: '#166534', fontSize: 14, fontWeight: '600' },
 
-  addedMsg: {
-    backgroundColor: '#f0fdf4', borderRadius: 10, padding: 12,
-    borderWidth: 1, borderColor: '#4caf50',
-  },
+  addedMsg: { backgroundColor: '#f0fdf4', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#4caf50' },
   addedMsgText: { color: '#166534', fontSize: 14, fontWeight: '600', textAlign: 'center' },
 
   productsSection: { gap: 16 },
@@ -365,25 +526,19 @@ const s = StyleSheet.create({
   emptyProductsIcon: { fontSize: 48, marginBottom: 12 },
   emptyProductsText: { fontSize: 16, color: '#9ca3af' },
   productsGrid: { gap: 16 },
-
   productCard: {
-    backgroundColor: '#ffffff', borderRadius: 14, overflow: 'hidden',
+    backgroundColor: '#ffffff', borderRadius: 14, overflow: 'hidden' as any,
     borderWidth: 1, borderColor: '#e5e7eb',
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
-  productImg: { width: '100%' as any, height: 180 as any, backgroundColor: '#f3f4f6' },
+  productImg: { width: '100%' as any, height: 180, backgroundColor: '#f3f4f6' },
   productBody: { padding: 20 },
-  productHeader: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8,
-  },
+  productHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   productName: { fontSize: 18, fontWeight: '700', color: '#1a1a1a', flex: 1, marginRight: 12 },
   productPrice: { fontSize: 16, fontWeight: '700', color: '#f59e0b' },
   productDesc: { fontSize: 14, color: '#6b7280', lineHeight: 20, marginBottom: 12 },
-  addBtn: {
-    backgroundColor: '#1a1a1a', paddingVertical: 10, paddingHorizontal: 20,
-    borderRadius: 8, alignSelf: 'flex-start' as any,
-  },
+  addBtn: { backgroundColor: '#1a1a1a', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, alignSelf: 'flex-start' as any },
   addBtnText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
 
   hoursCard: {
@@ -393,11 +548,8 @@ const s = StyleSheet.create({
     shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
   hoursTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 14 },
-  hoursRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: '#f9fafb',
-  },
-  hoursDay: { fontSize: 13, color: '#374151', fontWeight: '500', width: 80 as any },
+  hoursRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: '#f9fafb' },
+  hoursDay: { fontSize: 13, color: '#374151', fontWeight: '500', width: 80 },
   hoursTime: { fontSize: 13, color: '#4caf50', fontWeight: '600' },
   hoursClosed: { fontSize: 13, color: '#9ca3af' },
   hoursFreeText: { fontSize: 14, color: '#374151', lineHeight: 22 },
@@ -406,14 +558,10 @@ const s = StyleSheet.create({
     backgroundColor: '#ffffff', borderRadius: 16, padding: 16,
     borderWidth: 1, borderColor: '#e5e7eb',
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
-    gap: 12,
+    shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, gap: 12,
   },
   mapTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  fullMapBtn: {
-    backgroundColor: '#f0fdf4', borderRadius: 8, paddingVertical: 10, alignItems: 'center',
-    borderWidth: 1, borderColor: '#bbf7d0',
-  },
+  fullMapBtn: { backgroundColor: '#f0fdf4', borderRadius: 8, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: '#bbf7d0' },
   fullMapBtnText: { color: '#166534', fontSize: 13, fontWeight: '600' },
 
   floatingBtn: {
