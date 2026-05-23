@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../_utils/farmarAuthContext';
 import { supabase } from '@/lib/supabaseClient';
+import * as Location from 'expo-location';
 
 const HERO_IMG = require('../../web-landing/back1.png');
 const SPLASH_FALLBACK = require('../../assets/images/splash.png');
@@ -28,6 +29,16 @@ const synonyms: Record<string, string[]> = {
   'okurky': ['okurky', 'okurka', 'uhorka'],
   'cibule': ['cibule', 'cibuli', 'cibulova'],
   'cesnek': ['cesnek', 'česnek', 'cesnekovy'],
+};
+
+const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 };
 
 const normalize = (text: string) => text.toLowerCase()
@@ -55,6 +66,19 @@ export default function HomeScreenWeb() {
     setSearching(true);
     setHasSearched(true);
 
+    let userLat = 50.0755;
+    let userLng = 14.4378;
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        const loc = await Location.getCurrentPositionAsync({});
+        userLat = loc.coords.latitude;
+        userLng = loc.coords.longitude;
+      }
+    } catch (e) {
+      console.log('Poloha nedostupná, používám Praha');
+    }
+
     const queryNorm = normalize(query.trim());
     const terms = synonyms[queryNorm] || synonyms[query.toLowerCase()] || [query, queryNorm];
     const uniqueTerms = [...new Set(terms)];
@@ -64,25 +88,31 @@ export default function HomeScreenWeb() {
       `jmeno.ilike.%${term}%`,
       `popis.ilike.%${term}%`,
       `mesto.ilike.%${term}%`,
-      `adresa.ilike.%${term}%`,
     ]).join(',');
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('pestitele')
       .select('id, nazev_farmy, jmeno, adresa, mesto, gps_lat, gps_lng, popis')
       .eq('smazano', false)
       .or(orConditions)
-      .limit(20);
+      .limit(100);
 
-    console.log('Hledám termy:', uniqueTerms);
-    console.log('Výsledky:', data, 'Error:', error);
+    const filtered = (data || [])
+      .map(item => ({
+        ...item,
+        distance: item.gps_lat && item.gps_lng
+          ? haversineDistance(userLat, userLng, item.gps_lat, item.gps_lng)
+          : 999,
+      }))
+      .filter(item => item.distance <= distance)
+      .sort((a, b) => a.distance - b.distance);
 
-    setResults(data || []);
+    setResults(filtered);
     setSearching(false);
   };
 
   useEffect(() => {
-    if (query.trim()) handleSearch();
+    if (query.trim() && hasSearched) handleSearch();
   }, [distance]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isMobile = !mounted || width < 768;
@@ -216,7 +246,7 @@ export default function HomeScreenWeb() {
               onPress={() => router.push(`/pestitele/${item.id}` as any)}
             >
               <Text style={s.resultName}>{item.nazev_farmy || item.jmeno}</Text>
-              <Text style={s.resultMeta}>{item.mesto}</Text>
+              <Text style={s.resultMeta}>{[item.mesto, item.distance < 999 ? `${Math.round(item.distance)} km` : null].filter(Boolean).join(' · ')}</Text>
               <Text style={s.resultLink}>Zobrazit prodejnu →</Text>
             </TouchableOpacity>
           ))}
