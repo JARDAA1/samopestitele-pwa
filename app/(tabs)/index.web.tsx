@@ -68,7 +68,10 @@ export default function HomeScreenWeb() {
             Vyhledejte, domluvte odběr nebo nabídněte vlastní přebytky.
           </Text>
 
-          <View style={[s.searchWrap, { maxWidth: isMobile ? '100%' : 560, width: '100%' as any }]}>
+          <View style={[s.searchWrap, isMobile
+            ? { width: width - 32 }
+            : { maxWidth: 560, width: '100%' as any }
+          ]}>
             <TextInput
               style={s.searchInput}
               placeholder="Co hledáte? (např. vejce, rajčata, med...)"
@@ -81,7 +84,7 @@ export default function HomeScreenWeb() {
             <TouchableOpacity style={s.searchBtn} onPress={handleSearch} disabled={searching}>
               {searching
                 ? <ActivityIndicator size="small" color="#fff" />
-                : <Text style={s.searchBtnText}>Hledat</Text>
+                : <Text style={s.searchBtnText}>🔍</Text>
               }
             </TouchableOpacity>
           </View>
@@ -335,7 +338,7 @@ const s = StyleSheet.create({
   // Search
   searchWrap: {
     flexDirection: 'row', backgroundColor: '#ffffff', borderRadius: 12,
-    padding: 4, marginTop: 16, marginHorizontal: 12, alignItems: 'center',
+    padding: 4, marginTop: 16, marginHorizontal: 16, alignItems: 'center',
   },
   searchInput: {
     flex: 1, fontSize: 14, padding: 10, color: '#1a1a1a',
@@ -343,9 +346,9 @@ const s = StyleSheet.create({
   },
   searchBtn: {
     backgroundColor: '#4caf50', borderRadius: 8,
-    padding: 10, paddingHorizontal: 12, minWidth: 70, alignItems: 'center',
+    padding: 10, paddingHorizontal: 10, minWidth: 44, alignItems: 'center',
   },
-  searchBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 13 },
+  searchBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 16 },
 
   // Results
   resultsWrap: {
