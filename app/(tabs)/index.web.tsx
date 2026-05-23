@@ -28,15 +28,6 @@ export default function HomeScreenWeb() {
     setSearching(true);
     setHasSearched(true);
 
-    // Test 1 - načti VŠECHNY farmáře bez filtru
-    const { data: allData, error: allError } = await supabase
-      .from('pestitele')
-      .select('id, nazev_farmy, jmeno, adresa, mesto, gps_lat, gps_lng, nazev, popis')
-      .limit(20);
-    console.log('Všichni farmáři:', allData);
-    console.log('Error:', allError);
-
-    // Test 2 - hledej s normalizací diakritiky
     const queryNorm = query.toLowerCase()
       .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i')
       .replace(/ó/g,'o').replace(/ú/g,'u').replace(/ů/g,'u')
@@ -44,14 +35,12 @@ export default function HomeScreenWeb() {
       .replace(/ř/g,'r').replace(/ě/g,'e').replace(/ý/g,'y')
       .replace(/ň/g,'n').replace(/ť/g,'t').replace(/ď/g,'d');
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('pestitele')
-      .select('id, nazev_farmy, jmeno, adresa, mesto, gps_lat, gps_lng, nazev, popis')
-      .or(`nazev_farmy.ilike.%${query}%,nazev.ilike.%${query}%,popis.ilike.%${query}%,jmeno.ilike.%${query}%,nazev_farmy.ilike.%${queryNorm}%,nazev.ilike.%${queryNorm}%`)
+      .select('id, nazev_farmy, jmeno, adresa, mesto, gps_lat, gps_lng, popis')
+      .eq('smazano', false)
+      .or(`popis.ilike.%${query}%,popis.ilike.%${queryNorm}%,nazev_farmy.ilike.%${query}%,nazev_farmy.ilike.%${queryNorm}%`)
       .limit(20);
-    console.log('Výsledky hledání:', data);
-    console.log('Query:', query, '/ Normalizovaný:', queryNorm);
-    console.log('Search error:', error);
 
     setResults(data || []);
     setSearching(false);
@@ -196,7 +185,7 @@ export default function HomeScreenWeb() {
               </View>
               <View style={s.resultBody}>
                 <Text style={s.resultName}>{item.nazev_farmy || item.jmeno}</Text>
-                <Text style={s.resultMeta}>{item.nazev || item.popis || ''}{item.mesto ? ` · ${item.mesto}` : ''}</Text>
+                <Text style={s.resultMeta}>{[item.popis, item.mesto].filter(Boolean).join(' · ')}</Text>
               </View>
               <View style={s.resultRight}>
                 <Text style={s.resultLink}>Zobrazit prodejnu →</Text>
