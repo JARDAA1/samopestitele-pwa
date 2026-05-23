@@ -3,7 +3,7 @@ import {
   ActivityIndicator, ScrollView, Alert,
 } from 'react-native';
 import SegmentedSearchMode from '../_components/SegmentedSearchMode';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import * as Location from 'expo-location';
@@ -100,6 +100,7 @@ function MapDefault() {
 // ── Hlavní komponenta ────────────────────────────────────────────
 export default function MapaScreenWeb() {
   const { items: customerListItems } = useCustomerList();
+  const params = useLocalSearchParams();
   const [objednanyPestitelIds, setObjednanyPestitelIds] = useState<Set<number>>(new Set());
 
   const [pestitele, setPestitele] = useState<MapaPolozka[]>([]);
@@ -138,6 +139,12 @@ export default function MapaScreenWeb() {
     loadProdukty();
     initializeLocation();
     loadObjednavky();
+    // Přednastav hledání z URL parametrů (přesměrování z úvodní stránky)
+    if (params.q) setSearchQuery(String(params.q));
+    if (params.distance) {
+      const d = parseInt(String(params.distance), 10);
+      if (!isNaN(d)) setSelectedDistance(d);
+    }
   }, []);
 
   const loadObjednavky = async () => {

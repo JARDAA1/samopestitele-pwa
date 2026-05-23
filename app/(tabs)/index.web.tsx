@@ -1,52 +1,13 @@
 import {
   View, Text, StyleSheet, TouchableOpacity, useWindowDimensions,
-  ScrollView, ImageBackground, TextInput, ActivityIndicator,
+  ScrollView, ImageBackground, TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useFarmarAuth } from '../_utils/farmarAuthContext';
-import { supabase } from '@/lib/supabaseClient';
-import * as Location from 'expo-location';
 
 const HERO_IMG = require('../../web-landing/back1.png');
 const SPLASH_FALLBACK = require('../../assets/images/splash.png');
-
-const synonyms: Record<string, string[]> = {
-  'vejce': ['vejce', 'vajicka', 'vajíčka', 'vejce', 'vajecko'],
-  'vajicka': ['vejce', 'vajicka', 'vajíčka'],
-  'vajíčka': ['vejce', 'vajicka', 'vajíčka'],
-  'jablko': ['jablko', 'jablka', 'jablkova', 'jablkový', 'jablon'],
-  'jablka': ['jablko', 'jablka', 'jablon'],
-  'rajce': ['rajce', 'rajčata', 'rajcata', 'rajče', 'tomat'],
-  'rajčata': ['rajce', 'rajčata', 'rajcata'],
-  'mrkev': ['mrkev', 'mrkve', 'mrkvova'],
-  'brambory': ['brambory', 'brambora', 'bramborak'],
-  'jahody': ['jahody', 'jahoda', 'jahodova'],
-  'med': ['med', 'vceli', 'včelí', 'vcelar'],
-  'mleko': ['mleko', 'mléko', 'mlekarsky'],
-  'syr': ['syr', 'sýr', 'syrova'],
-  'bylinky': ['bylinky', 'byliny', 'bylinka'],
-  'okurky': ['okurky', 'okurka', 'uhorka'],
-  'cibule': ['cibule', 'cibuli', 'cibulova'],
-  'cesnek': ['cesnek', 'česnek', 'cesnekovy'],
-};
-
-const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLng/2) * Math.sin(dLng/2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-};
-
-const normalize = (text: string) => text.toLowerCase()
-  .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i')
-  .replace(/ó/g,'o').replace(/ú/g,'u').replace(/ů/g,'u')
-  .replace(/č/g,'c').replace(/š/g,'s').replace(/ž/g,'z')
-  .replace(/ř/g,'r').replace(/ě/g,'e').replace(/ý/g,'y')
-  .replace(/ň/g,'n').replace(/ť/g,'t').replace(/ď/g,'d');
 
 export default function HomeScreenWeb() {
   const router = useRouter();
@@ -54,66 +15,13 @@ export default function HomeScreenWeb() {
   const { isAuthenticated } = useFarmarAuth();
   const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState('');
-  const [distance, setDistance] = useState(20);
-  const [results, setResults] = useState<any[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
-  const handleSearch = async () => {
+  const handleSearch = () => {
     if (!query.trim()) return;
-    setSearching(true);
-    setHasSearched(true);
-
-    let userLat = 50.0755;
-    let userLng = 14.4378;
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
-        userLat = loc.coords.latitude;
-        userLng = loc.coords.longitude;
-      }
-    } catch (e) {
-      console.log('Poloha nedostupná, používám Praha');
-    }
-
-    const queryNorm = normalize(query.trim());
-    const terms = synonyms[queryNorm] || synonyms[query.toLowerCase()] || [query, queryNorm];
-    const uniqueTerms = [...new Set(terms)];
-
-    const orConditions = uniqueTerms.flatMap(term => [
-      `nazev_farmy.ilike.%${term}%`,
-      `jmeno.ilike.%${term}%`,
-      `popis.ilike.%${term}%`,
-      `mesto.ilike.%${term}%`,
-    ]).join(',');
-
-    const { data } = await supabase
-      .from('pestitele')
-      .select('id, nazev_farmy, jmeno, adresa, mesto, gps_lat, gps_lng, popis')
-      .eq('smazano', false)
-      .or(orConditions)
-      .limit(100);
-
-    const filtered = (data || [])
-      .map(item => ({
-        ...item,
-        distance: item.gps_lat && item.gps_lng
-          ? haversineDistance(userLat, userLng, item.gps_lat, item.gps_lng)
-          : 999,
-      }))
-      .filter(item => item.distance <= distance)
-      .sort((a, b) => a.distance - b.distance);
-
-    setResults(filtered);
-    setSearching(false);
+    router.push(`/mapa?q=${encodeURIComponent(query)}&distance=20` as any);
   };
-
-  useEffect(() => {
-    if (query.trim() && hasSearched) handleSearch();
-  }, [distance]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isMobile = !mounted || width < 768;
   const isMini = mounted && width < 390;
@@ -162,99 +70,12 @@ export default function HomeScreenWeb() {
               onSubmitEditing={handleSearch}
               returnKeyType="search"
             />
-            <TouchableOpacity style={s.searchBtn} onPress={handleSearch} disabled={searching}>
-              {searching
-                ? <ActivityIndicator size="small" color="#fff" />
-                : <Text style={s.searchBtnText}>🔍</Text>
-              }
+            <TouchableOpacity style={s.searchBtn} onPress={handleSearch}>
+              <Text style={s.searchBtnText}>🔍</Text>
             </TouchableOpacity>
           </View>
         </View>
       </ImageBackground>
-
-      {/* ── VÝSLEDKY HLEDÁNÍ ── */}
-
-      {/* STAV: hledám... */}
-      {searching && (
-        <View style={s.searchingWrap}>
-          <ActivityIndicator size="small" color="#4caf50" style={{ marginBottom: 8 }} />
-          <Text style={s.searchingText}>Hledám v okolí...</Text>
-        </View>
-      )}
-
-      {/* STAV: 0 výsledků */}
-      {hasSearched && !searching && results.length === 0 && (
-        <View style={[s.noResultsWrap, { marginHorizontal: isMini ? 12 : isMobile ? 16 : 40 }]}>
-          <Text style={s.noResultsTitle}>🔍 Nic jsme nenašli pro „{query}" do {distance} km</Text>
-          <Text style={s.noResultsSub}>Rozšiř hledání:</Text>
-          <View style={s.noResultsChips}>
-            {[
-              { label: 'do 20 km', value: 20 },
-              { label: 'do 50 km', value: 50 },
-              { label: 'do 100 km', value: 100 },
-              { label: 'kdekoli', value: 999 },
-            ].map(({ label, value }) => (
-              <TouchableOpacity
-                key={value}
-                style={[s.noResultsChip, distance === value && s.noResultsChipActive]}
-                onPress={() => setDistance(value)}
-              >
-                <Text style={[s.noResultsChipText, distance === value && s.noResultsChipTextActive]}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <Text style={s.noResultsOr}>nebo zkus jiný výraz</Text>
-        </View>
-      )}
-
-      {/* STAV: nalezené výsledky */}
-      {hasSearched && !searching && results.length > 0 && (
-        <View style={{ marginHorizontal: isMini ? 12 : isMobile ? 16 : 40, marginTop: 12, marginBottom: 8 }}>
-          {/* Hlavička s filtry */}
-          <View style={[s.resultsHeader, { flexDirection: 'column', alignItems: 'flex-start', gap: 8 }]}>
-            <Text style={s.resultsTitle}>
-              Nalezeno {results.length} pěstitelů pro {query}
-            </Text>
-            <View style={s.distanceRow}>
-              <Text style={s.distanceLabel}>do</Text>
-              {[5, 10, 20, 50].map(d => (
-                <TouchableOpacity
-                  key={d}
-                  style={[s.distChip, distance === d && s.distChipActive]}
-                  onPress={() => setDistance(d)}
-                >
-                  <Text style={[s.distChipText, distance === d && s.distChipTextActive]}>
-                    {d} km
-                  </Text>
-                </TouchableOpacity>
-              ))}
-              <TouchableOpacity style={s.reSearchBtn} onPress={handleSearch}>
-                <Text style={s.reSearchText}>Hledat znovu</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Výsledky: list na mobilu, grid na desktopu */}
-          <View style={isMobile ? s.resultsList : s.resultsGrid}>
-            {results.map(item => (
-              <TouchableOpacity
-                key={item.id}
-                style={isMobile ? s.resultItem : s.resultGridCard}
-                onPress={() => router.push(`/pestitele/${item.id}` as any)}
-                activeOpacity={0.85}
-              >
-                <Text style={s.resultName}>{item.nazev_farmy || item.jmeno}</Text>
-                <Text style={s.resultMeta}>
-                  {[item.mesto, item.distance < 999 ? `${Math.round(item.distance)} km` : null].filter(Boolean).join(' · ')}
-                </Text>
-                <Text style={s.resultLink}>Zobrazit prodejnu →</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      )}
 
       {/* ── KARTY ── */}
       {isMobile ? (
@@ -270,7 +91,7 @@ export default function HomeScreenWeb() {
             </TouchableOpacity>
           </View>
 
-          {/* 2. Dočasný stánek – střední karta s zeleným okrajem */}
+          {/* 2. Dočasný stánek */}
           <View style={s.mCard2}>
             <Text style={s.mCard2Title}>Nabízím bez registrace</Text>
             <Text style={s.mCard2Desc}>Rychle nabídnu přebytky bez zakládání prodejny.</Text>
@@ -287,7 +108,7 @@ export default function HomeScreenWeb() {
 
         </View>
       ) : (
-        /* ── DESKTOP: původní 3 karty vedle sebe ── */
+        /* ── DESKTOP: 3 karty vedle sebe ── */
         <View style={[s.cardsOuter, { paddingHorizontal: 40, marginTop: -60 }]}>
           <View style={s.cardsRow}>
 
@@ -349,18 +170,21 @@ const s = StyleSheet.create({
   hero: { width: '100%' as any, height: 500, justifyContent: 'center', alignItems: 'center' },
   heroOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)' },
   heroInner: { alignItems: 'center', width: '100%' as any, zIndex: 1 },
-  heroTitle: {
-    fontSize: 56, fontWeight: '800', color: '#ffffff',
-    textAlign: 'center', marginBottom: 16,
+  heroTitle: { fontSize: 56, fontWeight: '800', color: '#ffffff', textAlign: 'center', marginBottom: 16 },
+  heroTagline: { fontSize: 22, color: '#ffffff', textAlign: 'center', lineHeight: 32, marginBottom: 10 },
+  heroSub: { fontSize: 16, color: 'rgba(255,255,255,0.85)', textAlign: 'center', lineHeight: 24 },
+
+  // Search
+  searchWrap: {
+    flexDirection: 'row', backgroundColor: '#ffffff', borderRadius: 12,
+    padding: 4, marginTop: 12, marginHorizontal: 16, alignItems: 'center',
   },
-  heroTagline: {
-    fontSize: 22, color: '#ffffff', textAlign: 'center',
-    lineHeight: 32, marginBottom: 10,
+  searchInput: { flex: 1, fontSize: 14, padding: 10, color: '#1a1a1a', outlineStyle: 'none' as any },
+  searchBtn: {
+    backgroundColor: '#4caf50', borderRadius: 8,
+    padding: 10, paddingHorizontal: 10, minWidth: 44, alignItems: 'center',
   },
-  heroSub: {
-    fontSize: 16, color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center', lineHeight: 24,
-  },
+  searchBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 16 },
 
   // Cards outer
   cardsOuter: {
@@ -372,7 +196,6 @@ const s = StyleSheet.create({
     flexDirection: 'row', flexWrap: 'wrap',
     maxWidth: 1100, width: '100%' as any, gap: 20, justifyContent: 'center',
   },
-  cardsRowNarrow: { flexDirection: 'column', alignItems: 'stretch' },
 
   // Card base
   card: {
@@ -416,9 +239,7 @@ const s = StyleSheet.create({
   footerText: { fontSize: 13, color: '#9ca3af' },
 
   // Mobile cards
-  mCard1: {
-    backgroundColor: '#4caf50', borderRadius: 16, padding: 16, marginBottom: 8,
-  },
+  mCard1: { backgroundColor: '#4caf50', borderRadius: 16, padding: 16, marginBottom: 8 },
   mCard1Title: { fontSize: 18, fontWeight: '700', color: '#ffffff', marginBottom: 4 },
   mCard1Desc: { fontSize: 12, color: 'rgba(255,255,255,0.85)', lineHeight: 18, marginBottom: 12 },
   mCard1Btn: {
@@ -448,81 +269,4 @@ const s = StyleSheet.create({
   },
   mCard3Label: { fontSize: 13, color: '#6b7280' },
   mCard3Link: { fontSize: 13, color: '#4caf50', fontWeight: '600' },
-
-  // Search
-  searchWrap: {
-    flexDirection: 'row', backgroundColor: '#ffffff', borderRadius: 12,
-    padding: 4, marginTop: 12, marginHorizontal: 16, alignItems: 'center',
-  },
-  searchInput: {
-    flex: 1, fontSize: 14, padding: 10, color: '#1a1a1a',
-    outlineStyle: 'none' as any,
-  },
-  searchBtn: {
-    backgroundColor: '#4caf50', borderRadius: 8,
-    padding: 10, paddingHorizontal: 10, minWidth: 44, alignItems: 'center',
-  },
-  searchBtnText: { color: '#ffffff', fontWeight: '600', fontSize: 16 },
-
-  // Searching state
-  searchingWrap: {
-    backgroundColor: '#f9fafb', padding: 16, alignItems: 'center', marginTop: 12,
-  },
-  searchingText: { fontSize: 14, color: '#6b7280', textAlign: 'center' },
-
-  // No results state
-  noResultsWrap: {
-    backgroundColor: '#f9fafb', borderRadius: 16, padding: 20, marginTop: 12,
-    marginBottom: 8, alignItems: 'center',
-    borderWidth: 1, borderColor: '#e5e7eb',
-  },
-  noResultsTitle: { fontSize: 15, fontWeight: '600', color: '#1a1a1a', textAlign: 'center', marginBottom: 12 },
-  noResultsSub: { fontSize: 13, color: '#6b7280', marginBottom: 8 },
-  noResultsChips: { flexDirection: 'row', flexWrap: 'wrap' as any, gap: 8, marginBottom: 12, justifyContent: 'center' },
-  noResultsChip: {
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1, borderColor: '#d1d5db', backgroundColor: '#ffffff',
-  },
-  noResultsChipActive: { backgroundColor: '#4caf50', borderColor: '#4caf50' },
-  noResultsChipText: { fontSize: 13, color: '#374151', fontWeight: '500' },
-  noResultsChipTextActive: { color: '#ffffff' },
-  noResultsOr: { fontSize: 13, color: '#9ca3af' },
-
-  // Results
-  resultsList: {
-    backgroundColor: '#ffffff', borderRadius: 12,
-    borderWidth: 1, borderColor: '#e5e7eb', overflow: 'hidden' as any,
-  },
-  resultsGrid: {
-    flexDirection: 'row' as any, flexWrap: 'wrap' as any, gap: 12, marginTop: 4,
-  },
-  resultGridCard: {
-    backgroundColor: '#ffffff', borderRadius: 12, padding: 16,
-    borderWidth: 1, borderColor: '#e5e7eb', minWidth: 280, flex: 1,
-  },
-  resultsHeader: {
-    padding: 12, borderBottomWidth: 1, borderBottomColor: '#e5e7eb', gap: 8,
-  },
-  resultsTitle: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
-  distanceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' as any },
-  distanceLabel: { fontSize: 12, color: '#6b7280' },
-  distChip: {
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
-    borderWidth: 1, borderColor: '#e5e7eb',
-  },
-  distChipActive: { backgroundColor: '#4caf50', borderColor: '#4caf50' },
-  distChipText: { fontSize: 12, color: '#6b7280' },
-  distChipTextActive: { color: '#ffffff' },
-  reSearchBtn: {
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
-    borderWidth: 1, borderColor: '#4caf50',
-  },
-  reSearchText: { fontSize: 12, color: '#4caf50', fontWeight: '500' },
-  resultItem: {
-    padding: 14, borderBottomWidth: 0.5, borderBottomColor: '#e5e7eb',
-    width: '100%' as any,
-  },
-  resultName: { fontSize: 15, fontWeight: '600', color: '#1a1a1a', width: '100%' as any },
-  resultMeta: { fontSize: 13, color: '#6b7280', marginTop: 2, width: '100%' as any },
-  resultLink: { fontSize: 13, color: '#4caf50', textDecorationLine: 'underline' as any, marginTop: 4 },
 });
