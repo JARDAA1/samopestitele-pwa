@@ -92,36 +92,43 @@ export default function HomeScreenWeb() {
             Vyhledejte, domluvte odběr nebo nabídněte vlastní přebytky.
           </Text>
 
-          <View style={[s.searchWrap, isMobile
-            ? { width: width - 32, position: 'relative' as any, zIndex: 10 }
-            : { maxWidth: 560, width: '100%' as any, position: 'relative' as any, zIndex: 10 }
+          <View style={[
+            { zIndex: 10 },
+            isMobile ? { width: width - 32 } : { maxWidth: 560, width: '100%' as any },
           ]}>
-            <TextInput
-              style={s.searchInput}
-              placeholder="Co hledáte? (např. vejce, rajčata, med...)"
-              placeholderTextColor="#9ca3af"
-              value={query}
-              onChangeText={handleQueryChange}
-              onSubmitEditing={() => handleSearch()}
-              returnKeyType="search"
-            />
-            <TouchableOpacity style={s.searchBtn} onPress={() => handleSearch()}>
-              <Text style={s.searchBtnText}>🔍</Text>
-            </TouchableOpacity>
+            <View style={s.searchWrap}>
+              <TextInput
+                style={s.searchInput}
+                placeholder="Co hledáte? (např. vejce, rajčata, med...)"
+                placeholderTextColor="#9ca3af"
+                value={query}
+                onChangeText={handleQueryChange}
+                onSubmitEditing={() => handleSearch()}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                returnKeyType="search"
+              />
+              <TouchableOpacity style={s.searchBtn} onPress={() => handleSearch()}>
+                <Text style={s.searchBtnText}>🔍</Text>
+              </TouchableOpacity>
+            </View>
 
             {showSuggestions && (
-              <View style={s.suggestionsWrap}>
+              <View style={[s.suggestionsWrap, isMobile && { marginHorizontal: 12 }]}>
                 {suggestions.map((item, i) => (
                   <TouchableOpacity
                     key={i}
-                    style={[s.suggestionItem, i === suggestions.length - 1 && { borderBottomWidth: 0 }]}
+                    style={[
+                      s.suggestionItem,
+                      isMobile && { padding: 10 },
+                      i === suggestions.length - 1 && { borderBottomWidth: 0 },
+                    ]}
                     onPress={() => {
                       setQuery(item);
                       setShowSuggestions(false);
                       handleSearch(item);
                     }}
                   >
-                    <Text style={s.suggestionText}>🔍 {item}</Text>
+                    <Text style={[s.suggestionText, isMobile && { fontSize: 13 }]}>🔍 {item}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -325,13 +332,11 @@ const s = StyleSheet.create({
 
   // Našeptávač
   suggestionsWrap: {
-    position: 'absolute' as any, top: 56, left: 0, right: 0,
     backgroundColor: '#ffffff', borderRadius: 12,
     borderWidth: 0.5, borderColor: '#e5e7eb',
-    zIndex: 100, elevation: 5,
+    marginTop: 4, overflow: 'hidden' as any,
     shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    overflow: 'hidden' as any,
+    shadowOffset: { width: 0, height: 4 }, elevation: 5,
   },
   suggestionItem: {
     padding: 12, borderBottomWidth: 0.5, borderBottomColor: '#f3f4f6',
