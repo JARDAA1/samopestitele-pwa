@@ -261,147 +261,122 @@ export default function PestitelDetailScreen() {
   /* ─────────── DESKTOP LAYOUT ─────────── */
   return (
     <View style={s.root}>
-      <View style={s.navbar}>
-        <TouchableOpacity onPress={() => router.push('/')} style={s.logoBtn}>
-          <Text style={s.logo}>🌿 Samopestitele</Text>
+      {/* Header */}
+      <View style={s.dHeader}>
+        <TouchableOpacity onPress={() => router.back()} style={s.dBackBtn}>
+          <Text style={s.dBackBtnText}>← Zpět</Text>
         </TouchableOpacity>
-        <View style={s.navRight}>
-          <TouchableOpacity onPress={() => router.push('/mapa')} style={s.navLink}>
-            <Text style={s.navLinkText}>← Mapa farmářů</Text>
-          </TouchableOpacity>
-          {itemCount > 0 && (
-            <TouchableOpacity style={s.cartBtn} onPress={() => router.push('/nakupni-seznam')}>
-              <Text style={s.cartBtnText}>🧺 Seznam ({itemCount})</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        <Text style={s.dHeaderTitle}>{pestitel.nazev_farmy}</Text>
+        <View style={{ width: 80 }} />
       </View>
 
       <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
-        {pestitel.foto_url && (
-          <Image source={{ uri: pestitel.foto_url }} style={s.heroPhoto} resizeMode="cover" />
-        )}
+        <View style={s.dContent}>
 
-        <View style={s.contentWrapper}>
-          <View style={s.mainCol}>
-            <View style={s.infoCard}>
-              <Text style={s.farmerName}>{pestitel.nazev_farmy}</Text>
-              <View style={s.farmerMetaRow}>
-                <Text style={s.farmerMeta}>👤 {pestitel.jmeno}</Text>
-                <Text style={s.metaSep}>•</Text>
-                <Text style={s.farmerMeta}>📍 {pestitel.mesto}</Text>
-                {pestitel.telefon && (
-                  <>
-                    <Text style={s.metaSep}>•</Text>
-                    <Text style={s.farmerMeta}>📞 {pestitel.telefon}</Text>
-                  </>
-                )}
+          {/* LEVÝ SLOUPEC */}
+          <View style={s.dLeftCol}>
+
+            {/* Profilová karta */}
+            <View style={s.dCard}>
+              <View style={s.dAvatar}>
+                <Text style={s.dAvatarText}>{initials}</Text>
               </View>
-              {pestitel.popis && <Text style={s.farmerDesc}>{pestitel.popis}</Text>}
-              <View style={s.actionRow}>
-                {hasGps && (
-                  <TouchableOpacity style={s.navigateBtn} onPress={handleNavigate}>
-                    <Text style={s.navigateBtnText}>🧭 Navigovat</Text>
+              <Text style={s.dFarmName}>{pestitel.nazev_farmy}</Text>
+              {pestitel.mesto ? <Text style={s.dFarmCity}>{pestitel.mesto}</Text> : null}
+
+              <View style={s.dBtnRow}>
+                {pestitel.telefon ? (
+                  <TouchableOpacity style={s.dBtnGreen} onPress={() => Linking.openURL(`tel:${pestitel.telefon}`)}>
+                    <Text style={s.dBtnGreenText}>📞 Zavolat</Text>
                   </TouchableOpacity>
-                )}
-                {pestitel.telefon && (
-                  <TouchableOpacity
-                    style={s.callBtn}
-                    onPress={() => { window.location.href = `tel:${pestitel.telefon}`; }}
-                  >
-                    <Text style={s.callBtnText}>📞 Zavolat</Text>
+                ) : null}
+                {pestitel.email ? (
+                  <TouchableOpacity style={s.dBtnWhite} onPress={() => Linking.openURL(`mailto:${pestitel.email}`)}>
+                    <Text style={s.dBtnWhiteText}>✉️ Email</Text>
                   </TouchableOpacity>
-                )}
+                ) : null}
+                {hasGps ? (
+                  <TouchableOpacity style={s.dBtnWhite} onPress={handleNavigate}>
+                    <Text style={s.dBtnWhiteText}>🗺️ Navigovat</Text>
+                  </TouchableOpacity>
+                ) : null}
               </View>
             </View>
 
-            {addedMsg ? (
-              <View style={s.addedMsg}>
-                <Text style={s.addedMsgText}>✓ {addedMsg}</Text>
+            {/* Kontaktní karta */}
+            <View style={[s.dCard, { marginTop: 16 }]}>
+              <Text style={s.dCardTitle}>Kontakt</Text>
+              {pestitel.telefon ? (
+                <TouchableOpacity onPress={() => Linking.openURL(`tel:${pestitel.telefon}`)}>
+                  <Text style={s.dContactRow}>📞 {pestitel.telefon}</Text>
+                </TouchableOpacity>
+              ) : null}
+              {pestitel.email ? (
+                <TouchableOpacity onPress={() => Linking.openURL(`mailto:${pestitel.email}`)}>
+                  <Text style={s.dContactRow}>✉️ {pestitel.email}</Text>
+                </TouchableOpacity>
+              ) : null}
+              {(pestitel.adresa || pestitel.mesto) ? (
+                <Text style={s.dContactRow}>
+                  📍 {[pestitel.adresa, pestitel.mesto].filter(Boolean).join(', ')}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* Popis karta */}
+            {pestitel.popis ? (
+              <View style={[s.dCard, { marginTop: 16 }]}>
+                <Text style={s.dCardTitle}>O farmě</Text>
+                <Text style={s.dDescText}>{pestitel.popis}</Text>
               </View>
             ) : null}
 
-            <View style={s.productsSection}>
-              <Text style={s.sectionTitle}>🧺 Nabídka produktů ({produkty.length})</Text>
-              {produkty.length === 0 ? (
-                <View style={s.emptyProducts}>
-                  <Text style={s.emptyProductsIcon}>📦</Text>
-                  <Text style={s.emptyProductsText}>Zatím žádné produkty</Text>
-                </View>
-              ) : (
-                <View style={s.productsGrid}>
-                  {produkty.map(p => (
-                    <View key={p.id} style={s.productCard}>
-                      {p.foto_url && (
-                        <Image source={{ uri: p.foto_url }} style={s.productImg} resizeMode="cover" />
-                      )}
-                      <View style={s.productBody}>
-                        <View style={s.productHeader}>
-                          <Text style={s.productName}>{p.nazev}</Text>
-                          <Text style={s.productPrice}>
-                            {p.cena ? formatCenaJednotka(p.cena, p.jednotka) : `0 Kč/${p.jednotka}`}
-                          </Text>
-                        </View>
-                        {p.popis && <Text style={s.productDesc} numberOfLines={2}>{p.popis}</Text>}
-                        <TouchableOpacity style={s.addBtn} onPress={() => handleAddToList(p)}>
-                          <Text style={s.addBtnText}>+ Do seznamu</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
           </View>
 
-          <View style={s.sideCol}>
-            {pestitel.office_hours && (
-              <View style={s.hoursCard}>
-                <Text style={s.hoursTitle}>🕐 Otevírací doba</Text>
-                {OFFICE_HOURS_DAYS.map(({ key, label }) => {
-                  const day = pestitel.office_hours![key];
-                  if (!day) return null;
-                  return (
-                    <View key={key} style={s.hoursRow}>
-                      <Text style={s.hoursDay}>{label}</Text>
-                      {day.otevreno
-                        ? <Text style={s.hoursTime}>{day.od} – {day.do}</Text>
-                        : <Text style={s.hoursClosed}>Zavřeno</Text>
-                      }
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-            {!pestitel.office_hours && pestitel.casova_dostupnost && (
-              <View style={s.hoursCard}>
-                <Text style={s.hoursTitle}>🕐 Otevírací doba</Text>
-                <Text style={s.hoursFreeText}>{pestitel.casova_dostupnost}</Text>
-              </View>
-            )}
-            {hasGps && (
-              <View style={s.mapCard}>
-                <Text style={s.mapTitle}>📍 Poloha</Text>
+          {/* PRAVÝ SLOUPEC */}
+          <View style={s.dRightCol}>
+
+            {/* Mapa */}
+            {hasGps ? (
+              <View style={s.dCard}>
                 {/* @ts-ignore */}
                 <iframe
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${pestitel.gps_lng! - 0.01},${pestitel.gps_lat! - 0.008},${pestitel.gps_lng! + 0.01},${pestitel.gps_lat! + 0.008}&layer=mapnik&marker=${pestitel.gps_lat},${pestitel.gps_lng}`}
-                  style={{ width: '100%', height: 260, border: 'none', borderRadius: 10 }}
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${pestitel.gps_lng! - 0.012},${pestitel.gps_lat! - 0.009},${pestitel.gps_lng! + 0.012},${pestitel.gps_lat! + 0.009}&layer=mapnik&marker=${pestitel.gps_lat},${pestitel.gps_lng}`}
+                  style={{ width: '100%', height: 320, border: 'none', borderRadius: 12, display: 'block' }}
                   title="Mapa"
                 />
-                <TouchableOpacity style={s.fullMapBtn} onPress={handleNavigate}>
-                  <Text style={s.fullMapBtnText}>Otevřít v Google Maps →</Text>
+                <TouchableOpacity style={s.dNavBtn} onPress={handleNavigate}>
+                  <Text style={s.dNavBtnText}>🗺️ Zobrazit cestu v Google Maps</Text>
                 </TouchableOpacity>
               </View>
-            )}
+            ) : null}
+
+            {/* Produkty */}
+            {produkty.length > 0 ? (
+              <View style={[s.dCard, { marginTop: 16 }]}>
+                <Text style={s.dCardTitle}>🧺 Nabídka ({produkty.length})</Text>
+                {addedMsg ? (
+                  <View style={s.addedMsg}><Text style={s.addedMsgText}>✓ {addedMsg}</Text></View>
+                ) : null}
+                <View style={s.dProductGrid}>
+                  {produkty.map(p => (
+                    <TouchableOpacity key={p.id} style={s.dProductCard} onPress={() => handleAddToList(p)} activeOpacity={0.85}>
+                      <Text style={s.dProductEmoji}>🌿</Text>
+                      <Text style={s.dProductName}>{p.nazev}</Text>
+                      <Text style={s.dProductPrice}>
+                        {p.cena ? formatCenaJednotka(p.cena, p.jednotka) : `0 Kč/${p.jednotka}`}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
           </View>
         </View>
-      </ScrollView>
 
-      {itemCount > 0 && (
-        <TouchableOpacity style={s.floatingBtn} onPress={() => router.push('/nakupni-seznam')}>
-          <Text style={s.floatingBtnText}>🧺 Můj seznam ({itemCount})</Text>
-        </TouchableOpacity>
-      )}
+        <View style={{ height: 48 }} />
+      </ScrollView>
     </View>
   );
 }
@@ -478,98 +453,76 @@ const s = StyleSheet.create({
   mAddBtnText: { color: '#ffffff', fontSize: 18, fontWeight: '700' },
 
   /* ── Desktop ── */
-  navbar: {
-    backgroundColor: '#4caf50', paddingHorizontal: 40, paddingVertical: 14,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-  },
-  logoBtn: {},
-  logo: { fontSize: 18, fontWeight: '800', color: '#ffffff' },
-  navRight: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  navLink: {},
-  navLinkText: { fontSize: 14, color: 'rgba(255,255,255,0.9)', fontWeight: '600' },
-  cartBtn: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
-  cartBtnText: { color: '#ffffff', fontSize: 14, fontWeight: '700' },
-
   scroll: { flex: 1 },
-  heroPhoto: { width: '100%' as any, height: 360, backgroundColor: '#e5e7eb' },
 
-  contentWrapper: {
-    maxWidth: 1200 as any, width: '100%' as any, alignSelf: 'center' as any,
-    padding: 40, flexDirection: 'row', gap: 32, alignItems: 'flex-start' as any,
+  dHeader: {
+    backgroundColor: '#ffffff', paddingHorizontal: 32, paddingVertical: 14,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    borderBottomWidth: 1, borderBottomColor: '#e5e7eb',
   },
-  mainCol: { flex: 1, gap: 24, minWidth: 0, overflow: 'hidden' as any },
-  sideCol: { width: 320, gap: 20 },
+  dBackBtn: { paddingVertical: 4, paddingHorizontal: 4, minWidth: 80 },
+  dBackBtnText: { fontSize: 15, color: '#4caf50', fontWeight: '600' },
+  dHeaderTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a1a', textAlign: 'center', flex: 1 },
 
-  infoCard: {
-    backgroundColor: '#ffffff', borderRadius: 16, padding: 28,
-    borderWidth: 1, borderColor: '#e5e7eb',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
+  dContent: {
+    maxWidth: 1100 as any, width: '100%' as any, alignSelf: 'center' as any,
+    flexDirection: 'row', gap: 24, padding: 32, alignItems: 'flex-start' as any,
   },
-  farmerName: { fontSize: 28, fontWeight: '800', color: '#1a1a1a', marginBottom: 10 },
-  farmerMetaRow: { flexDirection: 'row', flexWrap: 'wrap' as any, alignItems: 'center', gap: 6, marginBottom: 16 },
-  farmerMeta: { fontSize: 14, color: '#6b7280' },
-  metaSep: { fontSize: 14, color: '#d1d5db' },
-  farmerDesc: { fontSize: 15, color: '#374151', lineHeight: 24, marginBottom: 16 },
-  actionRow: { flexDirection: 'row', gap: 12 },
-  navigateBtn: { flex: 1, backgroundColor: '#3b82f6', paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-  navigateBtnText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
-  callBtn: { flex: 1, backgroundColor: '#f0fdf4', paddingVertical: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#4caf50' },
-  callBtnText: { color: '#166534', fontSize: 14, fontWeight: '600' },
+  dLeftCol: { width: 400, flexShrink: 0 },
+  dRightCol: { flex: 1, minWidth: 0 },
 
-  addedMsg: { backgroundColor: '#f0fdf4', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#4caf50' },
+  dCard: {
+    backgroundColor: '#ffffff', borderRadius: 16, padding: 24,
+    borderWidth: 0.5, borderColor: '#e5e7eb',
+    overflow: 'hidden' as any,
+  },
+  dCardTitle: { fontSize: 16, fontWeight: '600', color: '#1a1a1a', marginBottom: 12 },
+
+  dAvatar: {
+    width: 80, height: 80, borderRadius: 40, backgroundColor: '#4caf50',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 14, alignSelf: 'center' as any,
+  },
+  dAvatarText: { fontSize: 32, fontWeight: '700', color: '#ffffff' },
+  dFarmName: { fontSize: 24, fontWeight: '700', color: '#1a1a1a', textAlign: 'center', marginBottom: 4 },
+  dFarmCity: { fontSize: 16, color: '#6b7280', textAlign: 'center', marginBottom: 18 },
+
+  dBtnRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' as any, justifyContent: 'center' },
+  dBtnGreen: {
+    backgroundColor: '#4caf50', borderRadius: 10,
+    paddingVertical: 10, paddingHorizontal: 16,
+  },
+  dBtnGreenText: { fontSize: 14, fontWeight: '700', color: '#ffffff' },
+  dBtnWhite: {
+    backgroundColor: '#ffffff', borderRadius: 10,
+    paddingVertical: 10, paddingHorizontal: 16,
+    borderWidth: 1, borderColor: '#d1d5db',
+  },
+  dBtnWhiteText: { fontSize: 14, fontWeight: '600', color: '#374151' },
+
+  dContactRow: {
+    fontSize: 14, color: '#374151', paddingVertical: 8,
+    borderBottomWidth: 0.5, borderBottomColor: '#f3f4f6',
+  },
+  dDescText: { fontSize: 14, color: '#374151', lineHeight: 22 },
+
+  dNavBtn: {
+    backgroundColor: '#4caf50', borderRadius: 12,
+    paddingVertical: 14, alignItems: 'center', marginTop: 12,
+  },
+  dNavBtnText: { fontSize: 15, fontWeight: '700', color: '#ffffff' },
+
+  dProductGrid: {
+    flexDirection: 'row', flexWrap: 'wrap' as any, gap: 12, marginTop: 4,
+  },
+  dProductCard: {
+    backgroundColor: '#f9fafb', borderRadius: 12, padding: 14,
+    borderWidth: 0.5, borderColor: '#e5e7eb',
+    alignItems: 'center', minWidth: 120, flex: 1,
+  },
+  dProductEmoji: { fontSize: 28, marginBottom: 6 },
+  dProductName: { fontSize: 14, fontWeight: '600', color: '#1a1a1a', textAlign: 'center', marginBottom: 4 },
+  dProductPrice: { fontSize: 13, fontWeight: '700', color: '#f59e0b' },
+
+  addedMsg: { backgroundColor: '#f0fdf4', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#4caf50', marginBottom: 12 },
   addedMsgText: { color: '#166534', fontSize: 14, fontWeight: '600', textAlign: 'center' },
-
-  productsSection: { gap: 16 },
-  sectionTitle: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
-  emptyProducts: { alignItems: 'center', padding: 40 },
-  emptyProductsIcon: { fontSize: 48, marginBottom: 12 },
-  emptyProductsText: { fontSize: 16, color: '#9ca3af' },
-  productsGrid: { gap: 16 },
-  productCard: {
-    backgroundColor: '#ffffff', borderRadius: 14, overflow: 'hidden' as any,
-    borderWidth: 1, borderColor: '#e5e7eb',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
-  },
-  productImg: { width: '100%' as any, height: 180, backgroundColor: '#f3f4f6' },
-  productBody: { padding: 20 },
-  productHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  productName: { fontSize: 18, fontWeight: '700', color: '#1a1a1a', flex: 1, marginRight: 12 },
-  productPrice: { fontSize: 16, fontWeight: '700', color: '#f59e0b' },
-  productDesc: { fontSize: 14, color: '#6b7280', lineHeight: 20, marginBottom: 12 },
-  addBtn: { backgroundColor: '#1a1a1a', paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8, alignSelf: 'flex-start' as any },
-  addBtnText: { color: '#ffffff', fontSize: 14, fontWeight: '600' },
-
-  hoursCard: {
-    backgroundColor: '#ffffff', borderRadius: 16, padding: 20,
-    borderWidth: 1, borderColor: '#e5e7eb',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
-  },
-  hoursTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 14 },
-  hoursRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: '#f9fafb' },
-  hoursDay: { fontSize: 13, color: '#374151', fontWeight: '500', width: 80 },
-  hoursTime: { fontSize: 13, color: '#4caf50', fontWeight: '600' },
-  hoursClosed: { fontSize: 13, color: '#9ca3af' },
-  hoursFreeText: { fontSize: 14, color: '#374151', lineHeight: 22 },
-
-  mapCard: {
-    backgroundColor: '#ffffff', borderRadius: 16, padding: 16,
-    borderWidth: 1, borderColor: '#e5e7eb',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, gap: 12,
-  },
-  mapTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  fullMapBtn: { backgroundColor: '#f0fdf4', borderRadius: 8, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: '#bbf7d0' },
-  fullMapBtnText: { color: '#166534', fontSize: 13, fontWeight: '600' },
-
-  floatingBtn: {
-    position: 'absolute' as any, bottom: 24, left: '50%' as any,
-    backgroundColor: '#1a1a1a', paddingHorizontal: 28, paddingVertical: 16,
-    borderRadius: 14, transform: [{ translateX: -100 }],
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 10, elevation: 6,
-  },
-  floatingBtnText: { color: '#ffffff', fontSize: 17, fontWeight: '700' },
 });
