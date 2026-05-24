@@ -100,8 +100,10 @@ function MapDefault() {
 // ── Hlavní komponenta ────────────────────────────────────────────
 export default function MapaScreenWeb() {
   const { items: customerListItems } = useCustomerList();
-  const params = useLocalSearchParams();
+  const { q, distance: distParam } = useLocalSearchParams<{ q: string; distance: string }>();
   const [objednanyPestitelIds, setObjednanyPestitelIds] = useState<Set<number>>(new Set());
+  const [farmari, setFarmari] = useState<any[]>([]);
+  const [searchResultCount, setSearchResultCount] = useState(0);
 
   const [pestitele, setPestitele] = useState<MapaPolozka[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,13 +141,54 @@ export default function MapaScreenWeb() {
     loadProdukty();
     initializeLocation();
     loadObjednavky();
-    // Přednastav hledání z URL parametrů (přesměrování z úvodní stránky)
-    if (params.q) setSearchQuery(String(params.q));
-    if (params.distance) {
-      const d = parseInt(String(params.distance), 10);
+    if (q) setSearchQuery(q);
+    if (distParam) {
+      const d = parseInt(distParam, 10);
       if (!isNaN(d)) setSelectedDistance(d);
     }
   }, []);
+
+  useEffect(() => {
+    if (!q) return;
+    const normalize = (text: string) => text.toLowerCase()
+      .replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i')
+      .replace(/ó/g,'o').replace(/ú/g,'u').replace(/ů/g,'u')
+      .replace(/č/g,'c').replace(/š/g,'s').replace(/ž/g,'z')
+      .replace(/ř/g,'r').replace(/ě/g,'e').replace(/ý/g,'y');
+    const synonyms: Record<string, string[]> = {
+      'vejce': ['vejce', 'vajicka', 'vajíčka'],
+      'vajicka': ['vejce', 'vajicka', 'vajíčka'],
+      'vajíčka': ['vejce', 'vajicka', 'vajíčka'],
+      'jablko': ['jablko', 'jablka'],
+      'jablka': ['jablko', 'jablka'],
+      'rajce': ['rajce', 'rajčata', 'rajcata'],
+      'rajčata': ['rajce', 'rajčata', 'rajcata'],
+      'med': ['med', 'vceli', 'včelí'],
+      'jahody': ['jahody', 'jahoda'],
+      'brambory': ['brambory', 'brambora'],
+    };
+    const qNorm = normalize(q);
+    const terms = synonyms[qNorm] || synonyms[q.toLowerCase()] || [q, qNorm];
+    const uniqueTerms = [...new Set(terms)];
+    const orConditions = uniqueTerms.flatMap(term => [
+      `nazev_farmy.ilike.%${term}%`,
+      `jmeno.ilike.%${term}%`,
+      `popis.ilike.%${term}%`,
+      `mesto.ilike.%${term}%`,
+    ]).join(',');
+    supabase
+      .from('pestitele')
+      .select('id, nazev_farmy, jmeno, adresa, mesto, gps_lat, gps_lng, popis')
+      .eq('smazano', false)
+      .or(orConditions)
+      .limit(50)
+      .then(({ data }) => {
+        if (data) {
+          setFarmari(data);
+          setSearchResultCount(data.length);
+        }
+      });
+  }, [q]);
 
   const loadObjednavky = async () => {
     try {
@@ -408,12 +451,12 @@ export default function MapaScreenWeb() {
         <ScrollView style={s.leftPanel} showsVerticalScrollIndicator={false}>
 
           {/* Výsledky hledání – nahoře pokud přišlo z URL */}
-          {searchQuery.trim() ? (
+          {q ? (
             <View style={s.searchResultHeader}>
               <Text style={s.searchResultCount}>
-                Nalezeno {filteredPestitele.length} pěstitelů
+                Nalezeno {searchResultCount} pěstitelů
               </Text>
-              <Text style={s.searchResultQuery}>pro „{searchQuery}"</Text>
+              <Text style={s.searchResultQuery}>pro „{q}"</Text>
             </View>
           ) : null}
 
